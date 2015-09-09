@@ -1,0 +1,76 @@
+A:
+OK? - Fix 1st image bug (mag change)
+	Fix DS imaging - migrate away from TH classes
+
+Fix PECS imaging - but in acquisition or saving
+
+B:
+Enable AFS
+
+Initialize when start button hits? (slices, mag, etc)
+
+Drift correct with Grid
+
+Set slice number init properly
+
+C:
+Autofocus every n images
+
+Take PECS image before 1st mill
+Add multiple ROI ability
+	class with position, focus, stig, mag, default capture or DS image parameters, autofocus state
+	UI to visit all positions
+	UI to edit a position
+
+Focus on grid function, move to sample region?
+
+Add stability delays in tags
+
+Remap STOP button
+Make function to pause in SEM, or pause in PECS
+Display SEM and PECS images side by side
+
+Move result window status to status bar
+
+Background threading
+
+Workflow to exercise SEM portion only
+
+D:
+Concurrent movement of SEM stage and retraction of parker arm
+Timing of individual sections of workflow
+
+Pictoral view of current location
+
+Access to PECS milling time?
+
+Multi Digiscan signal acquisition
+
+
+
+
+
+
+
+
+
+
+
+
+Sal:
+-lock out Quanta UI from DM when needed (if possible)
+-lock out PECS UI from DM when needed
+-do not call setup_imaging anymore
+-buttons to:
+	-set mag for imaging
+	-store StoredImaging
+	-
+
+Thijs:
+-interface for SEM coordinates from tags
+
+
+hardware problems:
+-parker: requesting position sometimes causes error, solution to try is to catch this and add second layer of protection
+-dock: did not register it was up once
+

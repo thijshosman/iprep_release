@@ -1,0 +1,168 @@
+
+parker positions in iprep on quanta
+-thijs 5/20/2015
+
+x0	home/retracted all the way (milling possible)
+x30 safely open gripper in pecs chamber
+x50 gripper arms against sample and ready to close (no pin)
+x90 sample in tube before GV
+x400 in chamber
+
+
+sequence:
+
+1. go to dropoff in SEM. first move sem in place: move x and y first, then z
+x: 0.5
+y: 60
+z: 30.5
+
+2. sample dropped down into kinematic balls by opening arms
+
+3. move back to P = 100
+
+4. move sem in place. first move x and y, then z 
+pickup in SEM:
+x: 9.5
+y: 60
+z: 30.5
+
+move arm in place
+p=492
+
+5. close arms
+
+6. clear after pickup:
+x: 9.5
+y: 60
+z: 33
+
+move arm back
+p=100
+
+7. now move stage back
+p: 100
+
+
+focus on lower grid:
+x: 37.501
+y: 26.745
+z: 43.483
+
+focus on actual sample (around the middle):
+x: 6.892
+y: -20.83
+z: 43.483
+
+*** relative positions:
+
+pickup/dropoff
+x: 0
+y: 0
+z: 0
+
+clear: 
+x: +0
+y: +0
+z: +2.5
+
+nominal imaging:
+x: +27.5
+y: -33.3
+z: +12.983
+
+stored imaging (approximate centre of sample)
+x: -2.608
+y: -80.83
+z: +12.983
+
+*** after fixing stage wobble issue: ***
+
+transfer rod insertion: 
+p: 491
+
+focus on lower grid:
+x: 39.563
+y: 32.031
+z: 43.488
+
+pickup/dropoff position
+x: 10.5
+y: 66.5
+z: 29.504
+
+clear
+
+*** monday 6/15 fixing final workflow ***
+
+pickup/dropoff position
+x: 7.5
+y: 66.5
+z: 28.755
+
+p: 484.25
+
+
+*** tuesday 6/16 final workflow ***
+
+back high grid:
+xf: 25.128
+yf: 23.109
+zf: 45.742
+
+front high grid:
+xb: -10.080
+yb: 23.007
+zb: 45.742
+
+lower grid:
+xl: 37.224
+yl: 28.125
+zl: 45.742
+
+approximate center of sample
+xs: 6.289
+ys: -20.144
+zs: 45.742
+
+we know the pickup/dropoff position from careful calibration:
+x: 8
+y: 66.5
+z: 29.255
+
+p: 485.75
+
+now we calculate other positions from here
+relative positions:
+
+clear:
+x: +0
+y: +0
+z: +2.5
+
+nominal_imaging:
+x: -1.211-0.5
+y: -86.644
+z: +16.987-0.5
+
+storedImaging = nominal_imaging (at first)
+
+front high grid:
+x: -17.58-0.5
+y: =43.494
+z: +16.987-0.5
+
+back high grid: 
+x: +17.628-0.5
+y: -43.391
+z: +16.987-0.5
+
+lower grid:
+x: +29.724
+y: -38.375
+z: +16.987
+
+
+
+
+
+

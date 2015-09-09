@@ -1,0 +1,26 @@
+// DM BUGS
+
+1: Race problem with DSWaitUntilFinished()
+// Fails
+		image temp_slice_im
+		DSInvokeButton( 3 )  
+		DSWaitUntilFinished( )
+		image img := DSGetLastAcquiredImage( 0 )  // This statement fails often
+
+// Works
+		image temp_slice_im
+		DSInvokeButton( 3 ) 
+		sleep(1) 
+		DSWaitUntilFinished( )
+		image img := DSGetLastAcquiredImage( 0 )  // This statement will now succeed if script run as background, will fail otherwise
+
+
+2: Contrast / Brightness vals in SEM imaging palette are wired wrong
+
+	Also, can't read using menu item Microscope:Setup... (Test button)
+
+3: DM vaporize bug
+	menu item Microscope:Setup... 
+	Selected Microscope = unknown
+
+4: No way to determine what the data size of a Digiscan signal - these means have to hardcode the datasize for DSStartAcquisition - could be wrong

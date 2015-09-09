@@ -1,0 +1,14 @@
+
+slice7: position error when querying position from parker when moving stage from pecs outofway towards sample to pick up. 
+
+
+
+
+
+
+
+
+
+bugs:
+-progress windows A is not updated correctly with sample status manually
+

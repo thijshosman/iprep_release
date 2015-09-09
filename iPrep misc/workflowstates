@@ -1,0 +1,41 @@
+
+
+
+workflowstates are numbers and this file explain what those numbers represent
+0: undefined
+1: init in pecs, sample in PECS, milling
+2: init in SEM, sample in SEM, imaging
+
+
+
+options in each state: 
+options with () are to be implemented methods
+
+
+0:
+manually enter state system is in()
+
+1: 
+move sample to SEM()
+
+use PECS camera in DM
+set up milling parameters
+play with PECS stage, align, rotate, turn milling on
+move sample in and out with transfer device
+take optical image and save in [1]
+
+2: 
+set up directory root for experiment and create subdir for optical images [1] and SEM survey images [2]
+move stage around, move beam around
+query milling parameters()
+set imaging position stage will return to()
+move back to PECS()
+start run()
+take alignment images()
+crosscorelate alignment images()
+take SEM image and save in [2]
+go to imaging position stored()
+
+
+
+

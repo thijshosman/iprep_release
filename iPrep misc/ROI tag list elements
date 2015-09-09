@@ -1,0 +1,40 @@
+Microscope
+	Stage X
+	Stage Y
+	Stage Z
+	dX
+	dY
+	dZ
+	focus
+	df
+	dfdslice
+	magnification
+	brightness
+	contrast
+	(stigmator X)
+	(stigmator Y)
+	kV
+	spotsize
+
+Digiscan
+	width
+	height
+	rotation
+	pixelTime
+	lineSync
+
+	signalIndex
+		dataType
+		selected
+
+Autofocus
+	enable: off/AF/AFS
+	AFS tags
+	change df
+
+
+Enable change
+Value
+Units
+Auto
+Track
