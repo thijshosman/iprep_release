@@ -478,6 +478,8 @@ Number IPrep_Setup_Imaging()
 
 Number IPrep_MoveToPECS()
 {
+	number returncode
+
 	print("IPrep_MoveToPECS")
 	try
 	{
@@ -486,24 +488,20 @@ Number IPrep_MoveToPECS()
 		myStateMachine.SEM_to_PECS()
 		myPW.updateA("sample: in PECS")
 		print("iprep move to pecs done")
+		returncode = 1 // to indicate success
 	}
 	catch
 	{
-		if(!ContinueCancelDialog( GetExceptionString()+". continue workflow?" ))
-		{
-			print("stopped after exception: "+GetExceptionString())
-			
-			IPrep_Abort()
-			IPrep_cleanup()
-		}
-		else
-		{
-			print("continuing after exception like nothing happened")
-			break
-		}
+		// system gets dead safe or dead unsafe exception and decides what to do from here
+		// - set dead flag in global tags
+		// - return 0 to 
+
+		returncode = 0 // to indicate error
+
+		break // so that flow contineus
 	}
 
-	return 1
+	return returncode
 }
 
 Number IPrep_MoveToSEM()

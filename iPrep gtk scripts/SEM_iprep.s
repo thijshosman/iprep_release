@@ -17,7 +17,6 @@ class SEMCoord: object
 
 
 	void SEMCoord(object self)
-
 	{
 		// constructor
 		X=0
@@ -450,6 +449,22 @@ class SEM_IPrep: object
 	}
 
 	// *** state transfers ***
+
+	number checkStateConsistency(object self)
+	{ 
+		// amount in mm you can be off in x, y and z when checking actual position
+		// against state
+		number stateThresold = 1
+		// check to see that current stage coordinates are consistent with the current state
+
+		string currentstate = self.getstate()
+
+		if (state == "")
+
+
+
+	}
+
 
 	void goToPickup_Dropoff(object self)
 	{

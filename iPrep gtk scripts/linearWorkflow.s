@@ -689,8 +689,7 @@ class workflowStateMachine: object
 		{
 			self.changeWorkflowState("onTheWayToSEM")
 			// pick up from PECS stage, drop off in SEM, retract transfer device
-			try
-			{
+
 				number tick = GetOSTickCount()
 				// fast, as fast as can be done synchronously
 				myWorkflow.fastPecsToSem()
@@ -702,11 +701,6 @@ class workflowStateMachine: object
 				
 				number tock = GetOSTickCount()
 				self.print("elapsed time PECS->SEM: "+(tock-tick)/1000+" s")
-			}
-			catch
-			{
-				result("error in PECS->SEM: "+ GetExceptionString() + "\n" )
-			}
 
 			self.changeWorkflowState("SEM")
 			
@@ -728,8 +722,6 @@ class workflowStateMachine: object
 			self.changeWorkflowState("onTheWayToPECS")
 			// bring arm out, pick up from SEM stage, slide into dovetail mount on PECS stage, retract
 			
-			try
-			{
 				number tick = GetOSTickCount()
 				// fast, as fast as can be done synchronously
 				myWorkflow.fastSemToPecs()
@@ -740,12 +732,6 @@ class workflowStateMachine: object
 				
 				number tock = GetOSTickCount()
 				self.print("elapsed time SEM->PECS: "+(tock-tick)/1000+" s")
-			}
-			catch
-			{
-
-				result("error in SEM->PECS: "+ GetExceptionString() + "\n" )
-			}
 
 			self.changeWorkflowState("PECS")
 
@@ -765,8 +751,7 @@ class workflowStateMachine: object
 
 		if (workflowState == "PECS")
 		{	
-			try
-			{
+
 				number tick = GetOSTickCount()
 				number tock
 				myWorkflow.executeMillingStep(simulation)
@@ -812,13 +797,7 @@ class workflowStateMachine: object
 				self.print("elapsed time in milling: "+(tock-tick)/1000+" s")
 				self.print("milling completed, now taking image")	
 
-			}
-			catch
-			{
-				// if exception is thrown, stop milling
-				myWorkflow.returnPecs().stopMilling()
-				result("error in milling: "+ GetExceptionString() + "\n" )
-			}
+
 		}
 		else
 			throw("commanded to perform milling step when sample is not in PECS")
