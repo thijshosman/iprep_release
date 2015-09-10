@@ -11,6 +11,10 @@ class workflow: object
 	object mySEM
 	object myPecsCamera
 	object myDigiscan
+
+	// haltflag used to interrupt workflow elements if set
+	object haltFlag
+
 	
 	void log(object self, number level, string text)
 	{
@@ -65,7 +69,6 @@ class workflow: object
 		self.print("gripper current state: "+myGripper.getState())
 		self.print("SEM dock current state: "+mySEMdock.getState())
 		self.print("PECS GVstate: "+myPecs.getGVstate())
-
 		self.print("--- initializing hardware complete---\n")
 
 	}
@@ -149,24 +152,12 @@ class workflow: object
 		// move forward to where sample can be picked up
 		myTransfer.move("pickup_pecs")
 
-		if(getProtectedModeFlag())
-		{
-			if(!ContinueCancelDialog( "continue?" ))
-			{
-			throw("mijn error")
-			}
-		}
+		continueCheck()
 
 		// close gripper arms
 		myGripper.close()
 
-		if(getProtectedModeFlag())
-		{
-			if(!ContinueCancelDialog( "continue?" ))
-			{
-			throw("mijn error")
-			}
-		}
+		continueCheck()
 
 		// slide sample out and move towards gate valve
 		myTransfer.move("beforeGV")
@@ -196,24 +187,12 @@ class workflow: object
 		// move into chamber
 		myTransfer.move("dropoff_sem")
 
-		if(getProtectedModeFlag())
-		{
-			if(!ContinueCancelDialog( "continue?" ))
-			{
-			throw("mijn error")
-			}
-		}
+		continueCheck()
 
 		// SEM Stage to dropoff position
 		mySEM.goToPickup_Dropoff()
 
-		if(getProtectedModeFlag())
-		{
-			if(!ContinueCancelDialog( "continue?" ))
-			{
-			throw("mijn error")
-			}
-		}
+		continueCheck()
 
 		// gripper open to release sample
 		myGripper.open()
@@ -318,13 +297,7 @@ if (XYZZY)
 		// move transfer system to pickup point
 		myTransfer.move("pickup_sem")
 
-		if(getProtectedModeFlag())
-		{
-			if(!ContinueCancelDialog( "continue?" ))
-			{
-			throw("mijn error")
-			}
-		}
+		continueCheck()
 
 		// gripper close, sample is picked up
 		myGripper.close()
@@ -354,16 +327,6 @@ if (XYZZY)
 		// back off 1 mm
 		myTransfer.move("dropoff_pecs_backoff")
 
-		/*
-		if(getProtectedModeFlag())
-		{
-			if(!ContinueCancelDialog( "continue?" ))
-			{
-			throw("mijn error")
-			}
-		}
-		*/
-
 		// open gripper arms
 		myGripper.open()
 	
@@ -380,6 +343,36 @@ if (XYZZY)
 
 		//result("error in 2nd SEM->PECS step: "+ GetExceptionString() + "\n" )
 	}
+
+	void WFtestroutine(object self)
+	{
+		// test routine for error framework
+
+		result("step 1")
+		sleep(1)	
+
+		// test 1, continue dialog
+		continueCheck()
+
+		result("step 2")
+		sleep(1)
+
+		// test 2, halt flag
+		returnHaltFlag().haltCheck()
+		result("step 3")
+		sleep(1)
+
+		// test 3, option+shift
+		manualHaltOptionShift()
+		result("step 4")
+		sleep(1)
+
+		result("step 5")
+		sleep(1)
+
+	}
+
+
 
 	void fastSemToPecs(object self)
 	{
@@ -413,13 +406,7 @@ if (XYZZY)
 		// move transfer system to pickup point
 		myTransfer.move("pickup_sem")
 
-		if(getProtectedModeFlag())
-		{
-			if(!ContinueCancelDialog( "continue?" ))
-			{
-			throw("mijn error")
-			}
-		}
+		continueCheck()
 
 		// gripper close, sample is picked up
 		myGripper.close()
@@ -432,16 +419,6 @@ if (XYZZY)
 
 		// back off 1 mm to relax tension on springs
 		myTransfer.move("dropoff_pecs_backoff")
-
-		/*
-		if(getProtectedModeFlag())
-		{
-			if(!ContinueCancelDialog( "continue?" ))
-			{
-			throw("mijn error")
-			}
-		}
-		*/
 
 		// open gripper arms
 		myGripper.open()
@@ -489,24 +466,12 @@ if (XYZZY)
 		// move forward to where sample can be picked up
 		myTransfer.move("pickup_pecs")
 
-		if(getProtectedModeFlag())
-		{
-			if(!ContinueCancelDialog( "continue?" ))
-			{
-			throw("mijn error")
-			}
-		}
+		continueCheck()
 
 		// close gripper arms
 		myGripper.close()
 
-		if(getProtectedModeFlag())
-		{
-			if(!ContinueCancelDialog( "continue?" ))
-			{
-			throw("mijn error")
-			}
-		}
+		continueCheck()
 
 		// open GV
 		myPecs.openGVandCheck()
@@ -520,24 +485,12 @@ if (XYZZY)
 		// move into chamber
 		myTransfer.move("dropoff_sem")
 
-		if(getProtectedModeFlag())
-		{
-			if(!ContinueCancelDialog( "continue?" ))
-			{
-			throw("mijn error")
-			}
-		}
+		continueCheck()
 
 		// SEM Stage to dropoff position
 		mySEM.goToPickup_Dropoff()
 
-		if(getProtectedModeFlag())
-		{
-			if(!ContinueCancelDialog( "continue?" ))
-			{
-			throw("mijn error")
-			}
-		}
+		continueCheck()
 
 		// gripper open to release sample
 		myGripper.open()
@@ -623,6 +576,8 @@ class workflowStateMachine: object
 	number imageTick
 	number imageTock
 
+	// flag set when system is in weird state
+	object deadFlag
 
 	void print(object self, string str1)
 	{
@@ -839,6 +794,17 @@ class workflowStateMachine: object
 		}
 		else
 			throw("commanded to perform imaging step when sample is not in SEM")
+	}
+
+
+	void SMtestroutine(object self)
+	{
+		self.print("SM test routine started")
+
+		myWorkflow.WFtestroutine()
+
+		self.print("SM test routine ended")
+
 	}
 
 

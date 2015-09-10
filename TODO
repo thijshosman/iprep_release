@@ -1,0 +1,25 @@
+
+A (before packing up): 
+-framework for error handling
+-save SEMcoords object into tags
+-update sem_iprep to add consistency check for sem state changes
+-proper start routine
+-update functions in Sal's UI module to include error handling
+
+
+B (while in shipping):
+-clean up main to put stuff back in classes below
+	-remove kv/wd stuff from sem class
+	-handle imaging from main, remove from state machine and workflow
+	-handle pecs camera back in pecs class
+-multi ROI
+-implement proper user dialog in combination of results/debug/logfile/UI menus
+
+
+
+
+
+
+
+
+

@@ -475,6 +475,37 @@ Number IPrep_Setup_Imaging()
 
 // *** methods directly called by UI elements ***
 
+Number IPrep_foobar()
+{
+	// test function for error handling
+
+	number returncode = 0
+
+	print("IPrep_foobar")
+	try
+	{
+		print("foobar start")
+		
+		myStateMachine.SMtestroutine()
+		
+		print("foobar end")
+		returncode = 1 // to indicate success
+	}
+	catch
+	{
+		// system gets dead safe or dead unsafe exception and decides what to do from here
+		// - set dead flag in global tags
+		// - return 0 to 
+
+		returncode = 0 // to indicate error
+
+		break // so that flow contineus
+	}
+
+	return returncode
+}
+
+
 
 Number IPrep_MoveToPECS()
 {
@@ -506,6 +537,8 @@ Number IPrep_MoveToPECS()
 
 Number IPrep_MoveToSEM()
 {
+	number returncode
+
 	print("IPrep_MoveToSEM")
 	try
 	{
@@ -514,23 +547,19 @@ Number IPrep_MoveToSEM()
 		myStateMachine.PECS_to_SEM()
 		myPW.updateA("sample: SEM")
 		print("iprep move to sem done")
+		returncode = 1 // to indicate success
 	}
 	catch
 	{
-		if(!ContinueCancelDialog( GetExceptionString()+". continue workflow?" ))
-		{
-			print("stopped after exception: "+GetExceptionString())
-			
-			IPrep_Abort()
-			IPrep_cleanup()
-		}
-		else
-		{
-			print("continuing after exception like nothing happened")
-			break
-		}
+		// system gets dead safe or dead unsafe exception and decides what to do from here
+		// - set dead flag in global tags
+		// - return 0 to 
+
+		returncode = 0 // to indicate error
+
+		break // so that flow contineus
 	}
-	return 1
+	return returncode
 }
 
 
@@ -540,17 +569,13 @@ Number IPrep_StartRun()
 	if (myStateMachine.getCurrentWorkflowState() != "SEM")
 	{
 		print("cannot start workflow from "+myStateMachine.getCurrentWorkflowState()+", aborting")
-		
-		IPrep_Abort()
-		IPrep_cleanup()
+		return 0
 	}
 
 	if (!IPrep_continous_check())
 	{
 		print("PECS system not at vacuum or argon leak, aborting")
-		
-		IPrep_Abort()
-		IPrep_cleanup()
+		return 0
 	}
 
 

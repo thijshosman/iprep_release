@@ -37,8 +37,8 @@ else
 
 string package = "IPrep"
 
-InstallFile( PathConcatenate( gPath, "iprep_general.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "statePersistance.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "iprep_general.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "iprep_3Dvolume.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "PlanarSEMdock.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "transfer.s" ), package, 3 )

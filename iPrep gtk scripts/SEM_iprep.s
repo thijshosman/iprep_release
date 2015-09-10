@@ -457,9 +457,8 @@ class SEM_IPrep: object
 		number stateThresold = 1
 		// check to see that current stage coordinates are consistent with the current state
 
-		string currentstate = self.getstate()
+		//string currentstate = self.state
 
-		if (state == "")
 
 
 
