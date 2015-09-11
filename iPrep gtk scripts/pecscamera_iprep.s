@@ -70,6 +70,15 @@ class pecsCamera_iprep : object
 
 	}
 
+	void liveView(object self)
+	{
+		// start live view acquisition
+		PIPS_StartLiveview()
+
+	}
+
+
+
 	void save(object self)
 	{
 		// *** public ***

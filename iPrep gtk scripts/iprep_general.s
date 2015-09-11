@@ -7,33 +7,92 @@ class deadFlagObject:object
 	object deadFlag
 	object safetyFlag
 
+	void log(object self, number level, string text)
+	{
+		// log events in log files
+		LogEvent("deadFlag", level, text)
+	}
+
+	void print(object self, string str1)
+	{
+		result("deadFlag: "+str1+"\n")
+		self.log(2,str1)
+
+	}
+
 	void deadFlagObject(object self)
 	{
 		// get deadflag
 		deadFlag = alloc(statePersistance)
 		safetyFlag = alloc(statePersistance)
-	{
+		deadFlag.init("flags:dead")
+		safetyFlag.init("flags:safe")
+	}
 
 	void setDead(object self, number status)
 	{
 		// set whether system is dead or not
-		deadFlag
-
+		self.print("deadflag set to " + status)
+		deadFlag.setState(""+status)
 	}
 
 	void setSafety(object self, number status)
 	{
 		// set whether system is safe to operate
+		self.print("safety flag set to " + status)
+		safetyFlag.setState(""+status)
+	}
+
+	number isDead(object self)
+	{
+		// is system dead (ie is flag set)?
+		return val(deadFlag.getState())
 
 	}
 
-	void setDeadSafe
+	number isSafe(object self)
+	{
+		// is system safe to operate (ie is flag set)?
+		return val(safetyFlag.getState())
+	}
 
-	void setDeadUnsafe
 
-	void checkDeadSafe
+	void setDeadSafe(object self)
+	{
+		self.setDead(1)
+		self.setSafety(1)
+	}
 
+	void setDeadUnsafe(object self)
+	{
+		self.setDead(1)
+		self.setSafety(0)
+	}
 
+	void setAliveSafe(object self)
+	{
+		self.setDead(0)
+		self.setSafety(1)
+	}
+
+	number checkAliveAndSafe(object self)
+	{
+		if (!self.isDead() & self.isSafe())
+			return 1
+		else
+		{
+			self.print("system is not (alive and safe)")
+			return 0
+		}
+	}
+	
+	number checkDeadAndSafe(object self)
+	{
+		if (self.isDead() & self.isSafe())
+			return 1
+		else
+			return 0
+	}
 
 }
 
@@ -148,8 +207,18 @@ object returnHaltFlag()
 
 
 
-
-
+// testing
+/*
+returnDeadFlag().setAliveSafe()
+result("alivesafe: "+returnDeadFlag().checkAliveAndSafe()+"\n")
+result("deadsafe: "+returnDeadFlag().checkDeadAndSafe()+"\n")
+returnDeadFlag().setDeadSafe()
+result("alivesafe: "+returnDeadFlag().checkAliveAndSafe()+"\n")
+result("deadsafe: "+returnDeadFlag().checkDeadAndSafe()+"\n")
+returnDeadFlag().setDeadUnSafe()
+result("alivesafe: "+returnDeadFlag().checkAliveAndSafe()+"\n")
+result("deadsafe: "+returnDeadFlag().checkDeadAndSafe()+"\n")
+*/
 
 // testing
 

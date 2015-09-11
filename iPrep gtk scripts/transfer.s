@@ -251,6 +251,7 @@ class parkerTransfer:object
 		self.sendCommand("JOG DEC X50.000000")
 		self.sendCommand("JOG JRK X20.000000")
 		self.sendCommand("JOG VEL X40.000000")
+		self.sendCommand("C14=0.1") // set torque limit (in Nm)
 		//save PPU (factor for encoder position to get to linear position)
 		PPU = val(self.sendCommand("?P12375"))	
 		self.turnOff()

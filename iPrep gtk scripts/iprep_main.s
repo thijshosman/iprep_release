@@ -175,6 +175,7 @@ void acquire_PECS_image( image &img )
 // Uses default PECS camera acquire settings
 // Image is not displayed
 // Turns off illumination on exit
+// TODO: migrate to pecscamera class
 {
 	object myWorkflow = returnWorkflow()
 	object myStateMachine = returnStateMachine()
@@ -280,10 +281,9 @@ void IPrep_init()
 		// get initial state from tag
 		myStateMachine.init(myWorkflow)
 
-if (XYZZY)	
-{	
+
+
 		print("current slice: "+IPrep_sliceNumber())
-}
 		myPW.updateC("slice: "+IPrep_sliceNumber())
 		myPW.updateB("idle")
 		myPW.updateA("sample: "+myStateMachine.getCurrentWorkflowState())
@@ -477,9 +477,12 @@ Number IPrep_Setup_Imaging()
 
 Number IPrep_foobar()
 {
-	// test function for error handling
+	// test function for error handling framework
 
 	number returncode = 0
+
+	if (!returnDeadFlag().checkAliveAndSafe())
+		return returncode // to indicate error
 
 	print("IPrep_foobar")
 	try
@@ -493,11 +496,8 @@ Number IPrep_foobar()
 	}
 	catch
 	{
-		// system gets dead safe or dead unsafe exception and decides what to do from here
-		// - set dead flag in global tags
-		// - return 0 to 
-
-		returncode = 0 // to indicate error
+		// system caught unhandled exception and is now considered dead/unsafe
+		returnDeadFlag().setDeadUnSafe()
 
 		break // so that flow contineus
 	}
@@ -505,11 +505,12 @@ Number IPrep_foobar()
 	return returncode
 }
 
-
-
 Number IPrep_MoveToPECS()
 {
-	number returncode
+	number returncode = 0
+
+	if (!returnDeadFlag().checkAliveAndSafe())
+		return returncode // to indicate error
 
 	print("IPrep_MoveToPECS")
 	try
@@ -523,11 +524,9 @@ Number IPrep_MoveToPECS()
 	}
 	catch
 	{
-		// system gets dead safe or dead unsafe exception and decides what to do from here
-		// - set dead flag in global tags
-		// - return 0 to 
 
-		returncode = 0 // to indicate error
+		// system caught unhandled exception and is now considered dead/unsafe
+		returnDeadFlag().setDeadUnSafe()
 
 		break // so that flow contineus
 	}
@@ -537,7 +536,10 @@ Number IPrep_MoveToPECS()
 
 Number IPrep_MoveToSEM()
 {
-	number returncode
+	number returncode = 0
+
+	if (!returnDeadFlag().checkAliveAndSafe())
+		return returncode // to indicate error
 
 	print("IPrep_MoveToSEM")
 	try
@@ -551,11 +553,8 @@ Number IPrep_MoveToSEM()
 	}
 	catch
 	{
-		// system gets dead safe or dead unsafe exception and decides what to do from here
-		// - set dead flag in global tags
-		// - return 0 to 
-
-		returncode = 0 // to indicate error
+		// system caught unhandled exception and is now considered dead/unsafe
+		returnDeadFlag().setDeadUnSafe()
 
 		break // so that flow contineus
 	}
@@ -565,41 +564,79 @@ Number IPrep_MoveToSEM()
 
 Number IPrep_StartRun()
 {
-	print("IPrep_StartRun")
-	if (myStateMachine.getCurrentWorkflowState() != "SEM")
+	number returncode = 0
+
+	if (!returnDeadFlag().checkAliveAndSafe())
+		return returncode // to indicate error
+
+	try
 	{
-		print("cannot start workflow from "+myStateMachine.getCurrentWorkflowState()+", aborting")
-		return 0
+
+		if (!returnDeadFlag().checkAliveAndSafe())
+			return returncode // to indicate error	
+
+		print("IPrep_StartRun")
+		if (myStateMachine.getCurrentWorkflowState() != "SEM")
+		{
+			print("cannot start workflow from "+myStateMachine.getCurrentWorkflowState()+", aborting")
+			return returncode
+		}
+
+		if (!IPrep_continous_check())
+		{
+			print("PECS system not at vacuum or argon leak, aborting")
+			return returncode
+		}
+
+
+		// lockout PECS UI
+		myWorkflow.returnPECS().lockOut()
+
+		// launch the thread that is going to check the argon pressure and TMP speed
+		// TODO: make sure this does cause triggers when valve is just actuated
+		//statusThread = alloc(statusCheck)
+		//statusThread.init().StartThread()
+
+		returncode = 1 // to indicate success
+
+	}
+	catch
+	{
+		// system caught unhandled exception and is now considered dead/unsafe
+		returnDeadFlag().setDeadUnSafe()
+
+		break // so that flow contineus
+
 	}
 
-	if (!IPrep_continous_check())
-	{
-		print("PECS system not at vacuum or argon leak, aborting")
-		return 0
-	}
 
-
-	// lockout PECS UI
-	myWorkflow.returnPECS().lockOut()
-
-	// launch the thread that is going to check the argon pressure and TMP speed
-	// TODO: make sure this does cause triggers when valve is just actuated
-	//statusThread = alloc(statusCheck)
-	//statusThread.init().StartThread()
-
-	return 1
+	return returncode
 }
 
 Number IPrep_PauseRun()
 {
+	number returncode = 0
+
+	if (!returnDeadFlag().checkAliveAndSafe())
+		return returncode // to indicate error
+
+	returncode = 1 // to indicate success
+
 	print("IPrep_PauseRun")
-	return 1
+	return returncode
 }
 
 Number IPrep_ResumeRun()
 {
+	number returncode = 0
+
+	if (!returnDeadFlag().checkAliveAndSafe())
+		return returncode // to indicate error
+
+	returncode = 1 // to indicate success
+	
 	print("IPrep_ResumeRun")
-	return 1
+	return returncode
 }
 
 Number IPrep_StopRun()
@@ -610,112 +647,134 @@ Number IPrep_StopRun()
 
 Number IPrep_Image()
 {
-	// Update GMS status bar - SEM imaging started
-		myPW.updateB("SEM imaging...")	
+	number returncode = 0
 
-	// Goto saved specimen ROI location using SEM stage
-		object mySI = myWorkflow.returnSEM().returnStoredImaging()
-		number xx,yy,zz
-		xx=mySI.getX()
-		yy=mySI.getY()
-		zz=mySI.getZ()
-		if (zz > 5)	// safety check, make sure tags are set -- should do proper in bounds checking
-			myWorkflow.returnSEM().goToStoredImaging()
+	if (!returnDeadFlag().checkAliveAndSafe())
+		return returncode // to indicate error
 
-	// Set SEM focus to saved value
-		number saved_focus = EMGetFocus()/1000	// initialize to current value (in case tag is empty)
-		string tagname = "IPrep:SEM:WD:value"
-		if ( GetPersistentNumberNote( tagname, saved_focus ) )
-		{
-			EMSetFocus( saved_focus*1000 )
-			EMWaitUntilReady()
-		}
-
-	// Workaround for Quanta SEM magnification bug (changes mag at SEM after some unknown action, but mag query gives original (now incorrect) mag) #TODO:Fix
-		WorkaroundQuantaMagBug()
-
-	// Unblank SEM beam
-		FEIQuanta_SetBeamBlankState(0)
-		EMWaitUntilReady()
-		sleep(1)	// Beam on stabilization delay, #TODO: Move to tag
-
-	// Autofocus, if enabled in tag
-	tagname = "IPrep:SEM:AF:Enable"
-	number afs_enable = 0
-	if ( GetPersistentNumberNote( tagname, afs_enable ) )
-		if ( afs_enable )
-		{
-			afs_run()		// Autofocus command - #TODO: configure properly, turn off stig checking
-			number afs_sleep = 1	// seconds of delay
-			sleep( afs_sleep )
-
-			number current_focus = myWorkflow.returnSEM().measureWD()
-			number change = current_focus - saved_focus
-			result("Autofocus changed focus value by "+change+" mm\n")
-
-		// Set "default/desired" focus to autofocus value - subsequent images will use this
-			myWorkflow.returnSEM().setDesiredWD(current_focus)
-		}
-
-		// If afs_enable tag is set to a negative value, do autofocus one time and then turn off
-		if ( afs_enable < 0 )
-		{
-			afs_enable = 0
-			SetPersistentNumberNote( tagname, afs_enable )
-		}
-
-	// Acquire Digiscan image, use "Capture" settings
-		image temp_slice_im
-		AcquireDigiscanImage( temp_slice_im )
-
-	// Blank SEM beam
-		FEIQuanta_SetBeamBlankState(1)
-
-	// Verify SEM is functioning properly - pause acquisition otherwise (might be better to do before AFS with a test scan, easier here)
+	try
 	{
-			number avg = average( temp_slice_im )
-			number threshold = 500
-			string tagname = "IPrep:SEM:Emission check threshold"
-			GetPersistentNumberNote( tagname, threshold )
 
-			if ( avg < threshold )
+
+
+		// Update GMS status bar - SEM imaging started
+			myPW.updateB("SEM imaging...")	
+
+		// Goto saved specimen ROI location using SEM stage
+			object mySI = myWorkflow.returnSEM().returnStoredImaging()
+			number xx,yy,zz
+			xx=mySI.getX()
+			yy=mySI.getY()
+			zz=mySI.getZ()
+			if (zz > 5)	// safety check, make sure tags are set -- should do proper in bounds checking
+				myWorkflow.returnSEM().goToStoredImaging()
+
+		// Set SEM focus to saved value
+			number saved_focus = EMGetFocus()/1000	// initialize to current value (in case tag is empty)
+			string tagname = "IPrep:SEM:WD:value"
+			if ( GetPersistentNumberNote( tagname, saved_focus ) )
 			{
-				// average image value is less than threshold, assume SEM emission problem, pause acq
-				string str = datestamp()+": Average image value ("+avg+") is less than emission check threshold ("+threshold+")\n"
-				result( str )
-				string str2 = "\nAcquisition has been paused.\n\nCheck SEM is working properly and press <Continue> to resume acquisition, or <Cancel> to stop."
-				string str3 = "\n\nNote: Threshold can be set at global tag: IPrep:SEM:Emission check threshold"
-				if ( !ContinueCancelDialog( str + str2 +str3 ) )
-				{
-						IPrep_Abort()	// #Todo: Check this exits correctly
-						IPrep_cleanup()
-						str = datestamp()+": Acquisition terminated by user" 
-						result( str +"\n" )
-						Throw( str )
-				}
+				EMSetFocus( saved_focus*1000 )
+				EMWaitUntilReady()
 			}
-			else
-				result( datestamp()+": Average image value ("+avg+") is greater than emission check threshold ("+threshold+"). SEM emission assumed OK.\n" )
+
+		// Workaround for Quanta SEM magnification bug (changes mag at SEM after some unknown action, but mag query gives original (now incorrect) mag) #TODO:Fix
+			WorkaroundQuantaMagBug()
+
+		// Unblank SEM beam
+			FEIQuanta_SetBeamBlankState(0)
+			EMWaitUntilReady()
+			sleep(1)	// Beam on stabilization delay, #TODO: Move to tag
+
+		// Autofocus, if enabled in tag
+		tagname = "IPrep:SEM:AF:Enable"
+		number afs_enable = 0
+		if ( GetPersistentNumberNote( tagname, afs_enable ) )
+			if ( afs_enable )
+			{
+				afs_run()		// Autofocus command - #TODO: configure properly, turn off stig checking
+				number afs_sleep = 1	// seconds of delay
+				sleep( afs_sleep )
+
+				number current_focus = myWorkflow.returnSEM().measureWD()
+				number change = current_focus - saved_focus
+				result("Autofocus changed focus value by "+change+" mm\n")
+
+			// Set "default/desired" focus to autofocus value - subsequent images will use this
+				myWorkflow.returnSEM().setDesiredWD(current_focus)
+			}
+
+			// If afs_enable tag is set to a negative value, do autofocus one time and then turn off
+			if ( afs_enable < 0 )
+			{
+				afs_enable = 0
+				SetPersistentNumberNote( tagname, afs_enable )
+			}
+
+		// Acquire Digiscan image, use "Capture" settings
+			image temp_slice_im
+			AcquireDigiscanImage( temp_slice_im )
+
+		// Blank SEM beam
+			FEIQuanta_SetBeamBlankState(1)
+
+		// Verify SEM is functioning properly - pause acquisition otherwise (might be better to do before AFS with a test scan, easier here)
+		{
+				number avg = average( temp_slice_im )
+				number threshold = 500
+				string tagname = "IPrep:SEM:Emission check threshold"
+				GetPersistentNumberNote( tagname, threshold )
+
+				if ( avg < threshold )
+				{
+					// average image value is less than threshold, assume SEM emission problem, pause acq
+					string str = datestamp()+": Average image value ("+avg+") is less than emission check threshold ("+threshold+")\n"
+					result( str )
+					string str2 = "\nAcquisition has been paused.\n\nCheck SEM is working properly and press <Continue> to resume acquisition, or <Cancel> to stop."
+					string str3 = "\n\nNote: Threshold can be set at global tag: IPrep:SEM:Emission check threshold"
+					if ( !ContinueCancelDialog( str + str2 +str3 ) )
+					{
+							IPrep_Abort()	// #Todo: Check this exits correctly
+							IPrep_cleanup()
+							str = datestamp()+": Acquisition terminated by user" 
+							result( str +"\n" )
+							Throw( str )
+					}
+				}
+				else
+					result( datestamp()+": Average image value ("+avg+") is greater than emission check threshold ("+threshold+"). SEM emission assumed OK.\n" )
+
+		}
+
+		// Save Digiscan image
+			IPrep_saveSEMImage(temp_slice_im, "digiscan")
+
+		// Close Digiscan image
+			ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
+			imdoc.ImageDocumentClose(0)
+			
+		// Update GMS status bar - SEM imaging done
+			myPW.updateB("SEM imaging completed")
+			result(datestamp()+": SEM mag 2 = "+EMGetMagnification()+"\n")
+
+		returncode = 1
+
+	}
+	catch
+	{
+		// system caught unhandled exception and is now considered dead/unsafe
+		returnDeadFlag().setDeadUnSafe()
+
+		break // so that flow contineus
 
 	}
 
-	// Save Digiscan image
-		IPrep_saveSEMImage(temp_slice_im, "digiscan")
-
-	// Close Digiscan image
-		ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
-		imdoc.ImageDocumentClose(0)
-		
-	// Update GMS status bar - SEM imaging done
-		myPW.updateB("SEM imaging completed")
-		result(datestamp()+": SEM mag 2 = "+EMGetMagnification()+"\n")
 
 
-/*
+/* // old code thijs
 
 	print("IPrep_Image")
-	try
-	{
+
 		// initiate workflow to align, image, save data
 		print("imaging started")
 		myPW.updateB("imaging started")
@@ -764,28 +823,13 @@ if (XYZZY)
 
 		myPW.updateB("imaging done")
 		print("imaging done")
-	}
-	catch
-	{
+
 		// make sure beam gets turned off and things like that
 		myWorkflow.postImaging()
 
-		if(!ContinueCancelDialog( GetExceptionString()+". continue workflow?" ))
-		{
-			print("stopped after exception: "+GetExceptionString())
-			
-			IPrep_Abort()
-			IPrep_cleanup()
-		}
-		else
-		{
-			print("continuing after exception like nothing happened")
-			break
-		}
-	}
 
 */
-	return 1;
+	return returncode
 }
 
 
@@ -796,6 +840,11 @@ Number IPrep_Mill()
 // Assumes sample is in PECS
 // Mills sample, saves image
 {
+	number returncode = 0
+
+	if (!returnDeadFlag().checkAliveAndSafe())
+		return returncode // to indicate error
+
 	print("IPrep_Mill")
 	try
 	{
@@ -830,23 +879,18 @@ Number IPrep_Mill()
 		myPW.updateB("PECS milling done")
 		
 		print("milling done. new slice number: "+IPrep_sliceNumber())
+		
+		returncode = 1
 	}
 	catch
 	{
-		if(!ContinueCancelDialog( "Exception in Iprep_Mill():"+GetExceptionString()+". continue workflow?" ))
-		{
-			print("stopped after exception: "+GetExceptionString())
-			
-			IPrep_Abort()
-			IPrep_cleanup()
-		}
-		else
-		{
-			print("continuing after exception like nothing happened")
-			break
-		}
+		// system caught unhandled exception and is now considered dead/unsafe
+		returnDeadFlag().setDeadUnSafe()
+
+		break // so that flow contineus
+
 	}
-	return 1;
+	return returncode
 }
 
 Number IPrep_IncrementSliceNumber()
