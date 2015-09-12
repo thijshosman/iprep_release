@@ -2,6 +2,7 @@
 class positionManager: object
 {
 	
+	// TODO: detect kill switch in parker software and throw error if set
 	
 	number savePosition(object self, string positionName, number position)
 	{
@@ -18,6 +19,8 @@ class positionManager: object
 		return subtag
 	}
 	
+
+
 	number getPosition(object self, string positionName)
 	{
 		//return position based on name of tag and throws error if it does not exist
@@ -148,11 +151,31 @@ class parkerTransfer:object
 
 		
 		timeout = 60
-		accuracy = 0.1
+		accuracy = 0.15
 	
 		// load positions from globaltags
 		parkerPositions = alloc(positionManager)
 		self.restoreState()
+	}
+
+	number killSwitchEngaged(object self)
+	{
+		if (self.sendCommand("?BIT8467") == "-1")
+			return 1
+		else
+			return 0
+	}
+
+	void setKillSwitch(object self)
+	{
+		self.sendCommand("BIT8467=1")
+		self.print("kill all moves bit set")
+	}
+
+	void resetKillSwitch(object self)
+	{
+		self.sendCommand("BIT8467=0")
+		self.print("kill all moves bit reset to 0")
 	}
 
 	void setManualState(object self,string state)
@@ -268,29 +291,37 @@ class parkerTransfer:object
 		// homes in negative direction at slow speed
 		// only use when close to 0 (like, 29) since it returns immediately
 
-		self.print("homing..")
+		if (self.killSwitchEngaged()==0) 
+		{
 
-		self.turnOn()
-		self.sendCommand("BIT16152=1") // Home Backup Enable
-		self.sendCommand("BIT16153=0") // Home Negative Edge Select
-		self.sendCommand("BIT16154=1") // Home Negative Final Direction
-		self.sendCommand("JOG HOMVF X1")
-		self.sendCommand("BIT799=0") // HSINT Aborted
-		self.sendCommand("BIT798=0") // HSINT Registered
-		self.sendCommand("JOG JRK X10.000000") // lower jerk for homing
-		self.sendCommand("JOG VEL X5.000000") // lower speed for homing
-		self.sendCommand("JOG HOME X-1") // HOMING COMMAND
+			self.print("homing..")
 
-		// save previous state
-		laststate=state
-		parkerPositions.saveLastState(laststate)
-		
-		// save current state
-		self.setManualState("outofway")
-		parkerPositions.saveCurrentPosition(0)
-		// sleep(20)
-		self.print("homing, current pos: "+self.getCurrentPosition())
-		//self.turnOff()
+			self.turnOn()
+			self.sendCommand("BIT16152=1") // Home Backup Enable
+			self.sendCommand("BIT16153=0") // Home Negative Edge Select
+			self.sendCommand("BIT16154=1") // Home Negative Final Direction
+			self.sendCommand("JOG HOMVF X1")
+			self.sendCommand("BIT799=0") // HSINT Aborted
+			self.sendCommand("BIT798=0") // HSINT Registered
+			self.sendCommand("JOG JRK X10.000000") // lower jerk for homing
+			self.sendCommand("JOG VEL X5.000000") // lower speed for homing
+			self.sendCommand("JOG HOME X-1") // HOMING COMMAND
+
+			// save previous state
+			laststate=state
+			parkerPositions.saveLastState(laststate)
+			
+			// save current state
+			self.setManualState("outofway")
+			parkerPositions.saveCurrentPosition(0)
+
+			self.print("homing, current pos: "+self.getCurrentPosition())
+		}
+		else
+		{
+			self.print("kill switch engaged, cannot move, staying at "+state)
+			throw("kill switch engaged, cannot move, staying at "+state)
+		}
 	}
 	
 	number movetoposition(object self, number setpoint)
@@ -298,6 +329,7 @@ class parkerTransfer:object
 		// *** private ***
 		// moves to coordinates as number. 
 		
+
 		self.turnOn()
 
 		self.setMovingParameters()
@@ -334,8 +366,10 @@ class parkerTransfer:object
 		// *** public ***
 		// moves to position by name as defined in tag
 
-		//if (positionName != state) 
-		//{
+
+
+		if (self.killSwitchEngaged()==0) 
+		{
 			// get position coordinate from tag by name
 			number pos
 			pos = parkerPositions.getPosition(positionName)
@@ -354,7 +388,11 @@ class parkerTransfer:object
 				state="undefined"
 				throw("did not get to desired position when trying to get to "+newstate+". last known state = "+laststate+"\n")
 			}
-		//} 
+		} else
+		{
+			self.print("kill switch engaged, cannot move, staying at "+state)
+			throw("kill switch engaged, cannot move, staying at "+state)
+		}
 		
 	}
 
