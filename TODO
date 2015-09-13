@@ -3,14 +3,16 @@ A (before packing up):
 -framework for error handling
 -save SEMcoords object into tags
 -update sem_iprep to add consistency check for sem state changes
--puncture classes with 3 checks:
+-puncture classes with 3 checks. check for tags to prevent interface problems in classes:
 	-transfer checks if gv was last in open state before moving
 	-transfer checks if sem stage is in pickup_dropoff or clear
 	-gv checks if parker is < 200 before closing
-
+-add gate valve state to tag
+-figure out how real com port can be used for allmotion instead of usb
+-add kill all motion check to transfer class
 -proper start routine
 -update functions in Sal's UI module to include error handling
--make sure system can start from PECS as well (after DM restart)
+-make sure workflow can start from PECS as well (after DM restart)
 
 
 B (while in shipping):

@@ -50,6 +50,18 @@ class pecsCamera_iprep : object
 		self.print("image acquired")
 	}
 
+	void acquireDMNoExposure(object self, image &im)
+	{
+		// *** public ***
+		// acquire image the DM way
+
+		// use standard DM acquisition methods
+		im := CameraAcquire( camID)
+		//ShowImage( im )
+
+		self.print("image acquired")
+	}
+
 
 	void acquire(object self, image &im)
 	{

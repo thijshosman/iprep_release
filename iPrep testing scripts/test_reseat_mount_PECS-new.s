@@ -5,7 +5,7 @@
 object myWorkflow = returnWorkflow()
 object myStateMachine = returnStateMachine()
 number count
-number maxcount = 1
+number maxcount = 1000
 number fps = 15
 string filename
 filename = "C:\\Users\\gatan\\Desktop\\video\\test.mp4"
@@ -41,16 +41,18 @@ for (count=1; count<=maxcount; count++)
 	myWorkflow.returnTransfer().move("pickup_pecs") // location where open arms can be used to pickup sample
 	myWorkflow.returnGripper().close()
 
-	myWorkflow.returnTransfer().move("test")    // location where sample is free of PECS before GV
-
-	//PIPS_SetPropertyDevice("subsystem_milling", "device_stage", "set_rotate_mode", "7")  // works,  stage to right front
-	//PIPS_SetPropertyDevice("subsystem_milling", "device_stage", "set_rotate_mode", "3")  // works,  stage to home
-	
 	// turn on chamber illuminator
 	PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_24", "1")   //turn on chamber illuminator
+		// turn on view mode
+	myWorkflow.returnPECSCamera().liveView()
 	// start video here
 	Video_Start()
-//sleep(2)
+	//sleep(2)
+
+	myWorkflow.returnTransfer().move("beforeGV")    // location where sample is free of PECS before GV
+
+	PIPS_SetPropertyDevice("subsystem_milling", "device_stage", "set_rotate_mode", "7")  // works,  stage to right front
+	PIPS_SetPropertyDevice("subsystem_milling", "device_stage", "set_rotate_mode", "3")  // works,  stage to home
 	
 	myWorkflow.returnTransfer().move("dropoff_pecs") // location where sample gets dropped off in PECS
 	myWorkflow.returnTransfer().move("dropoff_pecs_backoff") // location where sample gets dropped off in PECS
@@ -71,7 +73,7 @@ for (count=1; count<=maxcount; count++)
 	sleep(5)
 	
 	deleteannotation(img, annot)
-
+	result("Loop " + count + " complete\n\n")
 }
 
 
@@ -82,10 +84,11 @@ catch
 	deleteannotation(img, annot)
 
 	Video_Stop()
+	break
 }
 
 Video_Stop()
-deleteannotation(img, annot)
+//deleteannotation(img, annot)
 
 // save global tags to disk
 ApplicationSavePreferences()
