@@ -96,9 +96,31 @@ class deadFlagObject:object
 
 }
 
+number checkGatevalve()
+{
+	Number status
+	GetPersistentTagGroup().TagGroupGetTagAsLong("IPrep:Record Settings:Slice Number", status)
+	return status
+}
+
+numbr checkParker()
+{
+	Number status
+	GetPersistentTagGroup().TagGroupGetTagAsLong("IPrep:Record Settings:Slice Number", status)
+	return status
+}
+
+number checkSEM()
+{
+	Number status
+	GetPersistentTagGroup().TagGroupGetTagAsLong("IPrep:Record Settings:Slice Number", status)
+	return status
+}
+
 
 class haltCheckObject:object
 {
+	// TODO: make sure tag is set correctly
 	object haltFlag
 
 	void haltCheckObject(object self)
