@@ -23,6 +23,9 @@ class statePersistance:object
 	void setState(object self,string state) 
 	{
 		TagGroupSetTagAsString(GetPersistentTagGroup(),"IPrep:"+tagname+":state",state)
+
+		// save tags to disk
+		ApplicationSavePreferences()
 	}
 
 }
@@ -70,6 +73,8 @@ class statePersistanceNumeric:object
 	void setNumber(object self,number value1) 
 	{
 		TagGroupSetTagAsNumber(GetPersistentTagGroup(),"IPrep:"+tagname+":"+valueName,value1)
+		// save tags to disk
+		ApplicationSavePreferences()
 	}
 
 }

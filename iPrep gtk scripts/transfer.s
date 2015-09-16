@@ -8,6 +8,7 @@ class positionManager: object
 	{
 		//save (or overwrite) position with name
 		TagGroupSetTagAsNumber(GetPersistentTagGroup(),"IPrep:parkerpositions:"+positionName,position)
+		ApplicationSavePreferences()
 	}
 	
 	TagGroup getStoredPositions(object self)
@@ -37,16 +38,19 @@ class positionManager: object
 	void saveLastState(object self, string laststate)
 	{
 		TagGroupSetTagAsString(GetPersistentTagGroup(),"IPrep:parkerState:lastState",laststate)	
+		ApplicationSavePreferences()
 	}
 
 	void saveCurrentState(object self, string currentstate)
 	{
 		TagGroupSetTagAsString(GetPersistentTagGroup(),"IPrep:parkerState:currentState",currentstate)
+		ApplicationSavePreferences()
 	}
 	
 	void saveCurrentPosition(object self, number current)
 	{
 		TagGroupSetTagAsNumber(GetPersistentTagGroup(),"IPrep:parkerState:currentPosition",current)
+		ApplicationSavePreferences()
 	}
 	
 	string getCurrentState(object self)
@@ -340,6 +344,24 @@ class parkerTransfer:object
 		
 		number i=0
 		current_pos = self.getCurrentPosition()
+		
+		// safetycheck: check that GV is open when moving beyond 150
+
+		if (setpoint > 150)
+			if (checkGatevalve() == "closed")
+			{
+				self.print("safetycheck: trying to move beyond GV with GV closed")
+				throw("safetycheck: trying to move beyond GV with GV closed")
+			}
+
+		if (setpoint > 400)
+			if (checkSEM() != "clear" || checkSEM() != "pickup_dropoff")
+			{
+				self.print("safetycheck: SEM not in pickup_dropoff or clear and trying to move parker inside SEM chamber")
+				throw("safetycheck: SEM not in pickup_dropoff or clear and trying to move parker inside SEM chamber")
+			}
+
+
 		while ((abs(setpoint-current_pos))>accuracy)
     	{
     		

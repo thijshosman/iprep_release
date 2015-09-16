@@ -96,25 +96,32 @@ class deadFlagObject:object
 
 }
 
-number checkGatevalve()
+// *** functions for safety: check status of these critical components inside the classes by checking tags ***
+
+string checkGatevalve()
 {
-	Number status
-	GetPersistentTagGroup().TagGroupGetTagAsLong("IPrep:Record Settings:Slice Number", status)
-	return status
+	// returns gv state 
+	string status
+	GetPersistentTagGroup().TagGroupGetTagAsString("IPrep:GVState:state", status)
+	return status // open or closed
 }
 
-numbr checkParker()
+number checkParker()
 {
-	Number status
-	GetPersistentTagGroup().TagGroupGetTagAsLong("IPrep:Record Settings:Slice Number", status)
-	return status
+	// returns the last known position of parker stage
+	number status
+	// change to correct tag name
+	GetPersistentTagGroup().TagGroupGetTagAsLong("IPrep:parkerState:currentPosition", status)
+	return status // last known value of parker
 }
 
-number checkSEM()
+string checkSEM()
 {
-	Number status
-	GetPersistentTagGroup().TagGroupGetTagAsLong("IPrep:Record Settings:Slice Number", status)
-	return status
+	// returns the last known state of the SEM
+	string status
+	// change to correct tag name 
+	GetPersistentTagGroup().TagGroupGetTagAsString("IPrep:SEMStage:state", status)
+	return status // sem state. "clear" or "pickup_dropoff" or "imaging"
 }
 
 

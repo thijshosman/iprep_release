@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"GV",
+				"GVPersistance"
+			],
+			[
 				"stage",
 				"stageHome"
 			],
@@ -79,7 +83,55 @@
 			"file": "iPrep gtk scripts/iprep_general.s",
 			"settings":
 			{
-				"buffer_size": 3950,
+				"buffer_size": 4805,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "iPrep gtk scripts/transfer.s",
+			"settings":
+			{
+				"buffer_size": 12766,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "iPrep gtk scripts/SEM_iprep.s",
+			"settings":
+			{
+				"buffer_size": 20532,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "iPrep gtk scripts/pecs_iprep.s",
+			"settings":
+			{
+				"buffer_size": 10724,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "TODO",
+			"settings":
+			{
+				"buffer_size": 872,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "iPrep gtk scripts/statePersistance.s",
+			"settings":
+			{
+				"buffer_size": 2126,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "iPrep gtk scripts/iprep_main.s",
+			"settings":
+			{
+				"buffer_size": 23768,
 				"line_ending": "Windows"
 			}
 		}
@@ -263,6 +315,10 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"pickup",
+			"self",
+			"getCurrentPosition",
+			"tags",
 			"linter",
 			"pixelT",
 			"IPrep_setSliceNumber",
@@ -284,7 +340,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 4,
 			"sheets":
 			[
 				{
@@ -293,15 +349,44 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 3950,
+						"buffer_size": 4805,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								68,
-								68
+								1873,
+								1873
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/R/R.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": -0.0,
+						"translation.y": 2604.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "iPrep gtk scripts/transfer.s",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 12766,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1480,
+								1513
 							]
 						],
 						"settings":
@@ -313,7 +398,151 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "iPrep gtk scripts/SEM_iprep.s",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 20532,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								19175,
+								19175
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/R/R.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 26042.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "iPrep gtk scripts/pecs_iprep.s",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 10724,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								9685,
+								9685
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/R/R.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 11568.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "TODO",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 872,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								274,
+								274
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
 					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "iPrep gtk scripts/statePersistance.s",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2126,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								634,
+								634
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/R/R.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "iPrep gtk scripts/iprep_main.s",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 23768,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								23714,
+								23686
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/R/R.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 28344.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 6,
 					"type": "text"
 				}
 			]

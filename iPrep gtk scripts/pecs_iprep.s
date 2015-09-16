@@ -16,6 +16,9 @@ class pecs_iprep: object
 	number stageAngle // angle
 	number lockState // UI lockout state, 1 = ui locked, 0 = unlocked
 
+	// store gv state in tag for safety
+	object GVPersistance = alloc(statePersistance)
+
 	void log(object self, number level, string text)
 	{
 		// log events in log files
@@ -122,6 +125,7 @@ class pecs_iprep: object
 		// *** public ***
 		// gets gate valve state from sensors, SI10 = open, SI11 = closed
 		// 07-14-15: sensors do not work reliably, disabling..
+		// 09-16-15: use tag to save state
 
 		if (!self.argonCheck())
 			throw("argon pressure check failed, aborting")
@@ -164,7 +168,10 @@ class pecs_iprep: object
 	*/	
 
 		//GVState = "SI10: "+SI10Value+", SI11: "+SI11Value
+
 		return GVState
+		
+
 	}
 
 	string getStageState(object self)
@@ -264,7 +271,7 @@ class pecs_iprep: object
 	void PECS(object self)
 	{
 		//constructor
-
+		GVPersistance.init("GVState")
 		self.getGVState()
 		self.getStageState()
 		self.getStageAngle()
@@ -367,7 +374,13 @@ void closeGV(object self)	// #TODO: REMOVE enableGV, temp patch
 		self.print("opening GV")
 
 		self.OpenGV()
+
+		// set state 
 		GVState = "open"
+		GVPersistance.setState("open")
+
+
+
 	/*
 		if (self.getGVState() == "open")
 		{
@@ -392,6 +405,14 @@ void closeGV(object self)	// #TODO: REMOVE enableGV, temp patch
 
 		self.print("closing GV")
 
+		// safety check: check that parker is out of the way
+		if (checkParker() > 150)
+		{
+			self.print("safetycheck: Parker system not out of the way ("+checkParker()+")! cannot close GV")
+			throw("safetycheck: Parker system not out of the way")
+		}
+
+
 		self.closeGV()
 
 	/*
@@ -406,6 +427,8 @@ void closeGV(object self)	// #TODO: REMOVE enableGV, temp patch
 	*/
 
 		GVState = "closed"
+		GVPersistance.setState("closed")
+
 	}
 
 
