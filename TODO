@@ -2,15 +2,16 @@
 A (before packing up): 
 -framework for error handling
 -save SEMcoords object into tags
--update sem_iprep to add consistency check for sem state changes
+-update sem_iprep to add consistency check for sem state changes that checks current state against coordinates saved in tag
 -puncture classes with checks. check for tags to prevent interface problems in classes:
 	-SEM checks that parker is < 400
--check tag names for safety functions
+	-check tag names for safety functions
 -ABC for hw to simulate iprep after it ships
+	-planardock and ebsddock differentiation solution
 -check for hw bridge fault in transfer class
 -proper start routine
--update functions in Sal's UI module to include error handling
--make sure workflow can start from PECS as well (after DM restart)
+-update functions in Sal's UI module to include error handling and agree on error codes
+-make sure workflow can start from PECS as well (ie after DM restart)
 
 
 B (while in shipping):
