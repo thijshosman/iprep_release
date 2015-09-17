@@ -2,6 +2,11 @@
 A (before packing up): 
 -framework for error handling
 -save SEMcoords object into tags
+	-new SEMcoordManager class that is instantiated by SEM_iprep that has methods for:
+		-object getCoordFromTag(name)
+		-void saveCoordToTag(name)
+		-taglist listCoords()
+	-this will replace semcoord attributes of SEM_iprep class so that SEM_iprep methods that need coordinates get them directly from the tags through the semcoordmanager
 -update sem_iprep to add consistency check for sem state changes that checks current state against coordinates saved in tag
 -puncture classes with checks. check for tags to prevent interface problems in classes:
 	-SEM checks that parker is < 400
