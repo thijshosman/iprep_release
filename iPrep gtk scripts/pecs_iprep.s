@@ -124,50 +124,49 @@ class pecs_iprep: object
 	{
 		// *** public ***
 		// gets gate valve state from sensors, SI10 = open, SI11 = closed
-		// 07-14-15: sensors do not work reliably, disabling..
-		// 09-16-15: use tag to save state
 
-		if (!self.argonCheck())
-			throw("argon pressure check failed, aborting")
-	/*
+
+
+
 		string SI10Value, SI11Value
 		
 		number openReturns = 0
 		number closedReturns = 0
-		number i =0
-		while (i<6)
-		{
+		number i = 0
+
 			// open sensor
 			PIPS_GetPropertyDevice("subsystem_milling", "device_cpld", "bit_38", SI10Value)   //works set cpld bits individually
 			if (SI10Value == "true")
 			{
 				openReturns++
-				SI10Value = ""
+				//SI10Value = ""
 			}
 			// closed sensor
 			PIPS_GetPropertyDevice("subsystem_milling", "device_cpld", "bit_39", SI11value)   //works set cpld bits individually
 			if (SI11Value == "true") 
 			{
 				closedReturns++
-				SI11Value = ""
+				//SI11Value = ""
 			}
 			i++
 				
-			//result("SI10 = " + value + "\n")
-			//result("SI11 = " + value + "\n")
+			self.print("SI10 = " + SI10Value )
+			self.print("SI11 = " + SI11Value )
 			
 
-		}
+		
 		
 		//result("openReturns: "+openReturns+", closedReturns: "+closedReturns+"\n")
 		
-		if (closedReturns > 2 && openReturns < 3)
+		if (SI11Value == "true" & SI10Value == "false")
 			GVState = "closed"
-		else if (openReturns > 2 && closedReturns < 3)
+		else if (SI11Value == "false" & SI10Value == "true")
 			GVState = "open"
-	*/	
+		else
+			GVState = "undefined"
+	
 
-		//GVState = "SI10: "+SI10Value+", SI11: "+SI11Value
+		
 
 		return GVState
 		
@@ -180,7 +179,7 @@ class pecs_iprep: object
 		// read stage state from system (WL valve). 1=down, 0=up
 		
 		if (!self.argonCheck())
-			throw("argon pressure check failed, aborting")
+			throw("argon pressure check failed")
 
 		string value
 		PIPS_GetPropertyDevice("subsystem_pumping", "device_valveWhisperlok", "set_active", value) 
@@ -277,6 +276,20 @@ class pecs_iprep: object
 		self.getStageAngle()
 	}
 
+	number GVConsistencyCheck(object self)
+	{
+		// check if GV state from sensors is consistent with tag in DM
+		string tagstate = GVPersistance.getState()
+		string sensorstate = self.getGVState()
+
+		if (tagstate == sensorstate)
+		{
+			// success
+			return 1
+		}
+	}
+
+
 	void moveStageUp(object self)
 	{
 		// *** public ***
@@ -332,18 +345,22 @@ class pecs_iprep: object
 	void openGV(object self)
 	{
 		// *** private ***
-		// opens gate valve (AV2)
+		
+		// turn off av3
+		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_23", "0")
+		// turn on av2
 		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_22", "1")
-		//sleep(1)
 
 	}
 
 	void closeGV(object self)
 	{
 		// *** private ***
-		// closes gate valve (AV2)
+		
+		// turn off av2
 		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_22", "0")
-		//sleep(1)
+		// turn on av3
+		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_23", "1")
 	}
 	
 
@@ -368,16 +385,27 @@ void closeGV(object self)	// #TODO: REMOVE enableGV, temp patch
 		// *** public ***
 		// opens GV and checks that status has changed
 
-		if (!self.argonCheck())
-			throw("argon pressure check failed, aborting")
 
 		self.print("opening GV")
 
 		self.OpenGV()
 
-		// set state 
-		GVState = "open"
-		GVPersistance.setState("open")
+		if (self.getGVState() == "open")
+		{
+			// success
+			self.print("GV opened succesfully")
+			GVState = "open"
+			GVPersistance.setState("open")
+			return
+		}
+		else
+		{
+			self.print("sensors do not detect GV in open state")
+			throw("sensors do not detect GV in open state")
+		}
+
+		
+		
 
 
 
@@ -400,8 +428,6 @@ void closeGV(object self)	// #TODO: REMOVE enableGV, temp patch
 		// *** public ***
 		// closes GV and checks that status has changed
 
-		if (!self.argonCheck())
-			throw("argon pressure check failed, aborting")
 
 		self.print("closing GV")
 
@@ -412,8 +438,25 @@ void closeGV(object self)	// #TODO: REMOVE enableGV, temp patch
 			throw("safetycheck: Parker system not out of the way")
 		}
 
-
 		self.closeGV()
+
+		if (self.getGVState() == "closed")
+		{
+			// success
+			self.print("GV closed succesfully")
+			GVState = "closed"
+			GVPersistance.setState("closed")
+			return
+		}
+		else
+		{
+			self.print("sensors do not detect GV in closed state")
+			throw("sensors do not detect GV in closed state")
+		}
+
+
+
+
 
 	/*
 		if (self.getGVState() == "closed")
@@ -426,8 +469,6 @@ void closeGV(object self)	// #TODO: REMOVE enableGV, temp patch
 		}
 	*/
 
-		GVState = "closed"
-		GVPersistance.setState("closed")
 
 	}
 

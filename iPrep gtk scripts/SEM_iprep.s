@@ -101,6 +101,56 @@ class SEMCoord: object
 
 }
 
+class SEMCoordManager: object
+{
+	// manages a list of SEMCoord object saved in tags
+
+	void SEMCoordManager(object self)
+	{
+		// constructor
+	}
+
+	void initCoord(object self, string name)
+	{
+		// *** private ***
+		// create empty record in taglist
+		//TagGroup TagGroupAddTagGroupAtEnd( TagGroup tagList, TagGroup newGroup ) 
+	}
+
+	object getCoordFromTag(object self, string name)
+	{
+		// *** public ***
+		// returns SEMCoord object from the taglist
+		TagGroup tg = GetPersistentTagGroup() 
+		TagGroup coordlist
+		tg.TagGroupGetTagAsTagGroup( "Iprep", infoTG )
+
+
+
+	}
+
+	void saveCoordToTag(object self, object aSEMCoord)
+	{
+		// *** public ***
+		// saves a coord to a tag
+
+	}
+
+	taglist listCoords(object self)
+	{
+
+	}
+
+
+}
+
+
+
+
+
+
+
+
 class SEM_IPrep: object
 {
 	object SEMStagePersistance // stores position where stage is in tag

@@ -1,31 +1,39 @@
 
-A (before packing up): 
+A: 
 -framework for error handling
 -save SEMcoords object into tags
 	-new SEMcoordManager class that is instantiated by SEM_iprep that has methods for:
-		-object getCoordFromTag(name)
-		-void saveCoordToTag(name)
-		-taglist listCoords()
 	-this will replace semcoord attributes of SEM_iprep class so that SEM_iprep methods that need coordinates get them directly from the tags through the semcoordmanager
--update sem_iprep to add consistency check for sem state changes that checks current state against coordinates saved in tag
 -puncture classes with checks. check for tags to prevent interface problems in classes:
 	-SEM checks that parker is < 400
-	-check tag names for safety functions
 -ABC for hw to simulate iprep after it ships
-	-planardock and ebsddock differentiation solution
--check for hw bridge fault in transfer class
+	-dock-simulator and dock
+		-planardock and ebsddock differentiation solution
+	-sem and sem-simulator
+	-pecs and pecs-simulator
+	-gripper and gripper-simulator
+-check for hw bridge fault (or any fault) in transfer class
 -proper start routine
 -update functions in Sal's UI module to include error handling and agree on error codes
--make sure workflow can start from PECS as well (ie after DM restart)
+-make sure workflow can start/resume from PECS as well (ie after DM restart)
+-integrate EBSD camera class into workflow
+-make workflow compatible with choosing planar vs EBSD
+-init functions checks consistency between expected state tags and actual state as read from sensors. if there is a discrepancy, notitify user and do not allow process to start. 
+	-add consistency check to classes that check the value of their sensor input against tags
+		-PECS Gate valve (open/closed) against sensor inputs
+		-PECS stage (lowered/raised) against WL sensor state
+		-SEM add consistency check for sem state changes that checks current state against coordinates saved in tag
+-UPS check once every cycle
+-SEM state check once every cycle
 
 
-B (while in shipping):
+B:
 -clean up main to put stuff back in classes below
 	-remove kv/wd stuff from sem class
 	-handle imaging from main, remove from state machine and workflow
 	-handle pecs camera back in pecs class
 -multi ROI
--implement proper user dialog in combination of results/debug/logfile/UI menus
+-implement consistent and well thought out user dialog in combination of results/debug/logfile/UI menus
 
 
 
