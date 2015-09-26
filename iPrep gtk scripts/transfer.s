@@ -95,6 +95,7 @@ class parkerTransfer:object
 	// max parker position is 545 mm
 
 	object parkerPositions // manages positions in tags
+	object myMediator
 
 	String cmd, reply, state, laststate
 	number PPU // factor between encoder ticks and position (function of lead)
@@ -252,6 +253,11 @@ class parkerTransfer:object
 	{
 		// *** public ***
 		// initializes hardware with strings similar to ACR software
+		
+		// register with mediator
+		myMediator = returnMediator()
+		myMediator.registerTransfer(self)
+
 		self.sendCommand("ECHO 1") // first send echo to set echo level
 		self.sendCommand("prog0")
 		self.sendCommand("ECHO")

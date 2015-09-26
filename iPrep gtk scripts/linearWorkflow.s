@@ -50,6 +50,7 @@ class workflow: object
 
 		// init PECS 
 		myPecs = alloc(pecs_iprep)
+		myPecs.init()
 
 		// init SEM
 		mySEM = alloc(SEM_IPrep)

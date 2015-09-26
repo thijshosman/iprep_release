@@ -4,8 +4,16 @@ A:
 -save SEMcoords object into tags
 	-new SEMcoordManager class that is instantiated by SEM_iprep that has methods for:
 	-this will replace semcoord attributes of SEM_iprep class so that SEM_iprep methods that need coordinates get them directly from the tags through the semcoordmanager
--puncture classes with checks. check for tags to prevent interface problems in classes:
-	-SEM checks that parker is < 400
+	-use examples John
+-puncture classes with checks as defined in iprep_general
+	-make sure safety is at the lowest level
+	-create interface for iprep_general to allow checks names to be in device classes
+	-checks:
+		-SEM: SEM checks that parker is < 400 before moving
+		-PECS: only close GV when parker < 150
+		-Parker: only move > 150 when GV is open
+		-Parker: only move > 400 when SEM in pickup/dropoff or clear
+		-Parker: check that PECS stage is lowered when moving
 -ABC for hw to simulate iprep after it ships
 	-dock-simulator and dock
 		-planardock and ebsddock differentiation solution
@@ -13,27 +21,31 @@ A:
 	-pecs and pecs-simulator
 	-gripper and gripper-simulator
 -check for hw bridge fault (or any fault) in transfer class
--proper start routine
+-proper start routine that does checks of hardware and states in workflow
+	-make sure workflow can start/resume from PECS as well (ie after DM restart)
 -update functions in Sal's UI module to include error handling and agree on error codes
--make sure workflow can start/resume from PECS as well (ie after DM restart)
 -integrate EBSD camera class into workflow
 -make workflow compatible with choosing planar vs EBSD
--init functions checks consistency between expected state tags and actual state as read from sensors. if there is a discrepancy, notitify user and do not allow process to start. 
-	-add consistency check to classes that check the value of their sensor input against tags
-		-PECS Gate valve (open/closed) against sensor inputs
-		-PECS stage (lowered/raised) against WL sensor state
-		-SEM add consistency check for sem state changes that checks current state against coordinates saved in tag
+	-use settings button
+-init functions checks consistency between expected state tags and actual state as read from sensors. if there is a discrepancy, notify user and do not allow process to start. allow manual recovery/setup of correct state. this is needed when DM starts to make sure everything is right 
+	-PECS Gate valve (open/closed) against sensor inputs
+	-PECS stage (lowered/raised) against WL sensor state
+	-SEM add consistency check for sem state changes that checks current state against coordinates saved in tag
 -UPS check once every cycle
+	-make late binding method with executescriptstring method
 -SEM state check once every cycle
+	-decide what to check in SEM
 
 
 B:
+-implement consistent and well thought out user dialog in combination of results/debug/logfile/UI menus
+-UI elements to show status
 -clean up main to put stuff back in classes below
 	-remove kv/wd stuff from sem class
 	-handle imaging from main, remove from state machine and workflow
 	-handle pecs camera back in pecs class
 -multi ROI
--implement consistent and well thought out user dialog in combination of results/debug/logfile/UI menus
+
 
 
 

@@ -17,7 +17,10 @@ class pecs_iprep: object
 	number lockState // UI lockout state, 1 = ui locked, 0 = unlocked
 
 	// store gv state in tag for safety
-	object GVPersistance = alloc(statePersistance)
+	object GVPersistance 
+	object stagePersistance 
+
+	object myMediator
 
 	void log(object self, number level, string text)
 	{
@@ -270,10 +273,32 @@ class pecs_iprep: object
 	void PECS(object self)
 	{
 		//constructor
+		
+		GVPersistance = alloc(statePersistance)
 		GVPersistance.init("GVState")
+
+		stagePersistance = alloc(statePersistance)
+		stagePersistance.init("PECSStageState")
+
 		self.getGVState()
 		self.getStageState()
 		self.getStageAngle()
+	}
+
+	number consistencyCheck(object self)
+	{
+		// check consistency of sensors against tags 
+		// decide what to do in case of inconsistency 
+		// at this level
+
+		if (!self.GVConsistencyCheck())
+			throw("GV state not consistent with tags")
+
+		if (!self.StageConsistencyCheck())
+			throw("stage state not consistent with tags")	
+
+		return 1
+
 	}
 
 	number GVConsistencyCheck(object self)
@@ -286,9 +311,25 @@ class pecs_iprep: object
 		{
 			// success
 			return 1
+		} else {
+			return 0
 		}
 	}
 
+	number StageConsistencyCheck(object self)
+	{
+		// check if stage state from wl sensor is consistent with tag in DM
+		string tagstate = stagePersistance.getState()
+		string sensorstate = self.getStageState()
+
+		if (tagstate == sensorstate)
+		{
+			// success
+			return 1
+		} else {
+			return 0
+		}
+	}
 
 	void moveStageUp(object self)
 	{
@@ -311,6 +352,7 @@ class pecs_iprep: object
 		PIPS_SetPropertyDevice("subsystem_imaging", "device_illuminatorTop", "set_active", "1")  
 
 		self.getStageState()
+		stagePersistance.setState("up")
 		
 		// Stage is raised
 		self.print("stage is raised")
@@ -331,16 +373,21 @@ class pecs_iprep: object
 		sleep(3)
 		
 		self.getStageState()
+		stagePersistance.setState("down")
+
 		// Stage is lowered
 		self.print("stage is lowered")
 	}
 
-	/*
+	
 	void init(object self)
 	{
 		// *** public ***
+		// register with mediator
+		myMediator = returnMediator()
+		myMediator.registerPecs(self)
 	}
-	*/
+	
 	
 	void openGV(object self)
 	{

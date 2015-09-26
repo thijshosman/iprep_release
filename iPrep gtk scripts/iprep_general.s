@@ -98,32 +98,112 @@ class deadFlagObject:object
 
 // *** functions for safety: check status of these critical components inside the classes by checking tags ***
 
-string checkGatevalve()
+class safetyMediator:object
 {
-	// returns gv state 
-	string status
-	GetPersistentTagGroup().TagGroupGetTagAsString("IPrep:GVState:state", status)
-	return status // open or closed
+	object pecs
+	object sem
+	object transfer
+	
+	void registerPecs(object self, object obj)
+	{
+		pecs = obj
+		result("mediator: pecs registered\n")
+	}
+
+	void registerSem(object self, object obj)
+	{
+		sem = obj
+		result("mediator: sem registered\n")
+	}
+
+	void registerTransfer(object self, object obj)
+	{
+		transfer = obj
+		result("mediator: transfer registered\n")
+	}
+
+
+	// *** test checks ***
+
+	string checkGV(object self)
+	{
+		// make sure that method name is the same as method name called in body
+		// in this case checkGV()
+		// if you dont do that, you need to define the name of what to call in interface
+		
+		return pecs.checkGV()
+	
+	}
+
+	number checkTransfer(object self)
+	{
+		return transfer.checkTransfer()
+	}
+
+	// *** real checks ***
+
+
+	string getGVState(object self)
+	{
+		// returns gv state 
+		
+		//string status
+		//etPersistentTagGroup().TagGroupGetTagAsString("IPrep:GVState:state", status)
+		
+		// check pecs for state
+		status = pecs.getGVState()
+
+		return status // open or closed
+	}
+
+	number getPosition(object self)
+	{
+		// returns the position of parker stage
+		
+		number pos
+		// change to correct tag name
+		//GetPersistentTagGroup().TagGroupGetTagAsLong("IPrep:parkerState:currentPosition", status)
+		
+		pos = transfer.getPosition()
+
+		return pos // position of parker
+	}
+
+	string getSEMState(object self)
+	{
+		// returns the current state of the SEM stage
+		string status
+		
+		// change to correct tag name 
+		//GetPersistentTagGroup().TagGroupGetTagAsString("IPrep:SEMStage:state", status)
+		
+		status = sem.getSEMState()
+
+		return status // sem state. "clear" or "pickup_dropoff" or "imaging"
+	}
+
+	string getStageState(object self)
+	{
+		// returns the current state of pecs stage
+		string status
+		
+		status = pecs.getStageState()
+
+		return status // "up" or "down"
+
+	}
+
+
 }
 
-number checkParker()
-{
-	// returns the last known position of parker stage
-	number status
-	// change to correct tag name
-	GetPersistentTagGroup().TagGroupGetTagAsLong("IPrep:parkerState:currentPosition", status)
-	return status // last known value of parker
-}
+// define mediator object
+object aMediator = alloc(SafetyMediator)
 
-string checkSEM()
+// make sure we can return mediator after this script is installed
+object returnMediator()
 {
-	// returns the last known state of the SEM
-	string status
-	// change to correct tag name 
-	GetPersistentTagGroup().TagGroupGetTagAsString("IPrep:SEMStage:state", status)
-	return status // sem state. "clear" or "pickup_dropoff" or "imaging"
+	return aMediator
 }
-
 
 class haltCheckObject:object
 {

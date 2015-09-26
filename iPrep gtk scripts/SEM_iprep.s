@@ -156,6 +156,9 @@ class SEM_IPrep: object
 	object SEMStagePersistance // stores position where stage is in tag
 	object SEMkVPersistance // stores voltage used
 	object SEMWDPersistance // stores working distance
+	
+	object myMediator
+
 	number X, Y, Z // sem coordinates
 	// numbers are in mm
 
@@ -242,6 +245,11 @@ class SEM_IPrep: object
 	}
 
 	string getState(object self)
+	{
+		return state
+	}
+
+	string getSEMState(object self)
 	{
 		return state
 	}
@@ -914,6 +922,10 @@ if (XYZZY)		self.setWDForImaging()
 	{
 		// *** public ***
 		// sets state and synchronizes private coord variables
+
+		// register with mediator
+		myMediator = returnMediator()
+		myMediator.registerSem(self)
 
 		SEMStagePersistance.init("SEMstage")
 		SEMkVPersistance.init("SEM:kV")

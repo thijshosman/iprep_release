@@ -1,0 +1,1 @@
+// SEM abstract base class

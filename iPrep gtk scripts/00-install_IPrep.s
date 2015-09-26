@@ -38,7 +38,7 @@ else
 string package = "IPrep"
 
 InstallFile( PathConcatenate( gPath, "statePersistance.s" ), package, 3 )
-InstallFile( PathConcatenate( gPath, "iprep_general.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "iprep_general_interface.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "iprep_3Dvolume.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "PlanarSEMdock.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "transfer.s" ), package, 3 )
@@ -48,6 +48,7 @@ InstallFile( PathConcatenate( gPath, "progressWindow.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "SEM_iprep.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "pecscamera_iprep.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "digiscan_iprep.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "iprep_general.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "linearWorkflow.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "iprep_main.s" ), package, 3 )
 //InstallFile( PathConcatenate( gPath, "iprep_pecsstatuschecker.s" ), package, 3 )
