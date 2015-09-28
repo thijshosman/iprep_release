@@ -34,34 +34,38 @@ class workflow: object
 
 	void init(object self)
 	{
+		// initialize hardware. use factory. 1 = simulation
+		// TODO: make abstract factory, use tags to define which class
+		// TODO: EBSD dock option
+
 		self.print("--- start init ---")
-		
+
 		// init gripper
-		myGripper = alloc(gripper)
+		myGripper = createGripper(1)
 		myGripper.init()
 		
 		// init SEM Dock
-		mySEMdock = alloc(PlanarSEMdock)
+		mySEMdock = createDock(1)
 		mySEMdock.init()
 
 		// init parker
-		myTransfer = alloc(ParkerTransfer)
+		myTransfer = createTransfer(1)
 		myTransfer.init()
 
 		// init PECS 
-		myPecs = alloc(pecs_iprep)
+		myPecs = createPecs(1)
 		myPecs.init()
 
 		// init SEM
-		mySEM = alloc(SEM_IPrep)
+		mySEM = createSem(1)
 		mySEM.init()
 
 		// init PECS camera
-		myPecsCamera = alloc(pecsCamera_iprep)
+		myPecsCamera = createPecsCamera(1)
 		myPecsCamera.init()
 
 		// init Digiscan
-		myDigiscan = alloc(digiscan_iprep)
+		myDigiscan = creatDigiscan(1)
 		myDigiscan.init()
 
 		// print start states
@@ -183,7 +187,7 @@ class workflow: object
 		mySEM.goToClear()
 	
 		// move SEM dock up to allow sample to go in
-		mySEMdock.goUp()
+		mySEMdock.unclamp()
 
 		// move into chamber
 		myTransfer.move("dropoff_sem")
@@ -208,7 +212,7 @@ class workflow: object
 		mySEM.goToClear()
 
 		// move SEM dock down to clamp
-		mySEMdock.goDown()
+		mySEMdock.clamp()
 
 		// move SEM stage to nominal imaging plane
 		mySEM.goToNominalImaging()
@@ -281,7 +285,7 @@ if (XYZZY)
 		mySEM.goToClear()
 
 		// move SEM dock clamp up to release sample
-		mySEMdock.goUp()
+		mySEMdock.unclamp()
 
 		// move SEM stage to pickup point
 		mySEM.goToPickup_Dropoff()
@@ -313,7 +317,7 @@ if (XYZZY)
 		myPecs.closeGVandCheck()
 
 		// move SEM dock clamp down to safely move it around inside SEM
-		mySEMdock.goDown()
+		mySEMdock.clamp()
 
 
 	}
@@ -390,7 +394,7 @@ if (XYZZY)
 		mySEM.goToClear()
 
 		// move SEM dock clamp up to release sample
-		mySEMdock.goUp()
+		mySEMdock.unclamp()
 
 		// move SEM stage to pickup point
 		mySEM.goToPickup_Dropoff()
@@ -440,7 +444,7 @@ if (XYZZY)
 		myPecs.closeGVandCheck()
 
 		// move SEM dock clamp down to safely move it around inside SEM
-		mySEMdock.goDown()
+		mySEMdock.clamp()
 
 		// turn transfer system off
 		myTransfer.turnOff()
@@ -481,7 +485,7 @@ if (XYZZY)
 		mySEM.goToClear()
 	
 		// move SEM dock up to allow sample to go in
-		mySEMdock.goUp()
+		mySEMdock.unclamp()
 
 		// move into chamber
 		myTransfer.move("dropoff_sem")
@@ -515,7 +519,7 @@ if (XYZZY)
 		mySEM.goToClear()
 
 		// move SEM dock down to clamp
-		mySEMdock.goDown()
+		mySEMdock.clamp()
 
 		// move SEM stage to nominal imaging plane
 		mySEM.goToNominalImaging()

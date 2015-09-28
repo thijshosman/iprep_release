@@ -270,7 +270,7 @@ class pecs_iprep: object
 	}
 
 
-	void PECS(object self)
+	void pecs_iprep(object self)
 	{
 		//constructor
 		
@@ -283,22 +283,6 @@ class pecs_iprep: object
 		self.getGVState()
 		self.getStageState()
 		self.getStageAngle()
-	}
-
-	number consistencyCheck(object self)
-	{
-		// check consistency of sensors against tags 
-		// decide what to do in case of inconsistency 
-		// at this level
-
-		if (!self.GVConsistencyCheck())
-			throw("GV state not consistent with tags")
-
-		if (!self.StageConsistencyCheck())
-			throw("stage state not consistent with tags")	
-
-		return 1
-
 	}
 
 	number GVConsistencyCheck(object self)
@@ -330,6 +314,24 @@ class pecs_iprep: object
 			return 0
 		}
 	}
+
+
+	number consistencyCheck(object self)
+	{
+		// check consistency of sensors against tags 
+		// decide what to do in case of inconsistency 
+		// at this level
+
+		if (!self.GVConsistencyCheck())
+			throw("GV state not consistent with tags")
+
+		if (!self.StageConsistencyCheck())
+			throw("stage state not consistent with tags")	
+
+		return 1
+
+	}
+
 
 	void moveStageUp(object self)
 	{
@@ -388,29 +390,6 @@ class pecs_iprep: object
 		myMediator.registerPecs(self)
 	}
 	
-	
-	void openGV(object self)
-	{
-		// *** private ***
-		
-		// turn off av3
-		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_23", "0")
-		// turn on av2
-		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_22", "1")
-
-	}
-
-	void closeGV(object self)
-	{
-		// *** private ***
-		
-		// turn off av2
-		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_22", "0")
-		// turn on av3
-		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_23", "1")
-	}
-	
-
 /* Patch to interlock Gate Valve
 void closeGV(object self)	// #TODO: REMOVE enableGV, temp patch
 	{
@@ -435,7 +414,11 @@ void closeGV(object self)	// #TODO: REMOVE enableGV, temp patch
 
 		self.print("opening GV")
 
-		self.OpenGV()
+		// turn off av3
+		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_23", "0")
+		// turn on av2
+		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_22", "1")
+
 
 		if (self.getGVState() == "open")
 		{
@@ -451,12 +434,9 @@ void closeGV(object self)	// #TODO: REMOVE enableGV, temp patch
 			throw("sensors do not detect GV in open state")
 		}
 
-		
-		
 
 
-
-	/*
+	/* old check
 		if (self.getGVState() == "open")
 		{
 			self.print("GV opened succesfully")
@@ -479,13 +459,16 @@ void closeGV(object self)	// #TODO: REMOVE enableGV, temp patch
 		self.print("closing GV")
 
 		// safety check: check that parker is out of the way
-		if (checkParker() > 150)
+		if (myMediator.getPosition() > 150)
 		{
-			self.print("safetycheck: Parker system not out of the way ("+checkParker()+")! cannot close GV")
+			self.print("safetycheck: Parker system not out of the way ("+myMediator.getPosition()+")! cannot close GV")
 			throw("safetycheck: Parker system not out of the way")
 		}
 
-		self.closeGV()
+		// turn off av2
+		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_22", "0")
+		// turn on av3
+		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_23", "1")
 
 		if (self.getGVState() == "closed")
 		{

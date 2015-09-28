@@ -1,6 +1,6 @@
 // $BACKGROUND$
 
-class parkerTransfer:object
+class parkerTransfer_simulator:object
 {
 	// manages transfers of the parker system between discrete positions
 	// max parker position is 545 mm
@@ -45,7 +45,7 @@ class parkerTransfer:object
 		// this will help the occasional error as observed in testing
 		try 
 		{
-			Parker_SendCommand(cmd, reply)
+			//Parker_SendCommand(cmd, reply)
 		}
 		catch
 		{
@@ -65,8 +65,10 @@ class parkerTransfer:object
 		// *** public ***
 		// constructor
 
+		
 		timeout = 60
-		accuracy = 0.15	
+		accuracy = 0.15
+	
 
 	}
 
@@ -127,15 +129,19 @@ class parkerTransfer:object
 		//parkerPositions.savePosition("dropoff_sem",450) // location where sample gets dropped off (arms will open)
 		//parkerPositions.savePosition("pickup_sem",450) // location where sample gets picked up
 		//parkerPositions.savePosition("dropoff_pecs",50) // location where sample gets dropped off in PECS
+		
+
 
 	}
+
+
 
 	number getCurrentPosition(object self)
 	{
 		// *** public ***
 		// returns current position, adjusted for lead screw factor (PPU)
 		number position
-		position = val(self.sendCommand("?P12290"))/PPU
+		position = parkerPositions.getCurrentPosition()
 		return position
 
 	}
@@ -150,6 +156,8 @@ class parkerTransfer:object
 		self.sendCommand("VEL 80.000000")
 	}
 
+
+
 	void init(object self)
 	{
 		// *** public ***
@@ -160,7 +168,6 @@ class parkerTransfer:object
 		myMediator.registerTransfer(self)
 
 		// load positions from globaltags
-		// TODO: check that stage has been homed since last reboot
 		parkerPositions = alloc(positionManager)
 		self.restoreState()
 
@@ -199,6 +206,8 @@ class parkerTransfer:object
 
 	}
 
+
+
 	void home(object self)
 	{
 		// *** public ***
@@ -211,6 +220,9 @@ class parkerTransfer:object
 			throw("kill switch engaged, cannot move, staying at "+state)
 		}
 		
+
+
+
 		self.print("homing..")
 
 		self.turnOn()
@@ -234,9 +246,14 @@ class parkerTransfer:object
 
 		self.print("homing, current pos: "+self.getCurrentPosition())
 		
-	}
 
-	number movetoposition(object self, number setpoint)
+
+		
+	}
+	
+
+
+number movetoposition(object self, number setpoint)
 	{
 		// *** private ***
 		// moves to coordinates as number. 
@@ -342,10 +359,10 @@ class parkerTransfer:object
 		return laststate
 	}
 
+
+
+	
 }
-
-
-
 
 // --- testing parker system ---
 

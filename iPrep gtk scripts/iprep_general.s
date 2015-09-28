@@ -100,6 +100,8 @@ class deadFlagObject:object
 
 class safetyMediator:object
 {
+	// predefine these objects
+
 	object pecs
 	object sem
 	object transfer
@@ -147,7 +149,7 @@ class safetyMediator:object
 	{
 		// returns gv state 
 		
-		//string status
+		string status
 		//etPersistentTagGroup().TagGroupGetTagAsString("IPrep:GVState:state", status)
 		
 		// check pecs for state
@@ -313,6 +315,11 @@ object returnHaltFlag()
 	// returns the haltflag object
 	return haltFlag
 }
+
+
+
+
+
 
 
 

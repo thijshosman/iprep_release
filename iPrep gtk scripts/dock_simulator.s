@@ -1,5 +1,5 @@
 // $BACKGROUND$
-class planarSEMdock : object 
+class dock_simulator : object 
 {
 	string state // unclamped (for transfer etc) or clamped (imaging, moving) or inbetween
 	number sampleStatus // 1 means sample present
@@ -7,6 +7,7 @@ class planarSEMdock : object
 	number timeout // time allowed to take to get to intended position
 	string cmd,reply
 	object SEMdockPersistance
+	object sampleDockSamplePresence
 	
 
 	void log(object self, number level, string text)
@@ -33,7 +34,7 @@ class planarSEMdock : object
 				throw("allmotion command string empty")
 			}
 		reply = ""
-		Allmotion_SendCommand(address, cmd, reply)
+		//Allmotion_SendCommand(address, cmd, reply)
 		//result("\nALLMOTION DOCK: Reply to command \""+cmd+"\" is "+reply+"\n")
 		return reply
 	}
@@ -64,32 +65,19 @@ class planarSEMdock : object
 	{
 		// *** private ***
 		// check state from sensor input
-		string bitStr
-		bitStr = self.sensorToBitStr()
 
-		number pogo 
-		pogo = val(chr(bitStr[2]))
+		string sample = sampleDockSamplePresence.getState()
 
-		if (pogo == 0)
+		state = SEMdockPersistance.getState()
+
+		if (sample == "found")
 			sampleStatus = 1
 		else
 			sampleStatus = 0
 
-		number upsw 
-		upsw = val(chr(bitStr[3]))
-
-		number downsw
-		downsw = val(chr(bitStr[1]))
-
-		if (downsw == 0 && upsw == 1)
-			state = "clamped"
-		else if (downsw == 1 && upsw == 0)
-			state = "unclamped"
-		else 
-			state = "inbetween"
 
 		if (view == 1)
-			self.print("current state is "+state+", individual sensors: up: "+upsw+", down: "+downsw+", pogo: "+pogo)
+			self.print("current state is "+state)
 		
 	}
 	
@@ -105,11 +93,17 @@ class planarSEMdock : object
 		self.print("dock initialized")
 	}
 	
-	void PLANARsemDOCK(object self) 
+	void dock_simulator(object self) 
 	{
 		// contructor
 		SEMdockPersistance = alloc(statePersistance)
 		SEMdockPersistance.init("SEMdock")
+
+		// for simulating sample presence
+		sampleDockSamplePresence = alloc(statePersistance)
+		sampleDockSamplePresence.init("simulationparameters:sampleDockSamplePresence")
+
+
 		address = 2
 		timeout = 30
 		self.lookupState(1)
@@ -229,7 +223,6 @@ class planarSEMdock : object
 	{
 		// *** public ***
 		// checks if sample is present
-
 		self.lookupState(1)
 		return sampleStatus
 

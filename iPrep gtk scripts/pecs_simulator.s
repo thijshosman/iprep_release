@@ -7,9 +7,10 @@
 // --- * home the rotation stage
 // --- * some secondary stuff, check pressures, etc. 
 
-// pecs abstract base class
+// pecs simulator class
+// assumes all operations are succesful and sets the state accordingly
 
-class pecs_sim: object
+class pecs_simulator: object
 {
 	// handles communication with PECS for iPrep
 
@@ -21,6 +22,8 @@ class pecs_sim: object
 	// store gv state in tag for safety
 	object GVPersistance
 	object stagePersistance 
+
+	object myMediator
 
 	void log(object self, number level, string text)
 	{
@@ -89,7 +92,6 @@ class pecs_sim: object
 		self.print("UI unlocked")		
 	} 
 
-
 	void startMilling(object self)
 	{
 		// *** public ***
@@ -146,7 +148,7 @@ class pecs_sim: object
 	{
 		// *** public ***
 		string answer
-		aanswer = 0
+		answer = "0"
    		// 0=none, 1=initializing, 2=stabilizing, 3=rotating stage, 4=aligning, 5=milling, 6=calibrating, 7=lowering stage
    		// 8=raising stage, 9=cold delay, 10=pumping, 11=venting, 12=finalizing, 13=paused, 14=resuming
    		return answer
@@ -214,7 +216,7 @@ class pecs_sim: object
 	}
 
 
-	void PECS(object self)
+	void pecs_simulator(object self)
 	{
 		//constructor
 		
@@ -282,19 +284,6 @@ class pecs_sim: object
 		myMediator.registerPecs(self)
 	}
 
-	void openGV(object self)
-	{
-		// *** private ***
-		GVPersistance.setState("open")
-
-	}
-
-	void closeGV(object self)
-	{
-		// *** private ***
-		GVPersistance.setState("closed")
-
-	}
 
 	void openGVandCheck(object self)
 	{
@@ -304,7 +293,7 @@ class pecs_sim: object
 
 		self.print("opening GV")
 
-		self.OpenGV()
+		GVPersistance.setState("open")
 
 		if (self.getGVState() == "open")
 		{
@@ -331,14 +320,16 @@ class pecs_sim: object
 
 		self.print("closing GV")
 
+
+
 		// safety check: check that parker is out of the way
-		if (checkParker() > 150)
+		if (myMediator.getPosition() > 150)
 		{
-			self.print("safetycheck: Parker system not out of the way ("+checkParker()+")! cannot close GV")
+			self.print("safetycheck: Parker system not out of the way ("+myMediator.getPosition()+")! cannot close GV")
 			throw("safetycheck: Parker system not out of the way")
 		}
 
-		self.closeGV()
+		GVPersistance.setState("closed")
 
 		if (self.getGVState() == "closed")
 		{

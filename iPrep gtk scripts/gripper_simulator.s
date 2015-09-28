@@ -1,5 +1,5 @@
 // $BACKGROUND$
-class gripper:object
+class gripper_simulator:object
 {
 
 	string state
@@ -52,7 +52,7 @@ class gripper:object
 		self.print("initialized")
 	}
 
-	void gripper(object self) 
+	void gripper_simulator(object self) 
 	{
 		// constructor, looks up state for first time and sets some parameters
 		gripperPersistance = alloc(statePersistance)
@@ -122,13 +122,13 @@ class gripper:object
 		// returns state
 		return state
 	}
-
+/*
 	~gripper (object self)
 	{
 		// store last known state as tag
 		self.setManualState(state)
 	}
-
+*/
 }
 
 // *** testing the class ***

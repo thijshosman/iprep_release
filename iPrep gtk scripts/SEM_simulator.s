@@ -3,7 +3,8 @@ number XYZZY = 0
 
 
 
-class SEM_IPrep: object
+
+class SEM_simulator: object
 {
 	object SEMStagePersistance // stores position where stage is in tag
 	object SEMkVPersistance // stores voltage used
@@ -363,7 +364,7 @@ class SEM_IPrep: object
 			self.print("safetycheck: trying to move SEM with parker position > 400")
 			throw("safetycheck: trying to move SEM with parker position > 400")
 		}
-
+		
 		self.moveXYabs(Xnew,Ynew, 1)
 
 		self.moveZAbs(Znew,1)
@@ -754,7 +755,7 @@ if (XYZZY)		self.setWDForImaging()
 		self.print("zeroed shift, x: "+-a/1000+", y: "+-b/1000)
 	}
 
-	void SEM_IPrep(object self)
+	void SEM_simulator(object self)
 	{
 		// constructor
 
@@ -851,6 +852,7 @@ if (XYZZY)		self.setWDForImaging()
 		self.print("HV off")
 	}	
 
+/*
 	~SEM_IPrep(object self)
 	{
 		// save last known stage position to tag
@@ -860,7 +862,7 @@ if (XYZZY)		self.setWDForImaging()
 		SEMkVPersistance.setNumber(kV)
 		SEMWDPersistance.setNumber(imagingWD)
 	}
-
+*/
 
 
 }
