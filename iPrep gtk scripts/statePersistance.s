@@ -64,7 +64,7 @@ class statePersistanceNumeric:object
 			TagGroupGetTagAsNumber(subtag,valueName,value1)
 			return value1
 		} else {
-			throw("tag"+valueName+"does not exist")
+			throw("tag: "+valueName+" does not exist")
 		}
 
 

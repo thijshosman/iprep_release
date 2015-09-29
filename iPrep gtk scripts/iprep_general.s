@@ -158,7 +158,7 @@ class safetyMediator:object
 		return status // open or closed
 	}
 
-	number getPosition(object self)
+	number getCurrentPosition(object self)
 	{
 		// returns the position of parker stage
 		
@@ -166,7 +166,7 @@ class safetyMediator:object
 		// change to correct tag name
 		//GetPersistentTagGroup().TagGroupGetTagAsLong("IPrep:parkerState:currentPosition", status)
 		
-		pos = transfer.getPosition()
+		pos = transfer.getCurrentPosition()
 
 		return pos // position of parker
 	}

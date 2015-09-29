@@ -340,7 +340,7 @@ class SEM_simulator: object
 		// first update Z, most critical coordinate
 
 		// check that parker is out of the way
-		if (myMediator.getPosition() > 400)
+		if (myMediator.getCurrentPosition() > 400)
 		{
 			self.print("safetycheck: trying to move SEM with parker position > 400")
 			throw("safetycheck: trying to move SEM with parker position > 400")
@@ -359,7 +359,7 @@ class SEM_simulator: object
 	{
 		// first update x,y, then update z, most critical coordinate
 		
-		if (myMediator.getPosition() > 400)
+		if (myMediator.getCurrentPosition() > 400)
 		{
 			self.print("safetycheck: trying to move SEM with parker position > 400")
 			throw("safetycheck: trying to move SEM with parker position > 400")
@@ -799,7 +799,8 @@ if (XYZZY)		self.setWDForImaging()
 		SEMWDPersistance.init("SEM:WD")
 		imagingWD = SEMWDPersistance.getNumber()
 
-		self.zeroShift()
+		// zeroing shift does not work on simulator
+		//self.zeroShift()
 		self.Update()
 		self.calibrateCoordsFromPickup()
 		self.print("initialized")

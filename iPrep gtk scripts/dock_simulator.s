@@ -115,6 +115,7 @@ class dock_simulator : object
 	{
 		// *** private ***
 		state = newstate
+		SEMdockPersistance.setState(newstate)
 		self.print("state manually set. state is: "+state)
 	}
 
@@ -128,7 +129,8 @@ class dock_simulator : object
 		if (state == "clamped" || state == "inbetween")
 		{
 			// run until sensor gets triggered
-			self.sendCommand("gD800S11e2G10000R")
+			// simulator sets state
+			self.setManualState("unclamped")
 			sleep(0.5)
 			number i = 0
 			while(state != "unclamped")
@@ -159,7 +161,8 @@ class dock_simulator : object
 		if (state == "unclamped" || state == "inbetween")
 		{
 			// run until sensor is triggered 
-			self.sendCommand("gP800S13e2G10000R")
+			// simulator sets state
+			self.setManualState("clamped")
 			sleep(0.5)
 			number i = 0
 			while(state != "clamped")

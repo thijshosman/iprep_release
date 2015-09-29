@@ -1,7 +1,7 @@
 // $BACKGROUND$
 // manages acquiring PECS images from the workflow and saving them in the correct directory
 
-class pecsCamera_simulator : object
+class pecsCamera_iprep : object
 {
 
 	number camID
@@ -23,7 +23,7 @@ class pecsCamera_simulator : object
 	}
 
 
-	void pecsCamera_simulator(object self)
+	void pecsCamera_iprep(object self)
 	{
 		camID = CameraGetActiveCameraID( )
 		processing = CameraGetUnprocessedEnum( )

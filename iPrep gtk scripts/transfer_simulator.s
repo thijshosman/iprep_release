@@ -60,7 +60,7 @@ class parkerTransfer_simulator:object
 		return reply
 	}	
 	
-	void parkerTransfer(object self)
+	void parkerTransfer_simulator(object self)
 	{
 		// *** public ***
 		// constructor
@@ -283,9 +283,10 @@ number movetoposition(object self, number setpoint)
 
 		if (setpoint > 400)
 		{
-			if (myMediator.getSEMState() != "clear" || myMediator.getSEMState() != "pickup_dropoff")
+			if (myMediator.getSEMState() != "clear" && myMediator.getSEMState() != "pickup_dropoff")
 			{
 				self.print("safetycheck: SEM not in pickup_dropoff or clear and trying to move parker inside SEM chamber")
+				self.print("safetycheck: SEM in "+myMediator.getSEMState())
 				throw("safetycheck: SEM not in pickup_dropoff or clear and trying to move parker inside SEM chamber")
 			}
 		}
@@ -293,27 +294,24 @@ number movetoposition(object self, number setpoint)
 		self.turnOn()
 
 		self.setMovingParameters()
-		number current_pos = self.getCurrentPosition()
+		number current_pos = setpoint
 		self.print("moveposition: going to move. current pos is: "+current_pos+", going to: "+setpoint)
 		// go to setpoint
 		self.sendCommand("X"+setpoint)
 
 		number i = 0
-		while ((abs(setpoint-current_pos))>accuracy)
-    	{
     		
-    		current_pos = self.getCurrentPosition()
-    		parkerPositions.saveCurrentPosition(current_pos)
-			sleep(1)
-    		i++
-    		if (i>timeout)
-    		{
-    			self.print("warning, did not get to position. cur="+current_pos+", setp="+setpoint)
-    			throw("timeout. did not get to position. current pos: "+current_pos+", setp: "+setpoint)
-    			return 0
-    		}
-    		self.print("moveposition: current pos: "+current_pos+", setpoint: "+setpoint)
-    	}
+		parkerPositions.saveCurrentPosition(current_pos)
+		sleep(1)
+		i++
+		if (i>timeout)
+		{
+			self.print("warning, did not get to position. cur="+current_pos+", setp="+setpoint)
+			throw("timeout. did not get to position. current pos: "+current_pos+", setp: "+setpoint)
+			return 0
+		}
+		self.print("moveposition: current pos: "+current_pos+", setpoint: "+setpoint)
+    	
 		self.print("moveposition: arrived at: "+current_pos+", setpoint was: "+setpoint)
 		
 		return 1

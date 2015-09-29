@@ -1,7 +1,7 @@
 // $BACKGROUND$
 // manages acquiring PECS images from the workflow and saving them in the correct directory
 
-class pecsCamera_iprep : object
+class pecsCamera_simulator : object
 {
 
 	number camID
@@ -23,10 +23,14 @@ class pecsCamera_iprep : object
 	}
 
 
-	void pecsCamera_iprep(object self)
+	void pecsCamera_simulator(object self)
 	{
-		camID = CameraGetActiveCameraID( )
-		processing = CameraGetUnprocessedEnum( )
+		// does not work in simulator
+		//camID = CameraGetActiveCameraID( )
+
+		camID = 0
+
+		//processing = CameraGetUnprocessedEnum( )
 	}
  
 	void init(object self)
@@ -34,7 +38,7 @@ class pecsCamera_iprep : object
 		// *** public ***
 		// initializes
 
-		CameraPrepareForAcquire( camID )
+		//CameraPrepareForAcquire( camID )
 		self.print("initialized")
 	}
 	 
@@ -44,7 +48,7 @@ class pecsCamera_iprep : object
 		// acquire image the DM way
 
 		// use standard DM acquisition methods
-		im := CameraAcquire( camID , exposure)
+		//im := CameraAcquire( camID , exposure)
 		//ShowImage( im )
 
 		self.print("image acquired")
@@ -56,7 +60,7 @@ class pecsCamera_iprep : object
 		// acquire image the DM way
 
 		// use standard DM acquisition methods
-		im := CameraAcquire( camID)
+		//im := CameraAcquire( camID)
 		//ShowImage( im )
 
 		self.print("image acquired")
@@ -71,9 +75,9 @@ class pecsCamera_iprep : object
 
 		
 		// use PECS specific acquisition methods, close window afterwards
-		PIPS_StartSnapshot()
+		//PIPS_StartSnapshot()
 		sleep(3)
-		im := getfrontimage()
+		//im := getfrontimage()
 		//ImageDocument imdoc = GetFrontImageDocument()
 		ImageDocument imdoc = ImageGetOrCreateImageDocument(im)
 		imdoc.ImageDocumentClose(0)
@@ -85,7 +89,7 @@ class pecsCamera_iprep : object
 	void liveView(object self)
 	{
 		// start live view acquisition
-		PIPS_StartLiveview()
+		//PIPS_StartLiveview()
 
 	}
 

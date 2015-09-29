@@ -1,26 +1,32 @@
 
 A: 
 -framework for error handling
--save SEMcoords object into tags
+-save SEMcoords object into tags->use examples John
 	-new SEMcoordManager class that is instantiated by SEM_iprep that has methods for:
 	-this will replace semcoord attributes of SEM_iprep class so that SEM_iprep methods that need coordinates get them directly from the tags through the semcoordmanager
-	-use examples John
 v-puncture classes with checks as defined in iprep_general
 	v-make sure safety is at the lowest level
 	v-create interface for iprep_general to allow checks names to be in device classes through mediator
 	-checks:
 		v-SEM: SEM checks that parker is < 400 before moving
 		v-PECS: only close GV when parker < 150
+		v-PECS: only move stage up when parker < 20
 		v-Parker: only move > 150 when GV is open
 		v-Parker: only move > 400 when SEM in pickup/dropoff or clear
 		v-Parker: check that PECS stage is lowered when moving
 v-ABC for hw to simulate iprep after it ships. make choice in linearWorkflow. no base
 	v-dock-simulator and dock
 		-planardock and ebsddock differentiation solution
-	-sem and sem-simulator
+	-sem and sem-simulator -> waiting for semcoordsmanager class
 	v-pecs and pecs-simulator
 	v-gripper and gripper-simulator
 	v-transfer and transfer-simulator
+-test the simulators with well defined tests in separate files
+	v-gripper
+	v-dock
+	v-pecs
+	v-transfer
+	-sem -> waiting for semcoordsmanager class
 -check for hw bridge fault (or any fault) in transfer class
 -proper start routine that does checks of hardware and states in workflow
 	-make sure workflow can start/resume from PECS as well (ie after DM restart)

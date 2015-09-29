@@ -245,6 +245,13 @@ class pecs_simulator: object
 		if (!self.argonCheck())
 			throw("argon pressure check failed, aborting")
 
+		if (myMediator.getCurrentPosition() > 20)
+		{
+			self.print("safetycheck: Parker system not out of the way ("+myMediator.getCurrentPosition()+")! cannot raise stage")
+			throw("safetycheck: Parker system not out of the way before raising stage")
+		}
+
+
 		self.print("raising stage")
 
 		
@@ -323,9 +330,9 @@ class pecs_simulator: object
 
 
 		// safety check: check that parker is out of the way
-		if (myMediator.getPosition() > 150)
+		if (myMediator.getCurrentPosition() > 150)
 		{
-			self.print("safetycheck: Parker system not out of the way ("+myMediator.getPosition()+")! cannot close GV")
+			self.print("safetycheck: Parker system not out of the way ("+myMediator.getCurrentPosition()+")! cannot close GV")
 			throw("safetycheck: Parker system not out of the way")
 		}
 
@@ -344,11 +351,6 @@ class pecs_simulator: object
 			self.print("sensors do not detect GV in closed state")
 			throw("sensors do not detect GV in closed state")
 		}
-
-
-
-
-
 
 
 	}

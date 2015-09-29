@@ -70,6 +70,17 @@ class parkerTransfer:object
 
 	}
 
+	number driveFaulted(object self)
+	{
+		// if drive faulted, this means a major hardware problem
+		// TODO: needs to be tested on real hardware
+		if (self.sendCommand("?BIT9498") == "1")
+			return 1
+		else
+			return 0
+	}
+
+
 	number killSwitchEngaged(object self)
 	{
 		if (self.sendCommand("?BIT8467") == "-1")
@@ -134,6 +145,15 @@ class parkerTransfer:object
 	{
 		// *** public ***
 		// returns current position, adjusted for lead screw factor (PPU)
+		
+		// check if drive faulted
+		if (self.driveFaulted()==1) 
+		{
+			self.print("drive faulted!")
+			throw("drive faulted!")
+		}
+
+
 		number position
 		position = val(self.sendCommand("?P12290"))/PPU
 		return position
@@ -266,7 +286,7 @@ class parkerTransfer:object
 
 		if (setpoint > 400)
 		{
-			if (myMediator.getSEMState() != "clear" || myMediator.getSEMState() != "pickup_dropoff")
+			if (myMediator.getSEMState() != "clear" && myMediator.getSEMState() != "pickup_dropoff")
 			{
 				self.print("safetycheck: SEM not in pickup_dropoff or clear and trying to move parker inside SEM chamber")
 				throw("safetycheck: SEM not in pickup_dropoff or clear and trying to move parker inside SEM chamber")

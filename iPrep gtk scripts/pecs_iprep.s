@@ -341,6 +341,13 @@ class pecs_iprep: object
 		if (!self.argonCheck())
 			throw("argon pressure check failed, aborting")
 
+		if (myMediator.getCurrentPosition() > 20)
+		{
+			self.print("safetycheck: Parker system not out of the way ("+myMediator.getCurrentPosition()+")! cannot raise stage")
+			throw("safetycheck: Parker system not out of the way before raising stage")
+		}
+
+
 		self.print("raising stage")
 
 		PIPS_SetPropertyDevice("subsystem_pumping", "device_valveVent", "set_active", "1")
@@ -459,9 +466,9 @@ void closeGV(object self)	// #TODO: REMOVE enableGV, temp patch
 		self.print("closing GV")
 
 		// safety check: check that parker is out of the way
-		if (myMediator.getPosition() > 150)
+		if (myMediator.getCurrentPosition() > 150)
 		{
-			self.print("safetycheck: Parker system not out of the way ("+myMediator.getPosition()+")! cannot close GV")
+			self.print("safetycheck: Parker system not out of the way ("+myMediator.getCurrentPosition()+")! cannot close GV")
 			throw("safetycheck: Parker system not out of the way")
 		}
 

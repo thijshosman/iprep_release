@@ -339,7 +339,7 @@ class SEM_IPrep: object
 		// first update Z, most critical coordinate
 
 		// check that parker is out of the way
-		if (myMediator.getPosition() > 400)
+		if (myMediator.getCurrentPosition() > 400)
 		{
 			self.print("safetycheck: trying to move SEM with parker position > 400")
 			throw("safetycheck: trying to move SEM with parker position > 400")
@@ -358,7 +358,7 @@ class SEM_IPrep: object
 	{
 		// first update x,y, then update z, most critical coordinate
 		
-		if (myMediator.getPosition() > 400)
+		if (myMediator.getCurrentPosition() > 400)
 		{
 			self.print("safetycheck: trying to move SEM with parker position > 400")
 			throw("safetycheck: trying to move SEM with parker position > 400")
