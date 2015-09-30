@@ -121,6 +121,7 @@ void WorkaroundQuantaMagBug( void )
 
 void AcquireDigiscanImage( image &img )
 // JH version
+// TODO: migrate to digiscan class
 {
 	Number paramID = 2	// capture ID
 	number width, height,pixeltime,linesync,rotation
@@ -160,6 +161,7 @@ void AcquireDigiscanImage( image &img )
 
 void PECS_CAM_acquire( image &img )
 // Used by acquire_PECS_image
+// TODO: migrate to PECS class
 {
 	number camID = CameraGetActiveCameraID( )
 	number processing = CameraGetUnprocessedEnum( )
@@ -497,6 +499,7 @@ Number IPrep_foobar()
 	catch
 	{
 		// system caught unhandled exception and is now considered dead/unsafe
+		print(GetExceptionString())
 		returnDeadFlag().setDeadUnSafe()
 
 		break // so that flow contineus
@@ -526,6 +529,7 @@ Number IPrep_MoveToPECS()
 	{
 
 		// system caught unhandled exception and is now considered dead/unsafe
+		print(GetExceptionString())
 		returnDeadFlag().setDeadUnSafe()
 
 		break // so that flow contineus
@@ -554,6 +558,7 @@ Number IPrep_MoveToSEM()
 	catch
 	{
 		// system caught unhandled exception and is now considered dead/unsafe
+		print(GetExceptionString())
 		returnDeadFlag().setDeadUnSafe()
 
 		break // so that flow contineus
@@ -603,6 +608,7 @@ Number IPrep_StartRun()
 	catch
 	{
 		// system caught unhandled exception and is now considered dead/unsafe
+		print(GetExceptionString())
 		returnDeadFlag().setDeadUnSafe()
 
 		break // so that flow contineus
@@ -675,15 +681,15 @@ Number IPrep_Image()
 			if ( GetPersistentNumberNote( tagname, saved_focus ) )
 			{
 				EMSetFocus( saved_focus*1000 )
-				EMWaitUntilReady()
+//				EMWaitUntilReady()
 			}
 
 		// Workaround for Quanta SEM magnification bug (changes mag at SEM after some unknown action, but mag query gives original (now incorrect) mag) #TODO:Fix
-			WorkaroundQuantaMagBug()
+//			WorkaroundQuantaMagBug()
 
 		// Unblank SEM beam
-			FEIQuanta_SetBeamBlankState(0)
-			EMWaitUntilReady()
+//			FEIQuanta_SetBeamBlankState(0)
+//			EMWaitUntilReady()
 			sleep(1)	// Beam on stabilization delay, #TODO: Move to tag
 
 		// Autofocus, if enabled in tag
@@ -716,7 +722,7 @@ Number IPrep_Image()
 			AcquireDigiscanImage( temp_slice_im )
 
 		// Blank SEM beam
-			FEIQuanta_SetBeamBlankState(1)
+//			FEIQuanta_SetBeamBlankState(1)
 
 		// Verify SEM is functioning properly - pause acquisition otherwise (might be better to do before AFS with a test scan, easier here)
 		{
@@ -762,7 +768,9 @@ Number IPrep_Image()
 	}
 	catch
 	{
+		
 		// system caught unhandled exception and is now considered dead/unsafe
+		print(GetExceptionString())
 		returnDeadFlag().setDeadUnSafe()
 
 		break // so that flow contineus
@@ -885,6 +893,7 @@ Number IPrep_Mill()
 	catch
 	{
 		// system caught unhandled exception and is now considered dead/unsafe
+		print(GetExceptionString())
 		returnDeadFlag().setDeadUnSafe()
 
 		break // so that flow contineus
@@ -938,7 +947,7 @@ try
 catch
 {
 	result("exception caught at highest level\n")
-	result( GetExceptionString() + "\n" )
+	print(GetExceptionString())
 }
 
 // save global tags to disk

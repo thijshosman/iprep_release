@@ -17,7 +17,7 @@ v-puncture classes with checks as defined in iprep_general
 v-ABC for hw to simulate iprep after it ships. make choice in linearWorkflow. no base
 	v-dock-simulator and dock
 		-planardock and ebsddock differentiation solution
-	-sem and sem-simulator -> waiting for semcoordsmanager class
+	-sem and sem-simulator -> waiting for semcoordsmanager class, SEM too tightly coupled to SEM
 	v-pecs and pecs-simulator
 	v-gripper and gripper-simulator
 	v-transfer and transfer-simulator
@@ -47,6 +47,7 @@ v-ABC for hw to simulate iprep after it ships. make choice in linearWorkflow. no
 
 B:
 -implement consistent and well thought out user dialog in combination of results/debug/logfile/UI menus
+	-add timestamp to print functions
 -UI elements to show status
 -clean up main to put stuff back in classes below
 	-remove kv/wd stuff from sem class

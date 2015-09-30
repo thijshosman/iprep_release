@@ -338,12 +338,7 @@ class SEM_IPrep: object
 	{
 		// first update Z, most critical coordinate
 
-		// check that parker is out of the way
-		if (myMediator.getCurrentPosition() > 400)
-		{
-			self.print("safetycheck: trying to move SEM with parker position > 400")
-			throw("safetycheck: trying to move SEM with parker position > 400")
-		}
+
 
 		
 		self.moveZAbs(Znew,1)	
@@ -357,12 +352,7 @@ class SEM_IPrep: object
 	void goToCoordsZLast(object self, number Xnew, number Ynew, number Znew)
 	{
 		// first update x,y, then update z, most critical coordinate
-		
-		if (myMediator.getCurrentPosition() > 400)
-		{
-			self.print("safetycheck: trying to move SEM with parker position > 400")
-			throw("safetycheck: trying to move SEM with parker position > 400")
-		}
+
 
 		self.moveXYabs(Xnew,Ynew, 1)
 
@@ -413,7 +403,7 @@ class SEM_IPrep: object
 	void goToClear(object self)
 	{
 		self.print("going to clear. current state: "+state)
-		
+
 		if (state == "pickup_dropoff")
 		{
 			self.goToCoordsZFirst(clear.getX(),clear.getY(),clear.getZ())
@@ -438,6 +428,13 @@ class SEM_IPrep: object
 	{
 		self.print("going to nominal_imaging. current state: "+state)
 		
+		// check that parker is out of the way
+		if (myMediator.getCurrentPosition() > 400)
+		{
+			self.print("safetycheck: trying to move SEM with parker position > 400")
+			throw("safetycheck: trying to move SEM with parker position > 400")
+		}
+
 		if (state == "clear")
 		{
 			self.goToCoordsZFirst(nominal_imaging.getX(),nominal_imaging.getY(),nominal_imaging.getZ())
@@ -465,6 +462,13 @@ if (XYZZY)		self.setWDForImaging()
 	void goToHighGridFront(object self)
 	{
 		self.print("going to highGridFront. current state: "+state)
+
+		// check that parker is out of the way
+		if (myMediator.getCurrentPosition() > 400)
+		{
+			self.print("safetycheck: trying to move SEM with parker position > 400")
+			throw("safetycheck: trying to move SEM with parker position > 400")
+		}
 		
 		if (state == "imaging")
 		{
@@ -490,6 +494,13 @@ if (XYZZY)		self.setWDForImaging()
 	void goToHighGridBack(object self)
 	{
 		self.print("going to highGridBack. current state: "+state)
+
+		// check that parker is out of the way
+		if (myMediator.getCurrentPosition() > 400)
+		{
+			self.print("safetycheck: trying to move SEM with parker position > 400")
+			throw("safetycheck: trying to move SEM with parker position > 400")
+		}
 		
 		if (state == "imaging")
 		{
@@ -514,6 +525,14 @@ if (XYZZY)		self.setWDForImaging()
 	void goToScribeMark(object self)
 	{
 		self.print("going to scribe mark. current state: "+state)
+
+		// check that parker is out of the way
+		if (myMediator.getCurrentPosition() > 400)
+		{
+			self.print("safetycheck: trying to move SEM with parker position > 400")
+			throw("safetycheck: trying to move SEM with parker position > 400")
+		}
+
 		
 		if (state == "imaging")
 		{
@@ -539,6 +558,13 @@ if (XYZZY)		self.setWDForImaging()
 	{
 		self.print("going to lowerGrid. current state: "+state)
 		
+		// check that parker is out of the way
+		if (myMediator.getCurrentPosition() > 400)
+		{
+			self.print("safetycheck: trying to move SEM with parker position > 400")
+			throw("safetycheck: trying to move SEM with parker position > 400")
+		}
+
 		if (state == "imaging")
 		{
 			self.goToCoordsZFirst(lowerGrid.getX(),lowerGrid.getY(),lowerGrid.getZ())
@@ -562,6 +588,14 @@ if (XYZZY)		self.setWDForImaging()
 
 	void goToFWDGrid(object self)
 	{
+
+		// check that parker is out of the way
+		if (myMediator.getCurrentPosition() > 400)
+		{
+			self.print("safetycheck: trying to move SEM with parker position > 400")
+			throw("safetycheck: trying to move SEM with parker position > 400")
+		}
+
 		self.print("going to FWD grid. current state: "+state)
 		
 		if (state == "imaging")
@@ -589,6 +623,13 @@ if (XYZZY)		self.setWDForImaging()
 	{
 		self.print("going to StoredImaging. current state: "+state)
 
+		// check that parker is out of the way
+		if (myMediator.getCurrentPosition() > 400)
+		{
+			self.print("safetycheck: trying to move SEM with parker position > 400")
+			throw("safetycheck: trying to move SEM with parker position > 400")
+		}
+
 		// it is assumed that this is so close to the imaging state that we will never 
 		//have to treat this as a different state from the nominal imaging 
 		//position in the state machine
@@ -612,6 +653,8 @@ if (XYZZY)		self.setWDForImaging()
 
 		self.printCoords()
 	}
+
+	// *** calibration ***
 
 	void calibrateCoordsFromPickup(object self)
 	{

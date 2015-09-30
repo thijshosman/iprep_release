@@ -81,7 +81,7 @@ class deadFlagObject:object
 			return 1
 		else
 		{
-			self.print("system is not (alive and safe)")
+			self.print("system is: dead: "+self.isDead()+", safe: "+self.isSafe())
 			return 0
 		}
 	}

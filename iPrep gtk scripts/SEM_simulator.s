@@ -338,15 +338,7 @@ class SEM_simulator: object
 	void goToCoordsZFirst(object self, number Xnew, number Ynew, number Znew)
 	{
 		// first update Z, most critical coordinate
-
-		// check that parker is out of the way
-		if (myMediator.getCurrentPosition() > 400)
-		{
-			self.print("safetycheck: trying to move SEM with parker position > 400")
-			throw("safetycheck: trying to move SEM with parker position > 400")
-		}
-
-		
+	
 		self.moveZAbs(Znew,1)	
 
 		self.moveXYabs(Xnew,Ynew, 1)
@@ -358,12 +350,6 @@ class SEM_simulator: object
 	void goToCoordsZLast(object self, number Xnew, number Ynew, number Znew)
 	{
 		// first update x,y, then update z, most critical coordinate
-		
-		if (myMediator.getCurrentPosition() > 400)
-		{
-			self.print("safetycheck: trying to move SEM with parker position > 400")
-			throw("safetycheck: trying to move SEM with parker position > 400")
-		}
 		
 		self.moveXYabs(Xnew,Ynew, 1)
 
@@ -439,6 +425,12 @@ class SEM_simulator: object
 	{
 		self.print("going to nominal_imaging. current state: "+state)
 		
+		if (myMediator.getCurrentPosition() > 400)
+		{
+			self.print("safetycheck: trying to move SEM with parker position > 400")
+			throw("safetycheck: trying to move SEM with parker position > 400")
+		}
+		
 		if (state == "clear")
 		{
 			self.goToCoordsZFirst(nominal_imaging.getX(),nominal_imaging.getY(),nominal_imaging.getZ())
@@ -466,6 +458,13 @@ if (XYZZY)		self.setWDForImaging()
 	void goToHighGridFront(object self)
 	{
 		self.print("going to highGridFront. current state: "+state)
+
+		
+		if (myMediator.getCurrentPosition() > 400)
+		{
+			self.print("safetycheck: trying to move SEM with parker position > 400")
+			throw("safetycheck: trying to move SEM with parker position > 400")
+		}
 		
 		if (state == "imaging")
 		{
@@ -491,6 +490,12 @@ if (XYZZY)		self.setWDForImaging()
 	void goToHighGridBack(object self)
 	{
 		self.print("going to highGridBack. current state: "+state)
+
+		if (myMediator.getCurrentPosition() > 400)
+		{
+			self.print("safetycheck: trying to move SEM with parker position > 400")
+			throw("safetycheck: trying to move SEM with parker position > 400")
+		}
 		
 		if (state == "imaging")
 		{
@@ -516,6 +521,12 @@ if (XYZZY)		self.setWDForImaging()
 	{
 		self.print("going to scribe mark. current state: "+state)
 		
+		if (myMediator.getCurrentPosition() > 400)
+		{
+			self.print("safetycheck: trying to move SEM with parker position > 400")
+			throw("safetycheck: trying to move SEM with parker position > 400")
+		}
+		
 		if (state == "imaging")
 		{
 			self.goToCoordsZFirst(scribe_pos.getX(),scribe_pos.getY(),scribe_pos.getZ())
@@ -539,6 +550,12 @@ if (XYZZY)		self.setWDForImaging()
 	void goToLowerGrid(object self)
 	{
 		self.print("going to lowerGrid. current state: "+state)
+	
+		if (myMediator.getCurrentPosition() > 400)
+		{
+			self.print("safetycheck: trying to move SEM with parker position > 400")
+			throw("safetycheck: trying to move SEM with parker position > 400")
+		}
 		
 		if (state == "imaging")
 		{
@@ -565,6 +582,12 @@ if (XYZZY)		self.setWDForImaging()
 	{
 		self.print("going to FWD grid. current state: "+state)
 		
+		if (myMediator.getCurrentPosition() > 400)
+		{
+			self.print("safetycheck: trying to move SEM with parker position > 400")
+			throw("safetycheck: trying to move SEM with parker position > 400")
+		}
+		
 		if (state == "imaging")
 		{
 			self.goToCoordsZFirst(fwdGrid.getX(),fwdGrid.getY(),fwdGrid.getZ())
@@ -589,6 +612,12 @@ if (XYZZY)		self.setWDForImaging()
 	void goToStoredImaging(object self)
 	{
 		self.print("going to StoredImaging. current state: "+state)
+		
+		if (myMediator.getCurrentPosition() > 400)
+		{
+			self.print("safetycheck: trying to move SEM with parker position > 400")
+			throw("safetycheck: trying to move SEM with parker position > 400")
+		}
 
 		// it is assumed that this is so close to the imaging state that we will never 
 		//have to treat this as a different state from the nominal imaging 
@@ -613,6 +642,8 @@ if (XYZZY)		self.setWDForImaging()
 
 		self.printCoords()
 	}
+
+	// *** calibration ***
 
 	void calibrateCoordsFromPickup(object self)
 	{
