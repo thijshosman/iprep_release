@@ -669,7 +669,7 @@ class workflowStateMachine: object
 
 		}
 		else
-			throw("not allowed to transfer from SEM to PECS. current state is: "+workflowState)
+			throw("not allowed to transfer from PECS to SEM. current state is: "+workflowState)
 	}
 
 	void SEM_to_PECS(object self)
@@ -700,7 +700,7 @@ class workflowStateMachine: object
 
 		}
 		else
-			throw("not allowed to transfer from PECS to SEM. current state is: "+workflowState)
+			throw("not allowed to transfer from SEM to PECS. current state is: "+workflowState)
 
 	}
 

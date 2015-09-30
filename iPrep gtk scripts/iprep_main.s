@@ -77,6 +77,51 @@ string IPrep_rootSaveDir()
 	return pointer
 }
 
+
+void IPrep_saveSEMImage(image &im, string subdir)
+{
+	// saves front image, used both for digiscan
+	
+	string DirPath = ""
+	DirPath = PathExtractDirectory(IPrep_rootSaveDir(), 0)
+
+	string FileNamePrefix = "IPREP_SEM"
+	string FileNamePostfix = "_slice_"+right("000"+IPrep_sliceNumber(),4)
+	
+	// check if dir exsits, create if not
+	if (!DoesDirectoryExist( dirPath + subdir))
+		CreateDirectory(dirPath + subdir)
+	
+	DirPath = DirPath + subdir + "\\"
+	string filename = DirPath+FileNamePrefix+FileNamePostfix
+	
+	SaveAsGatan(im,filename)
+
+	print("saved "+filename)
+}
+
+void IPrep_savePECSImage(image &im, string subdir)
+{
+	// saves front image, used both for pecs camera
+	
+	string DirPath = ""
+	DirPath = PathExtractDirectory(IPrep_rootSaveDir(), 0)
+
+	string FileNamePrefix = "IPREP_PECS"
+	string FileNamePostfix = "_slice_"+right("000"+IPrep_sliceNumber(),4)
+
+	// check if dir exsits, create if not
+	if (!DoesDirectoryExist( dirPath + subdir))
+		CreateDirectory(dirPath + subdir)
+	
+	DirPath = DirPath + subdir + "\\"
+	string filename = DirPath+FileNamePrefix+FileNamePostfix
+
+	SaveAsGatan(im,filename)
+	
+	print("saved "+filename)
+}
+
 number IPrep_sliceNumber()
 {
 	Number nSlices
@@ -100,6 +145,9 @@ void IPrep_Abort()
 	IPrep_AbortRun()
 }
 
+
+
+
 void WorkaroundQuantaMagBug( void )
 // When there is a Z move on the Quanta and the FWD is different from the calibrated stage Z,
 // there is a bug where the Quanta miscalculates the actual magnification.  This work around
@@ -118,6 +166,10 @@ void WorkaroundQuantaMagBug( void )
 	emsetmagnification( oldmag )
 	result( ",done.\n")
 }
+
+
+
+
 
 void AcquireDigiscanImage( image &img )
 // JH version
@@ -159,9 +211,11 @@ void AcquireDigiscanImage( image &img )
 }
 
 
+
+
 void PECS_CAM_acquire( image &img )
 // Used by acquire_PECS_image
-// TODO: migrate to PECS class
+// TODO: migrate to pecscamera class
 {
 	number camID = CameraGetActiveCameraID( )
 	number processing = CameraGetUnprocessedEnum( )
@@ -220,49 +274,6 @@ void acquire_PECS_image( image &img )
 }
 
 
-void IPrep_saveSEMImage(image &im, string subdir)
-{
-	// saves front image, used both for digiscan
-	
-	string DirPath = ""
-	DirPath = PathExtractDirectory(IPrep_rootSaveDir(), 0)
-
-	string FileNamePrefix = "IPREP_SEM"
-	string FileNamePostfix = "_slice_"+right("000"+IPrep_sliceNumber(),4)
-	
-	// check if dir exsits, create if not
-	if (!DoesDirectoryExist( dirPath + subdir))
-		CreateDirectory(dirPath + subdir)
-	
-	DirPath = DirPath + subdir + "\\"
-	string filename = DirPath+FileNamePrefix+FileNamePostfix
-	
-	SaveAsGatan(im,filename)
-
-	print("saved "+filename)
-}
-
-void IPrep_savePECSImage(image &im, string subdir)
-{
-	// saves front image, used both for pecs camera
-	
-	string DirPath = ""
-	DirPath = PathExtractDirectory(IPrep_rootSaveDir(), 0)
-
-	string FileNamePrefix = "IPREP_PECS"
-	string FileNamePostfix = "_slice_"+right("000"+IPrep_sliceNumber(),4)
-
-	// check if dir exsits, create if not
-	if (!DoesDirectoryExist( dirPath + subdir))
-		CreateDirectory(dirPath + subdir)
-	
-	DirPath = DirPath + subdir + "\\"
-	string filename = DirPath+FileNamePrefix+FileNamePostfix
-
-	SaveAsGatan(im,filename)
-	
-	print("saved "+filename)
-}
 
 void IPrep_init()
 {
@@ -319,7 +330,7 @@ number IPrep_continous_check()
 /*
 void IPrep_Align()
 {
-
+// may not be needed anymore
 	if (XYZZY)
 	{
 		// align image, called by IPrep_image()
@@ -373,8 +384,9 @@ void IPrep_StoreSEMPositionAsStoredImaging(number x, number y, number z)
 }
 
 void IPrep_cleanup()
-
 {
+	// runs when there is a problem detected to return to manageable settings, ie:
+	// unlock the pecs, stop any statuschecking thread etc
 	print("cleanup called")
 	/*
 	if (XYZZY)
@@ -402,6 +414,8 @@ void IPrep_cleanup()
 
 
 }
+
+
 /*
 Number IPrep_Setup_Imaging()
 {
@@ -777,7 +791,7 @@ Number IPrep_Image()
 
 	}
 
-
+	return returncode
 
 /* // old code thijs
 
@@ -837,7 +851,7 @@ if (XYZZY)
 
 
 */
-	return returncode
+
 }
 
 
@@ -932,6 +946,7 @@ string IPrep_GetStatus()
 
 Number IPrep_RunPercentCompleted()
 {
+	// deprecated
 	return myStateMachine.getPercentage()
 }
 
