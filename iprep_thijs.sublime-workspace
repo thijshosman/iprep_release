@@ -92,24 +92,10 @@
 	"buffers":
 	[
 		{
-			"contents": "// $BACKGROUND$\n// general IPrep functions used in various scripts\n\n\nclass deadFlagObject:object\n{\n	object deadFlag\n	object safetyFlag\n\n	void log(object self, number level, string text)\n	{\n		// log events in log files\n		LogEvent(\"deadFlag\", level, text)\n	}\n\n	void print(object self, string str1)\n	{\n		result(\"deadFlag: \"+str1+\"\\n\")\n		self.log(2,str1)\n\n	}\n\n	void deadFlagObject(object self)\n	{\n		// get deadflag\n		deadFlag = alloc(statePersistance)\n		safetyFlag = alloc(statePersistance)\n		deadFlag.init(\"flags:dead\")\n		safetyFlag.init(\"flags:safe\")\n	}\n\n	void setDead(object self, number status)\n	{\n		// set whether system is dead or not\n		self.print(\"deadflag set to \" + status)\n		deadFlag.setState(\"\"+status)\n	}\n\n	void setSafety(object self, number status)\n	{\n		// set whether system is safe to operate\n		self.print(\"safety flag set to \" + status)\n		safetyFlag.setState(\"\"+status)\n	}\n\n	number isDead(object self)\n	{\n		// is system dead (ie is flag set)?\n		return val(deadFlag.getState())\n\n	}\n\n	number isSafe(object self)\n	{\n		// is system safe to operate (ie is flag set)?\n		return val(safetyFlag.getState())\n	}\n\n\n	void setDeadSafe(object self)\n	{\n		self.setDead(1)\n		self.setSafety(1)\n	}\n\n	void setDeadUnsafe(object self)\n	{\n		self.setDead(1)\n		self.setSafety(0)\n	}\n\n	void setAliveSafe(object self)\n	{\n		self.setDead(0)\n		self.setSafety(1)\n	}\n\n	number checkAliveAndSafe(object self)\n	{\n		if (!self.isDead() & self.isSafe())\n			return 1\n		else\n		{\n			self.print(\"system is not (alive and safe)\")\n			return 0\n		}\n	}\n	\n	number checkDeadAndSafe(object self)\n	{\n		if (self.isDead() & self.isSafe())\n			return 1\n		else\n			return 0\n	}\n\n}\n\n// *** functions for safety: check status of these critical components inside the classes by checking tags ***\n\nclass safetyCheck:object\n{\n	\n\n}\n\nstring checkGatevalve()\n{\n	// returns gv state from tag\n	string tagStatus\n	GetPersistentTagGroup().TagGroupGetTagAsString(\"IPrep:GVState:state\", tagStatus)\n	\n	// returns gv state from sensor\n	string sensorStatus = \n\n\n	return status // open or closed\n}\n\nnumber checkParker()\n{\n	// returns the last known position of parker stage\n	number status\n	// change to correct tag name\n	GetPersistentTagGroup().TagGroupGetTagAsLong(\"IPrep:parkerState:currentPosition\", status)\n	return status // last known value of parker\n}\n\nstring checkSEM()\n{\n	// returns the last known state of the SEM\n	string status\n	// change to correct tag name \n	GetPersistentTagGroup().TagGroupGetTagAsString(\"IPrep:SEMStage:state\", status)\n	return status // sem state. \"clear\" or \"pickup_dropoff\" or \"imaging\"\n}\n\n\nclass haltCheckObject:object\n{\n	// TODO: make sure tag is set correctly\n	object haltFlag\n\n	void haltCheckObject(object self)\n	{\n		// get haltflag\n		haltFlag = alloc(statePersistance)\n		haltFlag.init(\"flags:halt\")\n	}\n	\n	void resetHaltFlag(object self)\n	{\n		haltFlag.setState(\"0\")\n		result(\"haltFlag: reset to 0\\n\")\n	}\n\n	void setHaltFlag(object self)\n	{\n		haltFlag.setState(\"1\")\n		result(\"haltFlag: set\\n\")\n	}\n\n	void haltCheck(object self)\n	{\n		// check halt bit, if set, set back to 0 and throw exception\n		if(haltFlag.getState()==\"1\")\n		{	\n			self.resetHaltFlag()\n			result(\"haltFlag detected, halting..\\n\")\n			throw(\"halt pressed\")\n			\n		}\n	}\n\n}\n\n\n\n\nnumber getProtectedModeFlag()\n{\n	// check protected mode flag\n\n	TagGroup tg = GetPersistentTagGroup() \n	\n	string current\n	\n	TagGroupGetTagAsString(tg,\"IPrep:flags:protected\", current )\n	\n	return val(current)\n}\n\nvoid continueCheck()\n{\n	// allow user to cancel out of current workflow set\n\n	if(getProtectedModeFlag())\n	{\n		if(!ContinueCancelDialog( \" continue?\" ))\n		{\n			result(\"user manually aborted\\n\")\n			throw(\"user opted not to continue\")\n		}\n	}\n\n}\n\nvoid continueCheck(string message)\n{\n	// allow user to cancel out of current workflow set\n\n	if(getProtectedModeFlag())\n	{\n		if(!ContinueCancelDialog( message + \" continue?\" ))\n		{\n			result(\"user manually aborted after \"+message+\"\\n\")\n			throw(message + \" user opted not to continue\")\n		}\n	}\n\n}\n\nvoid manualHaltOptionShift()\n{\n	if (optiondown() & shiftdown())\n	{\n		result(\"user manually aborted with shift+option\\n\")\n		throw(\"user aborted with shift+option\")\n	}\n}\n\nobject deadFlag = alloc(deadFlagObject)\n\nobject returnDeadFlag()\n{\n	// returns the deadflag object\n	return deadFlag\n}\n\nobject haltFlag = alloc(haltCheckObject)\n\nobject returnHaltFlag()\n{\n	// returns the haltflag object\n	return haltFlag\n}\n\n\n\n// testing\n/*\nreturnDeadFlag().setAliveSafe()\nresult(\"alivesafe: \"+returnDeadFlag().checkAliveAndSafe()+\"\\n\")\nresult(\"deadsafe: \"+returnDeadFlag().checkDeadAndSafe()+\"\\n\")\nreturnDeadFlag().setDeadSafe()\nresult(\"alivesafe: \"+returnDeadFlag().checkAliveAndSafe()+\"\\n\")\nresult(\"deadsafe: \"+returnDeadFlag().checkDeadAndSafe()+\"\\n\")\nreturnDeadFlag().setDeadUnSafe()\nresult(\"alivesafe: \"+returnDeadFlag().checkAliveAndSafe()+\"\\n\")\nresult(\"deadsafe: \"+returnDeadFlag().checkDeadAndSafe()+\"\\n\")\n*/\n\n// testing\n\n//result(getProtectedModeFlag()+\"\\n\")\n\n\n\n",
 			"file": "iPrep gtk scripts/iprep_general.s",
-			"file_size": 5173,
-			"file_write_time": 130876064228914610,
 			"settings":
 			{
-				"buffer_size": 4913,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"contents": "interface I_deadFlagObject\n{\n\n	void log(object self, number level, string text);\n\n	void print(object self, string str1);\n\n	void deadFlagObject(object self);\n\n	void setDead(object self, number status);\n\n	void setSafety(object self, number status);\n\n	number isDead(object self);\n\n	number isSafe(object self);\n\n	void setDeadSafe(object self);\n\n	void setDeadUnsafe(object self);\n\n	void setAliveSafe(object self);\n\n	number checkAliveAndSafe(object self);\n	\n	number checkDeadAndSafe(object self);\n\n}\n\n// *** functions for safety: check status of these critical components inside the classes by checking tags ***\n\nstring checkGatevalve()\n{\n	// returns gv state from tag\n	string tagStatus\n	GetPersistentTagGroup().TagGroupGetTagAsString(\"IPrep:GVState:state\", tagStatus)\n	\n	// returns gv state from sensor\n	string sensorStatus = \n\n\n	return status // open or closed\n}\n\nnumber checkParker()\n{\n	// returns the last known position of parker stage\n	number status\n	// change to correct tag name\n	GetPersistentTagGroup().TagGroupGetTagAsLong(\"IPrep:parkerState:currentPosition\", status)\n	return status // last known value of parker\n}\n\nstring checkSEM()\n{\n	// returns the last known state of the SEM\n	string status\n	// change to correct tag name \n	GetPersistentTagGroup().TagGroupGetTagAsString(\"IPrep:SEMStage:state\", status)\n	return status // sem state. \"clear\" or \"pickup_dropoff\" or \"imaging\"\n}\n\n\nclass haltCheckObject:object\n{\n	// TODO: make sure tag is set correctly\n	object haltFlag\n\n	void haltCheckObject(object self)\n	{\n		// get haltflag\n		haltFlag = alloc(statePersistance)\n		haltFlag.init(\"flags:halt\")\n	}\n	\n	void resetHaltFlag(object self)\n	{\n		haltFlag.setState(\"0\")\n		result(\"haltFlag: reset to 0\\n\")\n	}\n\n	void setHaltFlag(object self)\n	{\n		haltFlag.setState(\"1\")\n		result(\"haltFlag: set\\n\")\n	}\n\n	void haltCheck(object self)\n	{\n		// check halt bit, if set, set back to 0 and throw exception\n		if(haltFlag.getState()==\"1\")\n		{	\n			self.resetHaltFlag()\n			result(\"haltFlag detected, halting..\\n\")\n			throw(\"halt pressed\")\n			\n		}\n	}\n\n}",
-			"file": "iPrep gtk scripts/iprep_general_interface.s",
-			"file_size": 2133,
-			"file_write_time": 130876064368178535,
-			"settings":
-			{
-				"buffer_size": 2031,
+				"buffer_size": 6185,
 				"line_ending": "Windows"
 			}
 		},
@@ -117,7 +103,7 @@
 			"file": "iPrep gtk scripts/00-install_IPrep.s",
 			"settings":
 			{
-				"buffer_size": 2540,
+				"buffer_size": 3061,
 				"line_ending": "Windows"
 			}
 		},
@@ -125,7 +111,7 @@
 			"file": "iPrep gtk scripts/transfer.s",
 			"settings":
 			{
-				"buffer_size": 12766,
+				"buffer_size": 10901,
 				"line_ending": "Windows"
 			}
 		},
@@ -133,7 +119,7 @@
 			"file": "iPrep gtk scripts/linearWorkflow.s",
 			"settings":
 			{
-				"buffer_size": 18338,
+				"buffer_size": 18482,
 				"line_ending": "Windows"
 			}
 		},
@@ -141,7 +127,7 @@
 			"file": "iPrep gtk scripts/SEM_iprep.s",
 			"settings":
 			{
-				"buffer_size": 21257,
+				"buffer_size": 21020,
 				"line_ending": "Windows"
 			}
 		},
@@ -157,7 +143,7 @@
 			"file": "TODO",
 			"settings":
 			{
-				"buffer_size": 2419,
+				"buffer_size": 2976,
 				"line_ending": "Windows"
 			}
 		},
@@ -165,7 +151,7 @@
 			"file": "iPrep gtk scripts/statePersistance.s",
 			"settings":
 			{
-				"buffer_size": 2126,
+				"buffer_size": 6980,
 				"line_ending": "Windows"
 			}
 		},
@@ -173,15 +159,7 @@
 			"file": "iPrep gtk scripts/iprep_main.s",
 			"settings":
 			{
-				"buffer_size": 23768,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "iPrep gtk scripts/pecs_base.s",
-			"settings":
-			{
-				"buffer_size": 2133,
+				"buffer_size": 24214,
 				"line_ending": "Windows"
 			}
 		},
@@ -189,7 +167,7 @@
 			"file": "iPrep gtk scripts/pecs_iprep.s",
 			"settings":
 			{
-				"buffer_size": 12117,
+				"buffer_size": 12368,
 				"line_ending": "Windows"
 			}
 		},
@@ -197,15 +175,7 @@
 			"file": "iPrep gtk scripts/pecs_simulator.s",
 			"settings":
 			{
-				"buffer_size": 6920,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "iPrep gtk scripts/gripper_base.s",
-			"settings":
-			{
-				"buffer_size": 1243,
+				"buffer_size": 7307,
 				"line_ending": "Windows"
 			}
 		},
@@ -213,7 +183,7 @@
 			"file": "iPrep gtk scripts/gripper_simulator.s",
 			"settings":
 			{
-				"buffer_size": 2913,
+				"buffer_size": 2931,
 				"line_ending": "Windows"
 			}
 		},
@@ -221,15 +191,7 @@
 			"file": "iPrep gtk scripts/gripper.s",
 			"settings":
 			{
-				"buffer_size": 6307,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "iPrep gtk scripts/dock_base.s",
-			"settings":
-			{
-				"buffer_size": 3945,
+				"buffer_size": 6301,
 				"line_ending": "Windows"
 			}
 		},
@@ -237,15 +199,7 @@
 			"file": "iPrep gtk scripts/PlanarSEMdock.s",
 			"settings":
 			{
-				"buffer_size": 4990,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "iPrep gtk scripts/sem_base.s",
-			"settings":
-			{
-				"buffer_size": 26,
+				"buffer_size": 5099,
 				"line_ending": "Windows"
 			}
 		}
@@ -323,6 +277,11 @@
 	},
 	"file_history":
 	[
+		"/C/Users/gatan/Documents/iprep/code/iPrep gtk scripts/iprep_general_interface.s",
+		"/C/Users/gatan/Documents/iprep/code/iPrep gtk scripts/sem_base.s",
+		"/C/Users/gatan/Documents/iprep/code/iPrep gtk scripts/dock_base.s",
+		"/C/Users/gatan/Documents/iprep/code/iPrep gtk scripts/gripper_base.s",
+		"/C/Users/gatan/Documents/iprep/code/iPrep gtk scripts/pecs_base.s",
 		"/C/Users/thosman/Documents/private/vvtp dir/udps.py",
 		"/C/Users/thosman/Documents/private/vvtp dir/timeoutsocket.py",
 		"/C/Users/thosman/Documents/DM/iprep_release/iPrep gtk scripts/dock_base.s",
@@ -418,7 +377,7 @@
 	],
 	"find":
 	{
-		"height": 68.0
+		"height": 23.0
 	},
 	"find_in_files":
 	{
@@ -432,6 +391,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"IPrep_rootSaveDir()",
 			"check",
 			"getGVState()",
 			"getStageState",
@@ -464,7 +424,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 8,
 			"sheets":
 			[
 				{
@@ -473,15 +433,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 4913,
+						"buffer_size": 6185,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1512,
-								1512
+								552,
+								552
 							]
 						],
 						"settings":
@@ -490,56 +450,27 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 1260.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 1,
+					"stack_index": 5,
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "iPrep gtk scripts/iprep_general_interface.s",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 2031,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								494,
-								494
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/R/R.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 7,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
 					"file": "iPrep gtk scripts/00-install_IPrep.s",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 2540,
+						"buffer_size": 3061,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1563,
-								1563
+								0,
+								0
 							]
 						],
 						"settings":
@@ -551,24 +482,24 @@
 						"translation.y": 604.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 2,
+					"stack_index": 6,
 					"type": "text"
 				},
 				{
-					"buffer": 3,
+					"buffer": 2,
 					"file": "iPrep gtk scripts/transfer.s",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 12766,
+						"buffer_size": 10901,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								3165,
-								3165
+								0,
+								0
 							]
 						],
 						"settings":
@@ -577,56 +508,56 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 163.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 11,
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "iPrep gtk scripts/linearWorkflow.s",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 18338,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								12846,
-								12846
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/R/R.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 208.0,
+						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 4,
 					"type": "text"
 				},
 				{
-					"buffer": 5,
-					"file": "iPrep gtk scripts/SEM_iprep.s",
+					"buffer": 3,
+					"file": "iPrep gtk scripts/linearWorkflow.s",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 21257,
+						"buffer_size": 18482,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1998,
-								1998
+								15855,
+								15855
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/R/R.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 6603.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "iPrep gtk scripts/SEM_iprep.s",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 21020,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
 							]
 						],
 						"settings":
@@ -638,11 +569,11 @@
 						"translation.y": 3745.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 16,
+					"stack_index": 12,
 					"type": "text"
 				},
 				{
-					"buffer": 6,
+					"buffer": 5,
 					"file": "iPrep testing scripts/test-scripts (from SC public folder, PECS commands, 20150807).s",
 					"semi_transient": false,
 					"settings":
@@ -663,27 +594,27 @@
 							"syntax": "Packages/R/R.tmLanguage"
 						},
 						"translation.x": 0.0,
-						"translation.y": 1930.0,
+						"translation.y": 1515.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 18,
+					"stack_index": 13,
 					"type": "text"
 				},
 				{
-					"buffer": 7,
+					"buffer": 6,
 					"file": "TODO",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 2419,
+						"buffer_size": 2976,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								1336,
-								1336
+								0,
+								0
 							]
 						],
 						"settings":
@@ -694,24 +625,24 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 3,
+					"stack_index": 2,
 					"type": "text"
 				},
 				{
-					"buffer": 8,
+					"buffer": 7,
 					"file": "iPrep gtk scripts/statePersistance.s",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 2126,
+						"buffer_size": 6980,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								256,
-								256
+								0,
+								0
 							]
 						],
 						"settings":
@@ -723,24 +654,24 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 6,
+					"stack_index": 7,
 					"type": "text"
 				},
 				{
-					"buffer": 9,
+					"buffer": 8,
 					"file": "iPrep gtk scripts/iprep_main.s",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 23768,
+						"buffer_size": 24214,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								608,
-								608
+								23940,
+								23940
 							]
 						],
 						"settings":
@@ -749,61 +680,33 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 11038.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 5,
+					"stack_index": 1,
 					"type": "text"
 				}
 			]
 		},
 		{
-			"selected": 1,
+			"selected": 0,
 			"sheets":
 			[
 				{
-					"buffer": 10,
-					"file": "iPrep gtk scripts/pecs_base.s",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 2133,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								631,
-								631
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/R/R.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 8,
-					"type": "text"
-				},
-				{
-					"buffer": 11,
+					"buffer": 9,
 					"file": "iPrep gtk scripts/pecs_iprep.s",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 12117,
+						"buffer_size": 12368,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								11034,
-								11034
+								0,
+								0
 							]
 						],
 						"settings":
@@ -812,27 +715,27 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 16322.0,
+						"translation.y": 7617.0,
 						"zoom_level": 1.0
 					},
 					"stack_index": 0,
 					"type": "text"
 				},
 				{
-					"buffer": 12,
+					"buffer": 10,
 					"file": "iPrep gtk scripts/pecs_simulator.s",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 6920,
+						"buffer_size": 7307,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								358,
-								358
+								0,
+								0
 							]
 						],
 						"settings":
@@ -843,52 +746,24 @@
 						"translation.y": 545.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 9,
+					"stack_index": 8,
 					"type": "text"
 				},
 				{
-					"buffer": 13,
-					"file": "iPrep gtk scripts/gripper_base.s",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 1243,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								59,
-								59
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/R/R.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 64.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 15,
-					"type": "text"
-				},
-				{
-					"buffer": 14,
+					"buffer": 11,
 					"file": "iPrep gtk scripts/gripper_simulator.s",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 2913,
+						"buffer_size": 2931,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								756,
-								756
+								0,
+								0
 							]
 						],
 						"settings":
@@ -900,58 +775,30 @@
 						"translation.y": 0.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 14,
+					"stack_index": 11,
 					"type": "text"
 				},
 				{
-					"buffer": 15,
+					"buffer": 12,
 					"file": "iPrep gtk scripts/gripper.s",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 6307,
+						"buffer_size": 6301,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								59,
-								59
+								0,
+								0
 							]
 						],
 						"settings":
 						{
 							"syntax": "Packages/R/R.tmLanguage",
 							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 13,
-					"type": "text"
-				},
-				{
-					"buffer": 16,
-					"file": "iPrep gtk scripts/dock_base.s",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 3945,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								393,
-								393
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/R/R.tmLanguage"
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -961,12 +808,12 @@
 					"type": "text"
 				},
 				{
-					"buffer": 17,
+					"buffer": 13,
 					"file": "iPrep gtk scripts/PlanarSEMdock.s",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 4990,
+						"buffer_size": 5099,
 						"regions":
 						{
 						},
@@ -974,7 +821,7 @@
 						[
 							[
 								0,
-								4556
+								0
 							]
 						],
 						"settings":
@@ -983,38 +830,10 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 8216.0,
+						"translation.y": 3915.0,
 						"zoom_level": 1.0
 					},
-					"stack_index": 12,
-					"type": "text"
-				},
-				{
-					"buffer": 18,
-					"file": "iPrep gtk scripts/sem_base.s",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 26,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								26,
-								26
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/R/R.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 17,
+					"stack_index": 9,
 					"type": "text"
 				}
 			]
@@ -1022,7 +841,7 @@
 	],
 	"incremental_find":
 	{
-		"height": 39.0
+		"height": 23.0
 	},
 	"input":
 	{
@@ -1074,7 +893,7 @@
 	"project": "iprep_thijs.sublime-project",
 	"replace":
 	{
-		"height": 74.0
+		"height": 42.0
 	},
 	"save_all_on_build": true,
 	"select_file":
@@ -1112,7 +931,7 @@
 	"show_open_files": true,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 295.0,
+	"side_bar_width": 152.0,
 	"status_bar_visible": true,
 	"template_settings":
 	{

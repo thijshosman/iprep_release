@@ -191,7 +191,7 @@ class safetyMediator:object
 		
 		status = pecs.getStageState()
 
-		return status // "up" or "down"
+		return status // "up", "down" or "unknown"
 
 	}
 
