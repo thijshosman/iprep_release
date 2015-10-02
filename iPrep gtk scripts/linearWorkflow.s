@@ -419,6 +419,13 @@ if (XYZZY)
 		// move SEM stage to clear point so that dock is out of the way
 		mySEM.goToClear()
 
+		// check that sample is no longer present in dock
+/*		if (mySEMdock.checkSamplePresent())
+		{
+			self.print("sample still detected in dock after pickup")
+			throw("sample still detected in dock after pickup")
+		}
+*/
 		// slide sample into dovetail
 		myTransfer.move("dropoff_pecs")
 
@@ -521,6 +528,13 @@ if (XYZZY)
 		// move SEM dock down to clamp
 		mySEMdock.clamp()
 
+		// check that sample is present
+/*		if (!mySEMdock.checkSamplePresent())
+		{
+			self.print("sample not detected in dock after dropoff")
+			throw("sample not detected in dock after dropoff")
+		}
+*/
 		// move SEM stage to nominal imaging plane
 		mySEM.goToNominalImaging()
 
@@ -574,6 +588,7 @@ class workflowStateMachine: object
 	//the specifics of a transfer is in the workflow class
 
 	object workflowStatePersistance
+	object lastCompletedStep
 	number percentage
 	string workflowState	
 	object myWorkflow
@@ -594,9 +609,20 @@ class workflowStateMachine: object
 		workflowState = "UNKNOWN" // init value, undefined
 		workflowStatePersistance = alloc(statePersistance)
 		workflowStatePersistance.init("workflowState")
+		lastCompletedStep = alloc(statePersistance)
+		lastCompletedStep.init("lastCompletedStep")
+
 		percentage = 0
 		// "SEM" = sample in dock
 		// "PECS" = sample in PECS
+	}
+
+	string getLastCompletedStep(object self)
+	{
+		//return the last succesfully completed step 
+
+		return lastCompletedStep.getState()
+
 	}
 
 	void changeWorkflowState(object self, string newstate)
@@ -618,6 +644,8 @@ class workflowStateMachine: object
 
 	void initManual(object self, object workflow, string startState)
 	{
+		// set the current state manually
+
 		// get reference to the workflow of which the state will be managed
 		myWorkflow = workflow
 
@@ -663,6 +691,7 @@ class workflowStateMachine: object
 				self.print("elapsed time PECS->SEM: "+(tock-tick)/1000+" s")
 
 			self.changeWorkflowState("SEM")
+			lastCompletedStep.setState("SEM")
 			
 			// save tags to disk
 			ApplicationSavePreferences()
@@ -694,6 +723,7 @@ class workflowStateMachine: object
 				self.print("elapsed time SEM->PECS: "+(tock-tick)/1000+" s")
 
 			self.changeWorkflowState("PECS")
+			lastCompletedStep.setState("PECS")
 
 			// save tags to disk
 			ApplicationSavePreferences()
@@ -755,7 +785,7 @@ class workflowStateMachine: object
 
 				tock = GetOSTickCount()
 				self.print("elapsed time in milling: "+(tock-tick)/1000+" s")
-				self.print("milling completed, now taking image")	
+				
 
 
 		}
@@ -763,6 +793,20 @@ class workflowStateMachine: object
 			throw("commanded to perform milling step when sample is not in PECS")
 
 	}
+
+	void stop_mill(object self)
+	{
+		// *** public ***
+		// stop imaging	
+
+		if (workflowState == "PECS")
+		{	
+			lastCompletedStep.setState("MILL")
+		}
+		else
+			throw("commanded to perform milling step when sample is not in PECS")
+	}
+
 
 	void start_image(object self)
 	{
@@ -793,6 +837,7 @@ class workflowStateMachine: object
 		if (workflowState == "SEM")
 		{	
 			myWorkflow.postimaging()
+			lastCompletedStep.setState("IMAGE")
 			imageTock = GetOSTickCount()
 			if(imageTock > 0)
 				self.print("elapsed time in imaging: "+(imageTock-imageTick)/1000+" s")

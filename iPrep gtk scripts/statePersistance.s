@@ -9,7 +9,7 @@ class statePersistance:object
 	}
 
 	// saves and retrieves state information from tags
-	// TODO: create tag if it does not exist yet
+	// #TODO: create tag if it does not exist yet
 
 	string getState(object self) 
 	{

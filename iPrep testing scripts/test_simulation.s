@@ -12,7 +12,14 @@ try
 	
 	// *** dead safe flags ***
 	returnDeadFlag().setAliveSafe()
-	returnDeadFlag().checkAliveAndSafe()
+	//returnDeadFlag().checkAliveAndSafe()
+
+// temp debugging
+
+//myStateMachine.start_mill(0, 8000)
+//image im
+//acquire_PECS_image( im )
+//im.showimage()
 
 
 // *** init when DM starts
@@ -29,7 +36,7 @@ try
 	//IPrep_ResumeRun()
 	//IPrep_PauseRun()
 	//IPrep_StartRun()
-	IPrep_MoveToSEM()
+	//IPrep_MoveToSEM()
 	//IPrep_MoveToPECS()
 	//IPrep_foobar()
 	//IPrep_Setup_Imaging()

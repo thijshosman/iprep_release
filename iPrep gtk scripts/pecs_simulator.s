@@ -231,9 +231,29 @@ class pecs_simulator: object
 		self.getStageAngle()
 	}
 
-	number consistencyCheck(object self)
+	number GVConsistencyCheck(object self)
 	{
-		return 1
+		// check if GV state from sensors is consistent with tag in DM
+		string tagstate = GVPersistance.getState()
+		string sensorstate = self.getGVState()
+
+		if(sensorstate=="undefined") // check if sensor in some in between state, for example after powerloss
+		{
+			self.print("GV in undefined state, needs to be manually set to right state")
+			return 0
+		}
+
+		if (tagstate == sensorstate)
+		{
+			// success
+			return 1
+		} else { 
+			// not the same
+			self.print("GV sensor and tag not in agreement")
+			self.print("sensorstate: "+sensorstate)
+			self.print("tagstate: "+tagstate)
+			return 0
+		}
 	}
 
 

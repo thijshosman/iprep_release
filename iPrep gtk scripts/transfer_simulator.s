@@ -206,6 +206,20 @@ class parkerTransfer_simulator:object
 
 	}
 
+	number consistencycheck(object self)
+	{
+		// see if position last saved in tags is different from what controller thinks
+		if ((self.getCurrentPosition() - parkerPositions.getCurrentPosition())<accuracy)
+			return 1
+		else
+		{
+			self.print("transfer system not where the controller thinks it is: ")
+			self.print("controller says: "+self.getCurrentPosition())
+			self.print("tag says: "+parkerPositions.getCurrentPosition())
+			return 0
+
+		}
+	}
 
 
 	void home(object self)
@@ -266,7 +280,7 @@ number movetoposition(object self, number setpoint)
 
 		// safetychecks
 
-		if (myMediator.getStageState() == "up")
+		if (myMediator.getStageState() != "down")
 		{
 			self.print("safetycheck: trying to move parker when PECS stage is up")
 			throw("safetycheck: trying to move parker when PECS stage is up")
@@ -274,7 +288,7 @@ number movetoposition(object self, number setpoint)
 
 		if (setpoint > 150)
 		{
-			if (myMediator.getGVState() == "closed")
+			if (myMediator.getGVState() != "open")
 			{
 				self.print("safetycheck: trying to move beyond GV with GV closed")
 				throw("safetycheck: trying to move beyond GV with GV closed")
@@ -283,7 +297,7 @@ number movetoposition(object self, number setpoint)
 
 		if (setpoint > 400)
 		{
-			if (myMediator.getSEMState() != "clear" && myMediator.getSEMState() != "pickup_dropoff")
+			if (myMediator.getSEMState() != "clear" & myMediator.getSEMState() != "pickup_dropoff")
 			{
 				self.print("safetycheck: SEM not in pickup_dropoff or clear and trying to move parker inside SEM chamber")
 				self.print("safetycheck: SEM in "+myMediator.getSEMState())

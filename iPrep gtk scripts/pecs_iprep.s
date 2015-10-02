@@ -182,7 +182,10 @@ class pecs_iprep: object
 		// read stage state from system (WL valve). 1=down, 0=up
 		
 		if (!self.argonCheck())
-			throw("argon pressure check failed")
+		{	
+			stageState = "unknown"
+			return stageState
+		}
 
 		string value
 		PIPS_GetPropertyDevice("subsystem_pumping", "device_valveWhisperlok", "set_active", value) 
@@ -291,11 +294,21 @@ class pecs_iprep: object
 		string tagstate = GVPersistance.getState()
 		string sensorstate = self.getGVState()
 
+		if(sensorstate=="undefined") // check if sensor in some in between state, for example after powerloss
+		{
+			self.print("GV in undefined state, needs to be manually set to right state")
+			return 0
+		}
+
 		if (tagstate == sensorstate)
 		{
 			// success
 			return 1
-		} else {
+		} else { 
+			// not the same
+			self.print("GV sensor and tag not in agreement")
+			self.print("sensorstate: "+sensorstate)
+			self.print("tagstate: "+tagstate)
 			return 0
 		}
 	}
@@ -397,21 +410,6 @@ class pecs_iprep: object
 		myMediator.registerPecs(self)
 	}
 	
-/* Patch to interlock Gate Valve
-void closeGV(object self)	// #TODO: REMOVE enableGV, temp patch
-	{
-		// *** private ***
-		// closes gate valve (AV2)
-		number enableGV=0
-		GetPersistentTagGroup().TagGroupGetTagAsLong("IPrep:enableCloseGV", enableGV)
-		if ( enableGV )
-			PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_22", "0")
-		else
-			result("GATE VALUE REQUEST TO CLOSE DENIED. ENABLE WITH enableCloseGV TAG.")
-
-		//sleep(1)
-	}
-*/
 
 	void openGVandCheck(object self)
 	{

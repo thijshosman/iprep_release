@@ -28,22 +28,31 @@ v-ABC for hw to simulate iprep after it ships. make choice in linearWorkflow. no
 	v-transfer
 	-sem -> waiting for semcoordsmanager class
 -check for hw bridge fault (or any fault) in transfer class
--proper start routine that does checks of hardware and states in workflow
+(sal)-proper start routine that does checks of hardware and states in workflow
 	-make sure workflow can start/resume from PECS as well (ie after DM restart)
--update functions in Sal's UI module to include error handling and agree on error codes
+		-it detects the current state 
+(sal)-update functions in Sal's UI module to include error handling through return values and agree on what happens in that case
 -integrate EBSD camera class into workflow
 -make workflow compatible with choosing planar vs EBSD
 	-use settings button
--init functions checks consistency between expected state tags and actual state as read from sensors. if there is a discrepancy, notify user and do not allow process to start. allow manual recovery/setup of correct state. this is needed when DM starts to make sure everything is right 
-	-PECS Gate valve (open/closed) against sensor inputs
-	-PECS stage (lowered/raised) against WL sensor state
-	-SEM add consistency check for sem state changes that checks current state against coordinates saved in tag
+-init functions checks consistency between expected state tags and actual state as read from sensors. if there is a discrepancy, notify user and do not allow process to start. allow manual recovery/setup of correct state. this is needed when DM starts to make sure everything is right
+	-hardware:
+		-PECS Gate valve (open/closed) against sensor inputs
+		-PECS stage (lowered/raised) against WL sensor state
+		-SEM add consistency check for sem state changes that checks current state against coordinates saved in tag
+		-transfer last saved position vs aries controller
+		-check UPS for power failure
+	-state inference:
+		-workflowstate and last finished step to figure out where to recover
 -UPS check once every cycle
 	-make late binding method with executescriptstring method
 -SEM state check once every cycle
-	-decide what to check in SEM
--dock change names to clamp and unclamp
--workflow checks that sample is present
+	-decide what to check in SEM - emission current? 
+	-when to check - after milling?
+v-dock change names to clamp and unclamp
+v-workflow checks that sample is present in dock - after dropoff - uncommented for now in simulator
+v-workflow checks that sample is no longer present in dock - after pickup - uncommented for now in simulator
+-absolute coordinates for SEM stage
 
 B:
 -implement consistent and well thought out user dialog in combination of results/debug/logfile/UI menus
@@ -54,6 +63,7 @@ B:
 	-handle imaging from main, remove from state machine and workflow
 	-handle pecs camera back in pecs class
 -multi ROI
+-enable 3Dvolume again
 
 device specific:
 Tranfer:

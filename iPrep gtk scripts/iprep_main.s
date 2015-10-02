@@ -77,6 +77,29 @@ string IPrep_rootSaveDir()
 	return pointer
 }
 
+number IPrep_sliceNumber()
+{
+	Number nSlices
+	GetPersistentTagGroup().TagGroupGetTagAsLong("IPrep:Record Settings:Slice Number", nSlices)
+	print("N Slices = "+nSlices)
+	return nSlices
+}
+
+void IPrep_setSliceNumber(number setSlice)
+{
+	// save the slice number in the tag
+	TagGroupSetTagAsNumber(GetPersistentTagGroup(),"IPrep:Record Settings:Slice Number",setSlice)
+	print("new #slices is: "+setSlice+"\n")
+	myPW.updateC("slice: "+IPrep_sliceNumber())
+}
+
+
+void IPrep_Abort()
+{
+	print("abort called, aborting run stack...")
+	IPrep_AbortRun()
+}
+
 
 void IPrep_saveSEMImage(image &im, string subdir)
 {
@@ -122,31 +145,6 @@ void IPrep_savePECSImage(image &im, string subdir)
 	print("saved "+filename)
 }
 
-number IPrep_sliceNumber()
-{
-	Number nSlices
-	GetPersistentTagGroup().TagGroupGetTagAsLong("IPrep:Record Settings:Slice Number", nSlices)
-	print("N Slices = "+nSlices)
-	return nSlices
-}
-
-void IPrep_setSliceNumber(number setSlice)
-{
-	// save the slice number in the tag
-	TagGroupSetTagAsNumber(GetPersistentTagGroup(),"IPrep:Record Settings:Slice Number",setSlice)
-	print("new #slices is: "+setSlice+"\n")
-	myPW.updateC("slice: "+IPrep_sliceNumber())
-}
-
-
-void IPrep_Abort()
-{
-	print("abort called, aborting run stack...")
-	IPrep_AbortRun()
-}
-
-
-
 
 void WorkaroundQuantaMagBug( void )
 // When there is a Z move on the Quanta and the FWD is different from the calibrated stage Z,
@@ -173,7 +171,7 @@ void WorkaroundQuantaMagBug( void )
 
 void AcquireDigiscanImage( image &img )
 // JH version
-// TODO: migrate to digiscan class
+// #TODO: migrate to digiscan class
 {
 	Number paramID = 2	// capture ID
 	number width, height,pixeltime,linesync,rotation
@@ -212,65 +210,139 @@ void AcquireDigiscanImage( image &img )
 
 
 
-
-void PECS_CAM_acquire( image &img )
-// Used by acquire_PECS_image
-// TODO: migrate to pecscamera class
-{
-	number camID = CameraGetActiveCameraID( )
-	number processing = CameraGetUnprocessedEnum( )
-	CameraPrepareForAcquire( camID )
-	img := CameraAcquire( camID )
-}
-
-
 void acquire_PECS_image( image &img )
-// JH version
 // Use this routine to acquire a PECS image in any PECS stage position.
 // PECS should not be milling - this is not tested for
 // Uses default PECS camera acquire settings
 // Image is not displayed
 // Turns off illumination on exit
-// TODO: migrate to pecscamera class
 {
-	object myWorkflow = returnWorkflow()
-	object myStateMachine = returnStateMachine()
 
 // Check if stage is up (needs to be up for imaging)
 	string first_stagepos = myWorkflow.returnPecs().getStageState()
 	if ( first_stagepos != "up" )
 	{
-// If not up then raise it
-		result( datestamp()+": PECS stage in down position. Raising to up position.\n" )
+		// If not up then raise it
+		print(": PECS stage in down position. Raising to up position" )
 		myWorkflow.returnPecs().moveStageUp()
 
 		string current_stagepos = myWorkflow.returnPecs().getStageState()
 		if ( current_stagepos != "up" )
 			throw( "Problem moving stage to up position. Currently at:"+current_stagepos )
 
-		result( datestamp()+": PECS stage in up position.\n" )
 	}
+		//datestamp()
+		print("PECS stage in up position" )
 
-// Force PECS shutter open (code from Steve Coyle 20150805)
-	PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_07", "0")   //works set  SO valve
-	PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_07", "1")   //works set  SO valve
-
-// Light on, acquire, light off
+	// Light on, acquire, light off
 	myWorkflow.returnPecs().ilumOn()
-	PECS_CAM_acquire( img )
+	myWorkflow.returnPECSCamera().acquireDMNoExposure(img) // use correct method
 	myWorkflow.returnPecs().ilumOff()
 	
-// If stage was originally down, then return stage to down position
+	// If stage was originally down, then return stage to down position
 	if ( first_stagepos != "up" )
 	{
-		result( datestamp()+": PECS stage in up position. Returning to down position.\n" )
+		print("PECS stage in up position. Returning to down position")
 		myWorkflow.returnPecs().moveStageDown()
 		string current_stagepos = myWorkflow.returnPecs().getStageState()
 		if ( current_stagepos != "down" )
-			throw( "Problem moving stage to down position. Currently at:"+current_stagepos )
+			throw( "Problem moving stage back to down position. Currently at:"+current_stagepos )
 
-		result( datestamp()+": PECS stage returned to down position.\n" )
+		print("PECS stage returned to down position" )
 	}
+}
+
+
+number IPrep_consistency_check()
+{
+	// run after DM restarts to make sure that:
+	//-all state machines are in a known position that we can resume from
+	//-hardware classes have their states in tags synchronized with sensors
+
+	print("iprep consistency check:")
+
+	number returncode = 0
+
+	// if dead/unsafe, return
+	if (!returnDeadFlag().checkAliveAndSafe())
+		return returncode // to indicate error
+	
+
+	// determine where workflow is 
+	if (myStateMachine.getCurrentWorkflowState() == "onTheWayToPECS"  || myStateMachine.getCurrentWorkflowState() == "onTheWayToSEM")
+	{	
+		print("DM crashed when system was "+myStateMachine.getCurrentWorkflowState()+", manual recovery needed")
+		returnDeadFlag().setDeadUnSafe()
+		return returncode
+	}
+	else if (myStateMachine.getCurrentWorkflowState() == "PECS") // sample was in PECS
+	{
+		print("last finished step: "+myStateMachine.getLastCompletedStep())
+		if (myStateMachine.getLastCompletedStep() == "MILL") // did milling finish? 
+		{	
+			returncode = 1
+			print("milling was finished before DM crashed")
+		}
+		else // milling did not finish
+		{
+			returncode = 2 // #TODO: figure out what these returncodes should be
+			print("milling was not finished when workflow was aborted")
+		}
+	}
+	else if (myStateMachine.getCurrentWorkflowState() == "SEM") // sample was in SEM
+	{
+		print("last finished step: "+myStateMachine.getLastCompletedStep())
+		if (myStateMachine.getLastCompletedStep() == "IMAGE") // did imaging finish?
+		{	
+			returncode = 1
+			print("imaging was finished before DM crashed")
+		}
+		else
+		{
+			returncode = 2 // #TODO: figure out what these returncodes should be
+			print("imaging was not finished when workflow was aborted")
+		}		
+	}
+	else
+	{
+		// workflow in unknown state, set dead unsafe. unlikely catch all state
+		print("DM crashed when system was "+myStateMachine.getCurrentWorkflowState()+", manual recovery needed")
+		returnDeadFlag().setDeadUnSafe()
+		return returncode
+	}
+
+	// figure out state of hardware one by one by running corresponding consistencychecks
+
+	// dock, does saved state correspond to what sensors say?
+	//myWorkflow.returnSEMDock().consistencycheck()
+
+	// pips
+	// check gate valve against sensor values
+	if (!myWorkflow.returnPecs().GVConsistencyCheck())
+	{
+		// need to set GV to correct value
+		// #TODO: provide way to tell GV what the state is
+	}
+
+	// transfer, is saved position equal to where it thinks it is?
+	if (myWorkflow.returnTransfer().consistencycheck() != 1)
+	{
+		print("possible causes: powerloss or controller failure")
+		returnDeadFlag().setDeadUnSafe()
+		return returncode
+	}
+
+	// semstage, check that current coordinates are consistent with the state 
+	//myWorkflow.returnSEM().consistencycheck()
+
+	// workflow state machine
+	print("current workflow state: "+myStateMachine.getCurrentWorkflowState())
+
+	// all checks passed
+	returncode = 1
+
+	return returncode
+
 }
 
 
@@ -488,12 +560,9 @@ Number IPrep_Setup_Imaging()
 }
 */
 
-
-// *** methods directly called by UI elements ***
-
 Number IPrep_foobar()
 {
-	// test function for error handling framework
+	// test function for general error handling framework
 
 	number returncode = 0
 
@@ -521,6 +590,9 @@ Number IPrep_foobar()
 
 	return returncode
 }
+
+
+// *** methods directly called by UI elements ***
 
 Number IPrep_MoveToPECS()
 {
@@ -583,16 +655,19 @@ Number IPrep_MoveToSEM()
 
 Number IPrep_StartRun()
 {
+	print("IPrep_StartRun")
+	
 	number returncode = 0
 
 	if (!returnDeadFlag().checkAliveAndSafe())
 		return returncode // to indicate error
 
+	// #TODO: this routine needs to know where to start in case of DM crash. 
+	// # slice number is remembered, but also needs to know last succesfully completed step. 
+	// # can query this with: myStateMachine.getLastCompletedStep() ("IMAGE", "MILL", "SEM", "PECS")
+
 	try
 	{
-
-		if (!returnDeadFlag().checkAliveAndSafe())
-			return returncode // to indicate error	
 
 		print("IPrep_StartRun")
 		if (myStateMachine.getCurrentWorkflowState() != "SEM")
@@ -611,11 +686,6 @@ Number IPrep_StartRun()
 		// lockout PECS UI
 		myWorkflow.returnPECS().lockOut()
 
-		// launch the thread that is going to check the argon pressure and TMP speed
-		// TODO: make sure this does cause triggers when valve is just actuated
-		//statusThread = alloc(statusCheck)
-		//statusThread.init().StartThread()
-
 		returncode = 1 // to indicate success
 
 	}
@@ -628,7 +698,6 @@ Number IPrep_StartRun()
 		break // so that flow contineus
 
 	}
-
 
 	return returncode
 }
@@ -674,8 +743,8 @@ Number IPrep_Image()
 
 	try
 	{
-
-
+		// tell the state machine it is time to take an image
+		myStateMachine.start_image()
 
 		// Update GMS status bar - SEM imaging started
 			myPW.updateB("SEM imaging...")	
@@ -754,15 +823,17 @@ Number IPrep_Image()
 					string str3 = "\n\nNote: Threshold can be set at global tag: IPrep:SEM:Emission check threshold"
 					if ( !ContinueCancelDialog( str + str2 +str3 ) )
 					{
-							IPrep_Abort()	// #Todo: Check this exits correctly
-							IPrep_cleanup()
+
 							str = datestamp()+": Acquisition terminated by user" 
-							result( str +"\n" )
-							Throw( str )
+							print(str)
+							
+							iprep_abort()
 					}
 				}
 				else
-					result( datestamp()+": Average image value ("+avg+") is greater than emission check threshold ("+threshold+"). SEM emission assumed OK.\n" )
+				{
+					result( datestamp()+": Average image value ("+avg+") is greater than emission check threshold ("+threshold+"). SEM emission assumed OK.\n" )	
+				}
 
 		}
 
@@ -777,6 +848,9 @@ Number IPrep_Image()
 			myPW.updateB("SEM imaging completed")
 			result(datestamp()+": SEM mag 2 = "+EMGetMagnification()+"\n")
 
+		// tell the state machine taking images is done
+		myStateMachine.stop_image()
+
 		returncode = 1
 
 	}
@@ -785,6 +859,8 @@ Number IPrep_Image()
 		
 		// system caught unhandled exception and is now considered dead/unsafe
 		print(GetExceptionString())
+
+		// #TODO: an exception in iprep_imaging is most likely safe
 		returnDeadFlag().setDeadUnSafe()
 
 		break // so that flow contineus
@@ -875,10 +951,10 @@ Number IPrep_Mill()
 		myPW.updateB("PECS milling started")
 		image temp_slice_im
 
-// If on the first slice (which is slice 1), acquire an image before milling
+		// If on the first slice (which is slice 1), acquire an image before milling
 		if ( IPrep_sliceNumber() == 1 )
 		{
-		// Acquire image, show it briefly, save it
+			// Acquire image, show it briefly, save it
 			acquire_PECS_image( temp_slice_im )
 			temp_slice_im.showimage()
 			IPrep_savePECSImage(temp_slice_im, "pre_milling")
@@ -887,20 +963,25 @@ Number IPrep_Mill()
 			imdoc.ImageDocumentClose(0)
 		}
 
-// Mill sample 
-		number simulation = 0
-		myStateMachine.start_mill(simulation, 4000)	// (timeout of 4000s)
-	// Acquire image, show it briefly, save it
+		// Mill sample 
+		myStateMachine.start_mill(0, 8000)	// (timeout of 4000s)
+		
+		// Acquire image, show it briefly, save it
 		acquire_PECS_image( temp_slice_im )
-		temp_slice_im.showimage()
+		temp_slice_im.showimage() // only show if image is not a null image
 		IPrep_savePECSImage(temp_slice_im, "pecs_camera")
-	// Close image
+		
+		// Close image
 		ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
 		imdoc.ImageDocumentClose(0)
 
 		myPW.updateB("PECS milling done")
 		
 		print("milling done. new slice number: "+IPrep_sliceNumber())
+
+		// check that SEM is still functioning
+		// #TODO
+
 		
 		returncode = 1
 	}
@@ -915,6 +996,9 @@ Number IPrep_Mill()
 	}
 	return returncode
 }
+
+
+
 
 Number IPrep_IncrementSliceNumber()
 {

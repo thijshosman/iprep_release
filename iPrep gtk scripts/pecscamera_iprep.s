@@ -25,15 +25,16 @@ class pecsCamera_iprep : object
 
 	void pecsCamera_iprep(object self)
 	{
-		camID = CameraGetActiveCameraID( )
-		processing = CameraGetUnprocessedEnum( )
+
 	}
  
 	void init(object self)
 	{
 		// *** public ***
 		// initializes
-
+		
+		camID = CameraGetActiveCameraID( )
+		processing = CameraGetUnprocessedEnum( )
 		CameraPrepareForAcquire( camID )
 		self.print("initialized")
 	}
@@ -42,7 +43,7 @@ class pecsCamera_iprep : object
 	{
 		// *** public ***
 		// acquire image the DM way
-
+		self.init()
 		// use standard DM acquisition methods
 		im := CameraAcquire( camID , exposure)
 		//ShowImage( im )
@@ -53,8 +54,8 @@ class pecsCamera_iprep : object
 	void acquireDMNoExposure(object self, image &im)
 	{
 		// *** public ***
-		// acquire image the DM way
-
+		// acquire image the DM way, exposure to default
+		self.init()
 		// use standard DM acquisition methods
 		im := CameraAcquire( camID)
 		//ShowImage( im )
@@ -62,13 +63,11 @@ class pecsCamera_iprep : object
 		self.print("image acquired")
 	}
 
-
 	void acquire(object self, image &im)
 	{
 		// *** public ***
 		// acquire image and show it the PECS way, including calibration tags
-
-
+		self.init()
 		
 		// use PECS specific acquisition methods, close window afterwards
 		PIPS_StartSnapshot()

@@ -50,7 +50,7 @@ class pecsCamera_simulator : object
 		// use standard DM acquisition methods
 		//im := CameraAcquire( camID , exposure)
 		//ShowImage( im )
-
+		im=RealImage("test",4,500,500)
 		self.print("image acquired")
 	}
 
@@ -62,7 +62,7 @@ class pecsCamera_simulator : object
 		// use standard DM acquisition methods
 		//im := CameraAcquire( camID)
 		//ShowImage( im )
-
+		im=RealImage("test",4,500,500)
 		self.print("image acquired")
 	}
 
@@ -79,9 +79,9 @@ class pecsCamera_simulator : object
 		sleep(3)
 		//im := getfrontimage()
 		//ImageDocument imdoc = GetFrontImageDocument()
-		ImageDocument imdoc = ImageGetOrCreateImageDocument(im)
-		imdoc.ImageDocumentClose(0)
-
+		//ImageDocument imdoc = ImageGetOrCreateImageDocument(im)
+		//imdoc.ImageDocumentClose(0)
+		im=RealImage("test",4,500,500)
 		self.print("image acquired")
 
 	}
