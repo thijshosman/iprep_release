@@ -36,12 +36,13 @@ v-ABC for hw to simulate iprep after it ships. make choice in linearWorkflow. no
 -make workflow compatible with choosing planar vs EBSD
 	-use settings button
 -init functions checks consistency between expected state tags and actual state as read from sensors. if there is a discrepancy, notify user and do not allow process to start. allow manual recovery/setup of correct state. this is needed when DM starts to make sure everything is right
+	-detect power failure
+		-check UPS for power failure
 	-hardware:
 		-PECS Gate valve (open/closed) against sensor inputs
 		-PECS stage (lowered/raised) against WL sensor state
 		-SEM add consistency check for sem state changes that checks current state against coordinates saved in tag
 		-transfer last saved position vs aries controller
-		-check UPS for power failure
 	-state inference:
 		-workflowstate and last finished step to figure out where to recover
 -UPS check once every cycle
