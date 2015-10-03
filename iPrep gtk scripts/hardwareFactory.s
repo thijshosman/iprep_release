@@ -15,7 +15,7 @@ object createDock(number type)
 	else if (type == 2)
 		return alloc(planarSEMdock)
 	//else if (type == 3)
-	//	return alloc(planarSEMdock)
+	//	return alloc(EBSDSEMdock)
 }
 
 object createPecs(number simulator)

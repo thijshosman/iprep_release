@@ -19,7 +19,7 @@ object myPW = alloc(progressWindow)
 object my3DvolumeSEM
 object my3DvolumePECS
 */
-/* #TODO: delete
+/* #TODO: re-enable
 	// digiscan parameters alignment
 	number alignWidth = 2048
 	number alignHeight = 2048
@@ -256,12 +256,13 @@ void acquire_PECS_image( image &img )
 number IPrep_consistency_check()
 {
 	// run after DM restarts to make sure that:
-	//-all state machines are in a known position that we can resume from
-	//-hardware classes have their states in tags synchronized with sensors
+	// -all state machines are in a known position that we can resume from
+	// -hardware classes have their states in tags synchronized with sensors
 
 	print("iprep consistency check:")
 
 	number returncode = 0
+	// #todo: see if there is a powerfailure. this information would help us
 
 	// if dead/unsafe, return
 	if (!returnDeadFlag().checkAliveAndSafe())
@@ -271,7 +272,7 @@ number IPrep_consistency_check()
 	// determine where workflow is 
 	if (myStateMachine.getCurrentWorkflowState() == "onTheWayToPECS"  || myStateMachine.getCurrentWorkflowState() == "onTheWayToSEM")
 	{	
-		print("DM crashed when system was "+myStateMachine.getCurrentWorkflowState()+", manual recovery needed")
+		print("DM terminated when system was "+myStateMachine.getCurrentWorkflowState()+", manual recovery needed")
 		returnDeadFlag().setDeadUnSafe()
 		return returncode
 	}
@@ -281,7 +282,7 @@ number IPrep_consistency_check()
 		if (myStateMachine.getLastCompletedStep() == "MILL") // did milling finish? 
 		{	
 			returncode = 1
-			print("milling was finished before DM crashed")
+			print("milling was finished before DM terminated")
 		}
 		else // milling did not finish
 		{
@@ -295,7 +296,7 @@ number IPrep_consistency_check()
 		if (myStateMachine.getLastCompletedStep() == "IMAGE") // did imaging finish?
 		{	
 			returncode = 1
-			print("imaging was finished before DM crashed")
+			print("imaging was finished before DM terminated")
 		}
 		else
 		{
@@ -311,17 +312,22 @@ number IPrep_consistency_check()
 		return returncode
 	}
 
+	// sample is either in SEM Dock or on PECS stage, so we can most likely recover
 	// figure out state of hardware one by one by running corresponding consistencychecks
 
-	// dock, does saved state correspond to what sensors say?
-	//myWorkflow.returnSEMDock().consistencycheck()
-
 	// pips
-	// check gate valve against sensor values
+	// -check gate valve against sensor values
+	// -check stage state 
 	if (!myWorkflow.returnPecs().GVConsistencyCheck())
 	{
 		// need to set GV to correct value
-		// #TODO: provide way to tell GV what the state is
+		// #TODO: provide way to tell GV what state it should assume
+	}
+
+	if (!myWorkflow.returnPecs().StageConsistencyCheck())
+	{
+		// need to set stage to correct value (most likely down)
+		// #TODO: provide way to tell stage what the state it should assume is
 	}
 
 	// transfer, is saved position equal to where it thinks it is?
@@ -333,6 +339,7 @@ number IPrep_consistency_check()
 	}
 
 	// semstage, check that current coordinates are consistent with the state 
+	// #TODO
 	//myWorkflow.returnSEM().consistencycheck()
 
 	// workflow state machine

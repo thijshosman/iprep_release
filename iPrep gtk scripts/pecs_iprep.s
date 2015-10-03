@@ -183,7 +183,7 @@ class pecs_iprep: object
 		
 		if (!self.argonCheck())
 		{	
-			stageState = "unknown"
+			stageState = "undefined"
 			return stageState
 		}
 
@@ -319,31 +319,23 @@ class pecs_iprep: object
 		string tagstate = stagePersistance.getState()
 		string sensorstate = self.getStageState()
 
+		if (sensorstate == "undefined")
+		{
+			self.print("stage in undefined state, needs to be manually set to right state")
+			return 0
+		}
+
 		if (tagstate == sensorstate)
 		{
 			// success
 			return 1
 		} else {
+			self.print()
 			return 0
 		}
 	}
 
 
-	number consistencyCheck(object self)
-	{
-		// check consistency of sensors against tags 
-		// decide what to do in case of inconsistency 
-		// at this level
-
-		if (!self.GVConsistencyCheck())
-			throw("GV state not consistent with tags")
-
-		if (!self.StageConsistencyCheck())
-			throw("stage state not consistent with tags")	
-
-		return 1
-
-	}
 
 
 	void moveStageUp(object self)

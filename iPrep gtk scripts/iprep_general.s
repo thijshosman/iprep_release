@@ -155,7 +155,7 @@ class safetyMediator:object
 		// check pecs for state
 		status = pecs.getGVState()
 
-		return status // open or closed
+		return status // open or closed or undefined
 	}
 
 	number getCurrentPosition(object self)
@@ -191,7 +191,7 @@ class safetyMediator:object
 		
 		status = pecs.getStageState()
 
-		return status // "up", "down" or "unknown"
+		return status // "up", "down" or "undefined"
 
 	}
 

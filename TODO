@@ -1,6 +1,8 @@
 
 A: 
 -framework for error handling
+	-string set for deadflag with reason deadflag was set
+	-table of errorcodes
 -save SEMcoords object into tags->use examples John
 	-new SEMcoordManager class that is instantiated by SEM_iprep that has methods for:
 	-this will replace semcoord attributes of SEM_iprep class so that SEM_iprep methods that need coordinates get them directly from the tags through the semcoordmanager
@@ -8,12 +10,13 @@ v-puncture classes with checks as defined in iprep_general
 	v-make sure safety is at the lowest level
 	v-create interface for iprep_general to allow checks names to be in device classes through mediator
 	-checks:
-		v-SEM: SEM checks that parker is < 400 before moving
+		-SEM: SEM checks that parker is < 400 before moving except pickup/dropoff
 		v-PECS: only close GV when parker < 150
 		v-PECS: only move stage up when parker < 20
 		v-Parker: only move > 150 when GV is open
 		v-Parker: only move > 400 when SEM in pickup/dropoff or clear
 		v-Parker: check that PECS stage is lowered when moving
+		-do not go in negative direction with gripper closed if it is in the pecs
 v-ABC for hw to simulate iprep after it ships. make choice in linearWorkflow. no base
 	v-dock-simulator and dock
 		-planardock and ebsddock differentiation solution
@@ -27,7 +30,7 @@ v-ABC for hw to simulate iprep after it ships. make choice in linearWorkflow. no
 	v-pecs
 	v-transfer
 	-sem -> waiting for semcoordsmanager class
--check for hw bridge fault (or any fault) in transfer class
+v-check for hw bridge fault (or any fault) in transfer class
 (sal)-proper start routine that does checks of hardware and states in workflow
 	-make sure workflow can start/resume from PECS as well (ie after DM restart)
 		-it detects the current state 
@@ -39,12 +42,12 @@ v-ABC for hw to simulate iprep after it ships. make choice in linearWorkflow. no
 	-detect power failure
 		-check UPS for power failure
 	-hardware:
-		-PECS Gate valve (open/closed) against sensor inputs
-		-PECS stage (lowered/raised) against WL sensor state
+		v-PECS Gate valve (open/closed) against sensor inputs
+		v-PECS stage (lowered/raised) against WL sensor state
 		-SEM add consistency check for sem state changes that checks current state against coordinates saved in tag
-		-transfer last saved position vs aries controller
-	-state inference:
-		-workflowstate and last finished step to figure out where to recover
+		v-transfer last saved position vs aries controller
+	v-state inference:
+		v-workflowstate and last finished step to figure out where to recover
 -UPS check once every cycle
 	-make late binding method with executescriptstring method
 -SEM state check once every cycle
@@ -54,6 +57,8 @@ v-dock change names to clamp and unclamp
 v-workflow checks that sample is present in dock - after dropoff - uncommented for now in simulator
 v-workflow checks that sample is no longer present in dock - after pickup - uncommented for now in simulator
 -absolute coordinates for SEM stage
+-reseating function that sets carrier into dovetail but never leaves PECS
+-transfer position tags become deltas, and deltas allow change. hardcode real positions, do not allow delta's more than a certain value. 
 
 B:
 -implement consistent and well thought out user dialog in combination of results/debug/logfile/UI menus

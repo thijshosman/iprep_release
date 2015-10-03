@@ -27,9 +27,10 @@ try
 	// *** dock ***
 	//myWorkflow.returnSEMDock().setManualState("open")
 	//myWorkflow.returnSEMDock().setManualState("closed")
-	//myWorkflow.returnSEMDock().goUp()	//disengaged
-	//myWorkflow.returnSEMDock().goDown()   //engaged
-	//planarSEMDock().lookupState  // doesn't work
+	myWorkflow.returnSEMDock().unclamp_once()	//disengaged
+	//myWorkflow.returnSEMDock().clamp()   //engaged
+	myWorkflow.returnSEMDock().lookupState(1)
+	
 	
 	
 	// *** pecs ***

@@ -256,6 +256,29 @@ class pecs_simulator: object
 		}
 	}
 
+	number StageConsistencyCheck(object self)
+	{
+		// check if stage state from wl sensor is consistent with tag in DM
+		string tagstate = stagePersistance.getState()
+		string sensorstate = self.getStageState()
+
+		if (sensorstate == "undefined")
+		{
+			self.print("stage in undefined state, needs to be manually set to right state")
+			return 0
+		}
+
+		if (tagstate == sensorstate)
+		{
+			// success
+			return 1
+		} else {
+			self.print()
+			return 0
+		}
+	}
+
+
 
 	void moveStageUp(object self)
 	{

@@ -81,6 +81,8 @@ class dock_simulator : object
 		
 	}
 	
+
+
 	void init(object self)
 	{
 		// *** public ***
@@ -195,6 +197,7 @@ class dock_simulator : object
 			self.unclamp_once()
 			break
 		}
+		
 	}
 
 
@@ -209,6 +212,7 @@ class dock_simulator : object
 			self.clamp_once()
 			break
 		}
+		
 	}
 
 
@@ -230,7 +234,6 @@ class dock_simulator : object
 		return sampleStatus
 
 	}
-
 
 
 }

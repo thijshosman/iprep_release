@@ -45,7 +45,7 @@ class workflow: object
 		myGripper.init()
 		
 		// init SEM Dock
-		mySEMdock = createDock(1)
+		mySEMdock = createDock(2)
 		mySEMdock.init()
 
 		// init parker

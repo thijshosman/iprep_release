@@ -1,5 +1,5 @@
 // $BACKGROUND$
-class planarSEMdock : object 
+class EBSDSEMdock : object 
 {
 	string state // unclamped (for transfer etc) or clamped (imaging, moving) or inbetween
 	number sampleStatus // 1 means sample present
@@ -97,18 +97,15 @@ class planarSEMdock : object
 	{
 		// *** public ***
 		// set string 2 in controller, executed after close
-		self.sendCommand("s2TR")
+		self.sendCommand("s2T")
 		// set current (2x), speed (2x), holding current, acc
 
 		// changed to m27, I27 instead of 16 in order to overcome some stickyness
-		//self.sendCommand("m30h0I27L24V10000v2500R")
-		
-		// thijs update 10/02/2015 when testing ebsd dock
-		self.sendCommand("m30h0l27L10000V5000R")
+		self.sendCommand("m30h0I27L24V10000v2500R")
 		self.print("dock initialized")
 	}
 	
-	void PLANARsemDOCK(object self) 
+	void EBSDSEMdock(object self) 
 	{
 		// contructor
 		SEMdockPersistance = alloc(statePersistance)
@@ -155,7 +152,6 @@ class planarSEMdock : object
 				}
 
 			}
-			self.sendCommand("T")
 			self.lookupState(1)
 			return
 		}
@@ -186,8 +182,8 @@ class planarSEMdock : object
 					throw("dock does not clamp")
 					break
 				}
+
 			}
-			self.sendCommand("T")
 			self.lookupState(1)
 			return
 		}
@@ -246,24 +242,5 @@ class planarSEMdock : object
 
 
 }
-
-
-
-//object aplanarSEMdock = alloc(planarSEMdock)
-
-//aplanarSEMdock.init()
-
-//aplanarSEMdock.setManualState("up")
-
-//aplanarSEMdock.goUp()
-//result("sensor input: "+aplanarSEMdock.sensorToBitStr()+"\n")
-//result("current state: "+aplanarSEMdock.getState()+"\n")
-//sleep(5)
-//aplanarSEMdock.goDown()
-//result("current state: "+aplanarSEMdock.getState()+"\n")
-
-//result("sample present: "+aplanarSEMdock.checkSamplePresent()+"\n")
-
-
 
 
