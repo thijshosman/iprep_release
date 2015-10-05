@@ -4,8 +4,19 @@
 
 class deadFlagObject:object
 {
-	object deadFlag
-	object safetyFlag
+	// sets two flags:
+	// -dead/alive: is the system ready to be used or not. alive means everything is fine, dead means the system or subsystems need to be put in the right state(s) before continuing. 
+	//	example: SEM gives an error while imaging. all state information of the IPrep is saved and the workflow can be recovered but we cannot continue until the SEM functions again
+	// -safe/unsafe. if system is unsafe, it implies that the system failed in a way that is not recoverable without some complicated, manual set of operations and following these correctly
+	//	will ensure the system does not destroy itself
+	//	example: during transfer of sample to PECS, the parker system does not know where it is anymore. 
+
+	// the setDead() method sets the flag and sets the errorcode and the device that set the error
+
+	object deadFlag // flag that sets dead state
+	object safetyFlag // flag that sets safety state
+	object errorCode // errorcode 
+	object deviceSet // the device that set the dead flag
 
 	void log(object self, number level, string text)
 	{
@@ -25,9 +36,25 @@ class deadFlagObject:object
 		// get deadflag
 		deadFlag = alloc(statePersistance)
 		safetyFlag = alloc(statePersistance)
+		deviceSet = alloc(statePersistanceNumeric)
+		errorCode  = alloc(statePersistance)
 		deadFlag.init("flags:dead")
 		safetyFlag.init("flags:safe")
+		deviceSet.init("flags:device")
+		errorCode.init("flags:errorcode")
+
 	}
+
+	void setDead(object self, number status, number code, string deviceName)
+	{
+		// set whether system is dead or not
+		self.print("deadflag set to: " + status + "from device: "+deviceName+" with errorcode: "+code)
+		deadFlag.setState(""+status)
+		deviceSet.setState(""+deviceName)
+		errorCode.setNumber(code)
+
+	}
+
 
 	void setDead(object self, number status)
 	{
@@ -93,6 +120,17 @@ class deadFlagObject:object
 		else
 			return 0
 	}
+
+	number lastErrorCode(object self)
+	{
+		return errorCode.getNumber()
+	}
+
+	string lastDevice(object self)
+	{
+		return deviceSet.getState()
+	}
+
 
 }
 

@@ -543,6 +543,67 @@ if (XYZZY)
 
 	}
 
+	void reseat(object self)
+	{
+		// move sample out and into dovetail 
+		// use after sample transfer so that it will be in the same position as during transfer
+
+		// lower pecs stage
+		myPecs.moveStageDown()
+		
+		// home pecs stage
+		myPecs.stageHome()
+	
+		// go to where gripper arms can safely open
+		myTransfer.move("open_pecs")
+
+		// open gripper arms
+		myGripper.open()
+
+		// move forward to where sample can be picked up
+		myTransfer.move("pickup_pecs")
+
+		continueCheck()
+
+		// close gripper arms
+		myGripper.close()
+
+		// move to before gv
+		myTransfer.move("beforeGV")
+
+		// slide sample into dovetail
+		myTransfer.move("dropoff_pecs")
+
+		// back off 1 mm to relax tension on springs
+		myTransfer.move("dropoff_pecs_backoff")
+
+		// open gripper arms
+		myGripper.open()
+	
+		// move gripper back so that arms can close
+		myTransfer.move("open_pecs")
+		
+		// close gripper arms
+		myGripper.close()
+		
+		// go to prehome
+		myTransfer.move("prehome")
+
+		// move gripper out of the way by homing
+		myTransfer.home()
+
+		// close GV
+		myPecs.closeGVandCheck()
+
+		// move SEM dock clamp down to safely move it around inside SEM
+		mySEMdock.clamp()
+
+		// turn transfer system off
+		myTransfer.turnOff()
+	}
+
+
+
 	void executeMillingStep(object self, number simulation)
 	{
 
@@ -667,6 +728,18 @@ class workflowStateMachine: object
 
 	}
 
+	void reseat(object self)
+	{
+		// *** public ***
+		// uses workflow methods to reseat sample 
+		if (workflowState == "PECS")
+		{
+			self.changeWorkflowState("reseating")
+			myWorkflow.reseat()
+		}
+		else
+			throw("not allowed to reseat when not in PECS")
+	}
 
 	void PECS_to_SEM(object self)
 	{
@@ -693,8 +766,6 @@ class workflowStateMachine: object
 			self.changeWorkflowState("SEM")
 			lastCompletedStep.setState("SEM")
 			
-			// save tags to disk
-			ApplicationSavePreferences()
 
 		}
 		else
@@ -725,8 +796,6 @@ class workflowStateMachine: object
 			self.changeWorkflowState("PECS")
 			lastCompletedStep.setState("PECS")
 
-			// save tags to disk
-			ApplicationSavePreferences()
 
 		}
 		else
@@ -870,14 +939,6 @@ class workflowStateMachine: object
 		// queried by DM
 		return workflowState
 	}
-
-	//TODO: gives error for some reason, comment out destructor for now
-	//~workflow(object self)
-	//{
-	//	// save all tags
-	//	ApplicationSavePreferences()
-	//}
-
 
 }
 
