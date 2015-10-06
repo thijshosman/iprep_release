@@ -17,6 +17,7 @@ class deadFlagObject:object
 	object safetyFlag // flag that sets safety state
 	object errorCode // errorcode 
 	object deviceSet // the device that set the dead flag
+	object exceptionMessage // if exception causes dead flag, log the exception thrown
 
 	void log(object self, number level, string text)
 	{
@@ -37,28 +38,30 @@ class deadFlagObject:object
 		deadFlag = alloc(statePersistance)
 		safetyFlag = alloc(statePersistance)
 		deviceSet = alloc(statePersistanceNumeric)
-		errorCode  = alloc(statePersistance)
+		errorCode = alloc(statePersistance)
+		exceptionMessage = alloc(statePersistance)
 		deadFlag.init("flags:dead")
 		safetyFlag.init("flags:safe")
 		deviceSet.init("flags:device")
 		errorCode.init("flags:errorcode")
+		exceptionMessage.init("flags:exception")
 
 	}
 
-	void setDead(object self, number status, number code, string deviceName)
+	void setDead(object self, number status, number code, string deviceName, string message)
 	{
-		// set whether system is dead or not
+		// set whether system is dead or not, most informative version
 		self.print("deadflag set to: " + status + "from device: "+deviceName+" with errorcode: "+code)
 		deadFlag.setState(""+status)
-		deviceSet.setState(""+deviceName)
+		deviceSet.setState(deviceName)
 		errorCode.setNumber(code)
-
+		exceptionMessage.setState(message)
 	}
 
 
 	void setDead(object self, number status)
 	{
-		// set whether system is dead or not
+		// set whether system is dead or not, basic version
 		self.print("deadflag set to " + status)
 		deadFlag.setState(""+status)
 	}
@@ -131,6 +134,10 @@ class deadFlagObject:object
 		return deviceSet.getState()
 	}
 
+	string lastMessage(object self)
+	{
+		return exceptionMessage.getState()
+	}
 
 }
 
@@ -143,6 +150,7 @@ class safetyMediator:object
 	object pecs
 	object sem
 	object transfer
+	object gripper
 	
 	void registerPecs(object self, object obj)
 	{
@@ -162,6 +170,11 @@ class safetyMediator:object
 		result("mediator: transfer registered\n")
 	}
 
+	void registerGripper(object self, object obj)
+	{
+		gripper = obj
+		result("mediator: gripper registered\n")
+	}
 
 	// *** test checks ***
 
@@ -181,7 +194,6 @@ class safetyMediator:object
 	}
 
 	// *** real checks ***
-
 
 	string getGVState(object self)
 	{

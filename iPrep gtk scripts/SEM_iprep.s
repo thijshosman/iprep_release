@@ -6,9 +6,12 @@ number XYZZY = 0
 class SEM_IPrep: object
 {
 	object SEMStagePersistance // stores position where stage is in tag
+	
+	// phase out
 	object SEMkVPersistance // stores voltage used
 	object SEMWDPersistance // stores working distance
 	
+
 	object myMediator
 
 	number X, Y, Z // sem coordinates
@@ -19,6 +22,8 @@ class SEM_IPrep: object
 	// clear
 	// pickup_dropoff
 	// imaging
+
+	object mySEMCoordManager
 
 	// coordinate objects
 	// TODO: store these in tags
@@ -85,6 +90,7 @@ class SEM_IPrep: object
 	}
 
 
+
 	
 	number returnHVState(object self)
 	{
@@ -101,10 +107,7 @@ class SEM_IPrep: object
 		return state
 	}
 
-	string getSEMState(object self)
-	{
-		return state
-	}
+
 
 	void log(object self, number level, string text)
 	{
@@ -654,6 +657,16 @@ if (XYZZY)		self.setWDForImaging()
 		self.printCoords()
 	}
 
+	void goToCoord(object self, string name)
+	{
+		// go to coord with name name as known by mySEMCoordManager
+
+		mySEMCoordManager.
+
+	}
+
+
+
 	// *** calibration ***
 
 	void calibrateCoordsFromPickup(object self)
@@ -837,15 +850,18 @@ if (XYZZY)		self.setWDForImaging()
 		myMediator.registerSem(self)
 
 		SEMStagePersistance.init("SEMstage")
-		SEMkVPersistance.init("SEM:kV")
-		SEMWDPersistance.init("SEM:WD")
-		imagingWD = SEMWDPersistance.getNumber()
+		SEMkVPersistance.init("SEM:kV") // deprecate
+		SEMWDPersistance.init("SEM:WD") // deprecate
+		imagingWD = SEMWDPersistance.getNumber() // deprecate
 
 		self.zeroShift()
 		self.Update()
-		self.calibrateCoordsFromPickup()
+		self.calibrateCoordsFromPickup() 
 		self.print("initialized")
-		//self.printCoords()
+		
+		// initialize the SEMCoordManager
+		mySEMCoordManager = alloc(SEMCoordManager)
+		mySEMCoordManager.init("IPrep:SEMPositions")
 		
 		// TODO: add logic to verify that the stage location is indeed what the tag says it was left at last
 		// compare the SEM position to the stored position to verify. 
@@ -859,11 +875,6 @@ if (XYZZY)		self.setWDForImaging()
 		self.print("init sem stage. starting state: " +state)
 
 	}
-
-
-
-
-	
 
 
 	void blankOn(object self)
@@ -904,7 +915,12 @@ if (XYZZY)		self.setWDForImaging()
 		SEMWDPersistance.setNumber(imagingWD)
 	}
 
-
+	string getSEMState(object self)
+	{
+		// different name for mediator
+		// #todo: this is where state should be checked
+		return state
+	}
 
 }
 

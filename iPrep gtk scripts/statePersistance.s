@@ -264,7 +264,6 @@ class SEMCoordManager: object
 		// inits
 		// path to correct tag
 		location = location1
-
 	}
 
 	TagGroup getCoordList(object self)
@@ -298,7 +297,6 @@ class SEMCoordManager: object
 		}
 		return 0
 
-
 	}
 
 	void addCoord(object self, object aCoord)
@@ -331,8 +329,6 @@ class SEMCoordManager: object
 		ApplicationSavePreferences()
 
 	}
-
-	
 
 	object convertTagToCoord(object self, taggroup subtag)
 	{
@@ -393,13 +389,7 @@ class SEMCoordManager: object
 			//result(i)
 		}
 
-
-
 	}
-
-	
-
-
 
 }
 
@@ -489,6 +479,8 @@ class positionManager: object
 
 // --- testing semcoordmanager ---
 
+/*
+
 object aCoord = alloc(SEMCoord)
 aCoord.set("testcoord3",3.11,2.22,4.33,2.1)
 
@@ -510,12 +502,9 @@ aMan.getCoordAsCoord("testcoord3").print()
 //tg = Man.getCoordList()
 //tg1.TagGroupOpenBrowserWindow( 0 ) 
 
+*/
 
 // --- end testing semcoordmanager ---
-
-
-
-
 
 // --- testing positionmanager ---
 
@@ -535,12 +524,7 @@ aMan.getCoordAsCoord("testcoord3").print()
 // --- end testing positionmanager ---
 
 
-
-
-
-
-
-// --- testing ---
+// --- testing persistance ---
 
 // text class
 //object gripperPersistance1 = alloc(statePersistance)
@@ -558,9 +542,4 @@ aMan.getCoordAsCoord("testcoord3").print()
 
 
 
-
-
-
-
-
-// -- end testing ---
+// -- end testing persistance ---
