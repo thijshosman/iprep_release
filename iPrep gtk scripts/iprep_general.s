@@ -1,5 +1,5 @@
 // $BACKGROUND$
-// general IPrep functions used in various scripts
+// general IPrep (helper) functions used in various scripts
 
 
 class deadFlagObject:object
@@ -256,6 +256,17 @@ object returnMediator()
 {
 	return aMediator
 }
+
+// define SEMCoordManager object
+
+object mySEMCoordManager = alloc(SEMCoordManager)
+
+// allow classes to return this coordManager
+object returnSEMCoordManager()
+{
+	return mySEMCoordManager
+}
+
 
 class haltCheckObject:object
 {

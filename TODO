@@ -3,14 +3,15 @@ A:
 -framework for error handling
 	v-string set for deadflag with reason deadflag was set - what device did set errorcode?
 	-table of errorcodes
+	-integrate setting reason for error and last device into workflow
 -save SEMcoords object into tags->use examples John
 	v-new SEMcoordManager class that is instantiated by SEM_iprep that has methods for:
-	-replace semcoord attributes of SEM_iprep class so that SEM_iprep methods that need coordinates get them directly from the tags through the semcoordmanager
+	v-replace semcoord attributes of SEM_iprep class so that SEM_iprep methods that need coordinates get them directly from the tags through the semcoordmanager
 v-puncture classes with checks as defined in iprep_general
 	v-make sure safety is at the lowest level
 	v-create interface for iprep_general to allow checks names to be in device classes through mediator
 	-checks:
-		-SEM: SEM checks that parker is < 400 before moving except pickup/dropoff
+		v-SEM: SEM checks that parker is < 400 before moving except pickup/dropoff
 		v-PECS: only close GV when parker < 150
 		v-PECS: only move stage up when parker < 20
 		v-Parker: only move > 150 when GV is open
@@ -59,6 +60,7 @@ v-workflow checks that sample is no longer present in dock - after pickup - unco
 -absolute coordinates for SEM stage
 v-reseating function that sets carrier into dovetail but never leaves PECS
 -transfer position tags become deltas, and deltas allow change. hardcode real positions, do not allow delta's more than a certain value. 
+
 
 B:
 -implement consistent and well thought out user dialog in combination of results/debug/logfile/UI menus

@@ -43,6 +43,9 @@ InstallFile( PathConcatenate( gPath, "hardwareFactory.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "iprep_3Dvolume.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "progressWindow.s" ), package, 3 )
 
+InstallFile( PathConcatenate( gPath, "SEM_iprep.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "SEM_simulator.s" ), package, 3 )
+
 InstallFile( PathConcatenate( gPath, "PlanarSEMdock.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "dock_simulator.s" ), package, 3 )
 
@@ -55,8 +58,7 @@ InstallFile( PathConcatenate( gPath, "gripper_simulator.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "pecs_iprep.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "pecs_simulator.s" ), package, 3 )
 
-InstallFile( PathConcatenate( gPath, "SEM_iprep.s" ), package, 3 )
-InstallFile( PathConcatenate( gPath, "SEM_simulator.s" ), package, 3 )
+
 
 InstallFile( PathConcatenate( gPath, "pecscamera_iprep.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "pecscamera_simulator.s" ), package, 3 )

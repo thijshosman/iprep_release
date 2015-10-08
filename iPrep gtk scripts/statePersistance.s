@@ -131,6 +131,12 @@ class SEMCoord: object
 		return name
 	}
 
+	void setName(object self, string name1)
+	{
+		// set name
+		name = name1
+	}
+
 	void SEMCoord(object self)
 	{
 		// constructor
@@ -216,6 +222,9 @@ class SEMCoord: object
 	{
 		return df_valid
 	}
+
+
+
 
 	void print(object self)
 	{
