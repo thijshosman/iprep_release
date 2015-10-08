@@ -27,7 +27,7 @@ try
 	// *** dock ***
 	//myWorkflow.returnSEMDock().setManualState("open")
 	//myWorkflow.returnSEMDock().setManualState("closed")
-	myWorkflow.returnSEMDock().unclamp_once()	//disengaged
+	//myWorkflow.returnSEMDock().unclamp()	//disengaged
 	//myWorkflow.returnSEMDock().clamp()   //engaged
 	myWorkflow.returnSEMDock().lookupState(1)
 	

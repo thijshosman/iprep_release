@@ -104,7 +104,7 @@ class planarSEMdock : object
 		//self.sendCommand("m30h0I27L24V10000v2500R")
 		
 		// thijs update 10/02/2015 when testing ebsd dock
-		self.sendCommand("m30h0l27L10000V5000R")
+		self.sendCommand("m30h30l27L10000V10000R")
 		self.print("dock initialized")
 	}
 	
@@ -196,7 +196,11 @@ class planarSEMdock : object
 	void Unclamp(object self)
 	{
 		try
+		{
 			self.unclamp_once()
+			sleep(1)
+			self.sendCommand("h0R")
+		}
 		catch
 		{
 			self.print("Dock failed to unclamp first time, will clamp and trying to unclamp one more time.\n")
