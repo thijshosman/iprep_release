@@ -1,11 +1,23 @@
 // $BACKGROUND$
-// general IPrep functions used in various scripts
+// general IPrep (helper) functions used in various scripts
 
 
 class deadFlagObject:object
 {
-	object deadFlag
-	object safetyFlag
+	// sets two flags:
+	// -dead/alive: is the system ready to be used or not. alive means everything is fine, dead means the system or subsystems need to be put in the right state(s) before continuing. 
+	//	example: SEM gives an error while imaging. all state information of the IPrep is saved and the workflow can be recovered but we cannot continue until the SEM functions again
+	// -safe/unsafe. if system is unsafe, it implies that the system failed in a way that is not recoverable without some complicated, manual set of operations and following these correctly
+	//	will ensure the system does not destroy itself
+	//	example: during transfer of sample to PECS, the parker system does not know where it is anymore. 
+
+	// the setDead() method sets the flag and sets the errorcode and the device that set the error
+
+	object deadFlag // flag that sets dead state
+	object safetyFlag // flag that sets safety state
+	object errorCode // errorcode 
+	object deviceSet // the device that set the dead flag
+	object exceptionMessage // if exception causes dead flag, log the exception thrown
 
 	void log(object self, number level, string text)
 	{
@@ -25,13 +37,31 @@ class deadFlagObject:object
 		// get deadflag
 		deadFlag = alloc(statePersistance)
 		safetyFlag = alloc(statePersistance)
+		deviceSet = alloc(statePersistanceNumeric)
+		errorCode = alloc(statePersistance)
+		exceptionMessage = alloc(statePersistance)
 		deadFlag.init("flags:dead")
 		safetyFlag.init("flags:safe")
+		deviceSet.init("flags:device")
+		errorCode.init("flags:errorcode")
+		exceptionMessage.init("flags:exception")
+
 	}
+
+	void setDead(object self, number status, number code, string deviceName, string message)
+	{
+		// set whether system is dead or not, most informative version
+		self.print("deadflag set to: " + status + "from device: "+deviceName+" with errorcode: "+code)
+		deadFlag.setState(""+status)
+		deviceSet.setState(deviceName)
+		errorCode.setNumber(code)
+		exceptionMessage.setState(message)
+	}
+
 
 	void setDead(object self, number status)
 	{
-		// set whether system is dead or not
+		// set whether system is dead or not, basic version
 		self.print("deadflag set to " + status)
 		deadFlag.setState(""+status)
 	}
@@ -94,6 +124,21 @@ class deadFlagObject:object
 			return 0
 	}
 
+	number lastErrorCode(object self)
+	{
+		return errorCode.getNumber()
+	}
+
+	string lastDevice(object self)
+	{
+		return deviceSet.getState()
+	}
+
+	string lastMessage(object self)
+	{
+		return exceptionMessage.getState()
+	}
+
 }
 
 // *** functions for safety: check status of these critical components inside the classes by checking tags ***
@@ -105,6 +150,7 @@ class safetyMediator:object
 	object pecs
 	object sem
 	object transfer
+	object gripper
 	
 	void registerPecs(object self, object obj)
 	{
@@ -124,6 +170,11 @@ class safetyMediator:object
 		result("mediator: transfer registered\n")
 	}
 
+	void registerGripper(object self, object obj)
+	{
+		gripper = obj
+		result("mediator: gripper registered\n")
+	}
 
 	// *** test checks ***
 
@@ -143,7 +194,6 @@ class safetyMediator:object
 	}
 
 	// *** real checks ***
-
 
 	string getGVState(object self)
 	{
@@ -206,6 +256,17 @@ object returnMediator()
 {
 	return aMediator
 }
+
+// define SEMCoordManager object
+
+object mySEMCoordManager = alloc(SEMCoordManager)
+
+// allow classes to return this coordManager
+object returnSEMCoordManager()
+{
+	return mySEMCoordManager
+}
+
 
 class haltCheckObject:object
 {

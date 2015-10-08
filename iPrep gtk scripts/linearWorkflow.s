@@ -95,6 +95,84 @@ class workflow: object
 		myTransfer.setPositionTag("dropoff_pecs_backoff",47.50) // location where sample gets dropped off in PECS // #20150827: was 46.5
 	}
 
+	void setDefaultSEMPositions(object self)
+	{
+		// set the default SEM coord tags and populate them with default values
+		// will later be overwritten by calibration routines in sem_iprep class
+		// this method is not intended to be used other than during setup
+		// and the only reason it exists is because it is a lot of work to manually
+		// type all these tags
+
+		object tempCoord = alloc(SEMCoord)
+		
+		//tempCoord.set(object self, string name1, number Xn, number Yn, number Zn, number dfn)
+
+		// each dock has two calibrated points
+		//	-reference, which is the manually calibrated pickup_dropoff point
+		//	-scribe_pos, which is the position of the scribe mark on the dock
+
+		// for each dock, all the imaging positions have a known vector from the scribe_pos
+		// similarly, the clear positions has a known vector from the reference point
+
+		// transfer between clear and nominal imaging is considered safe as long as it is known
+		// in which direction we move first
+
+		// EBSD dock points
+
+		tempCoord.set("reference_ebsd", 0, 0, 0, 0)
+		returnSEMCoordManager.addCoord(tempCoord)
+
+		tempCoord.set("scribe_pos_ebsd", 0, 0, 0, 0)
+		returnSEMCoordManager.addCoord(tempCoord)
+
+		// planar dock points
+
+		tempCoord.set("reference_planar", 0, 0, 0, 0)
+		returnSEMCoordManager.addCoord(tempCoord)
+
+		tempCoord.set("scribe_pos_planar", 0, 0, 0, 0)
+		returnSEMCoordManager.addCoord(tempCoord)		
+
+		// inferred points + used points
+
+		// manually calibrated "pickup_dropoff" point. used to infer "clear"
+		tempCoord.set("reference", 0, 0, 0, 0)
+		returnSEMCoordManager.addCoord(tempCoord)
+
+		// scribe, used to infer all imaging positions
+		tempCoord.set("scribe_pos", 0, 0, 0, 0)
+		returnSEMCoordManager.addCoord(tempCoord)
+
+		// positions defined on dock inferred from 
+
+		tempCoord.set("highGridFront", 0, 0, 0, 0)
+		returnSEMCoordManager.addCoord(tempCoord)
+
+		tempCoord.set("highGridBack", 0, 0, 0, 0)
+		returnSEMCoordManager.addCoord(tempCoord)
+
+		tempCoord.set("lowergrid", 0, 0, 0, 0)
+		returnSEMCoordManager.addCoord(tempCoord)	
+
+		tempCoord.set("fwdGrid", 0, 0, 0, 0)
+		returnSEMCoordManager.addCoord(tempCoord)
+		
+		// positions defined on dock
+
+		tempCoord.set("pickup_dropoff", 0, 0, 0, 0)
+		returnSEMCoordManager.addCoord(tempCoord)
+
+		tempCoord.set("clear", 0, 0, 0, 0)
+		returnSEMCoordManager.addCoord(tempCoord)
+
+		tempCoord.set("nominal_imaging", 0, 0, 0, 0)
+		returnSEMCoordManager.addCoord(tempCoord)
+
+		tempCoord.set("stored_imaging", 0, 0, 0, 0)
+		returnSEMCoordManager.addCoord(tempCoord)
+
+	}
+
 	// *** methods for returning subclasses (used for testing)
 	
 	object returnSEMDock(object self)
@@ -543,6 +621,67 @@ if (XYZZY)
 
 	}
 
+	void reseat(object self)
+	{
+		// move sample out and into dovetail 
+		// use after sample transfer so that it will be in the same position as during transfer
+
+		// lower pecs stage
+		myPecs.moveStageDown()
+		
+		// home pecs stage
+		myPecs.stageHome()
+	
+		// go to where gripper arms can safely open
+		myTransfer.move("open_pecs")
+
+		// open gripper arms
+		myGripper.open()
+
+		// move forward to where sample can be picked up
+		myTransfer.move("pickup_pecs")
+
+		continueCheck()
+
+		// close gripper arms
+		myGripper.close()
+
+		// move to before gv
+		myTransfer.move("beforeGV")
+
+		// slide sample into dovetail
+		myTransfer.move("dropoff_pecs")
+
+		// back off 1 mm to relax tension on springs
+		myTransfer.move("dropoff_pecs_backoff")
+
+		// open gripper arms
+		myGripper.open()
+	
+		// move gripper back so that arms can close
+		myTransfer.move("open_pecs")
+		
+		// close gripper arms
+		myGripper.close()
+		
+		// go to prehome
+		myTransfer.move("prehome")
+
+		// move gripper out of the way by homing
+		myTransfer.home()
+
+		// close GV
+		myPecs.closeGVandCheck()
+
+		// move SEM dock clamp down to safely move it around inside SEM
+		mySEMdock.clamp()
+
+		// turn transfer system off
+		myTransfer.turnOff()
+	}
+
+
+
 	void executeMillingStep(object self, number simulation)
 	{
 
@@ -667,6 +806,18 @@ class workflowStateMachine: object
 
 	}
 
+	void reseat(object self)
+	{
+		// *** public ***
+		// uses workflow methods to reseat sample 
+		if (workflowState == "PECS")
+		{
+			self.changeWorkflowState("reseating")
+			myWorkflow.reseat()
+		}
+		else
+			throw("not allowed to reseat when not in PECS")
+	}
 
 	void PECS_to_SEM(object self)
 	{
@@ -693,8 +844,6 @@ class workflowStateMachine: object
 			self.changeWorkflowState("SEM")
 			lastCompletedStep.setState("SEM")
 			
-			// save tags to disk
-			ApplicationSavePreferences()
 
 		}
 		else
@@ -725,8 +874,6 @@ class workflowStateMachine: object
 			self.changeWorkflowState("PECS")
 			lastCompletedStep.setState("PECS")
 
-			// save tags to disk
-			ApplicationSavePreferences()
 
 		}
 		else
@@ -870,14 +1017,6 @@ class workflowStateMachine: object
 		// queried by DM
 		return workflowState
 	}
-
-	//TODO: gives error for some reason, comment out destructor for now
-	//~workflow(object self)
-	//{
-	//	// save all tags
-	//	ApplicationSavePreferences()
-	//}
-
 
 }
 
