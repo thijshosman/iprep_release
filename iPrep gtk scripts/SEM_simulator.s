@@ -3,13 +3,17 @@ number XYZZY = 0
 
 
 
-
-class SEM_simulator: object
+class SEM_Simulator: object
 {
 	object SEMStagePersistance // stores position where stage is in tag
+	
+	// phase out
 	object SEMkVPersistance // stores voltage used
 	object SEMWDPersistance // stores working distance
-	
+
+	// are SEM coords in manager calibrated? #todo: implement
+	number coords_calibrated // 0 = no, 1 = yes
+
 	object myMediator
 
 	number X, Y, Z // sem coordinates
@@ -21,18 +25,20 @@ class SEM_simulator: object
 	// pickup_dropoff
 	// imaging
 
+	//object mySEMCoordManager
+
 	// coordinate objects
 	// TODO: store these in tags
-	object reference
-	object scribe_pos
-	object fwdGrid
-	object pickup_dropoff
-	object clear
-	object nominal_imaging
-	object StoredImaging
-	object highGridFront
-	object highGridBack
-	object lowerGrid
+	//object reference
+	//object scribe_pos
+	//object fwdGrid
+	//object pickup_dropoff
+	//object clear
+	//object nominal_imaging
+	//object StoredImaging
+	//object highGridFront
+	//object highGridBack
+	//object lowerGrid
 
 	number blankState
 	number HVState
@@ -44,47 +50,6 @@ class SEM_simulator: object
 	number kV
 
 	// *** basics ***
-
-	object returnReference(object self)
-	{
-		return reference
-	}
-
-	object returnClear(object self)
-	{
-		return clear
-	}
-
-	object returnPickup_dropoff(object self)
-	{
-		return pickup_dropoff
-	}
-
-	object returnNominal_imaging(object self)
-	{
-		return nominal_imaging
-	}
-
-	object returnStoredImaging(object self)
-	{
-		return StoredImaging
-	}
-
-	object returnHighGridFront(object self)
-	{
-		return highGridFront
-	}
-
-	object returnHighGridBack(object self)
-	{
-		return highGridBack
-	}
-	
-	object returnLowerGrid(object self)
-	{
-		return lowerGrid
-	}
-
 
 	
 	number returnHVState(object self)
@@ -102,10 +67,7 @@ class SEM_simulator: object
 		return state
 	}
 
-	string getSEMState(object self)
-	{
-		return state
-	}
+
 
 	void log(object self, number level, string text)
 	{
@@ -117,6 +79,12 @@ class SEM_simulator: object
 	{
 		result("SEM: "+printstr+"\n")
 		self.log(2,printstr)
+	}
+
+	number setCoordsCalibrated(object self, number cal)
+	{
+		coords_calibrated = 1
+		self.print("sem coordinates are now calibrated")
 	}
 
 	void setManualState(object self,string newstate)
@@ -338,7 +306,10 @@ class SEM_simulator: object
 	void goToCoordsZFirst(object self, number Xnew, number Ynew, number Znew)
 	{
 		// first update Z, most critical coordinate
-	
+
+
+
+		
 		self.moveZAbs(Znew,1)	
 
 		self.moveXYabs(Xnew,Ynew, 1)
@@ -350,7 +321,8 @@ class SEM_simulator: object
 	void goToCoordsZLast(object self, number Xnew, number Ynew, number Znew)
 	{
 		// first update x,y, then update z, most critical coordinate
-		
+
+
 		self.moveXYabs(Xnew,Ynew, 1)
 
 		self.moveZAbs(Znew,1)
@@ -358,6 +330,11 @@ class SEM_simulator: object
 		
 
 	}
+
+
+
+
+
 
 	// *** state transfers ***
 
@@ -380,6 +357,8 @@ class SEM_simulator: object
 	{
 		self.print("going to pickup_dropoff. current state: "+state)
 		
+		object pickup_dropoff = returnSEMCoordManager().getCoordAsCoord("pickup_dropoff")
+
 		if (state == "clear")
 		{
 			self.goToCoordsZFirst(pickup_dropoff.getX(),pickup_dropoff.getY(),pickup_dropoff.getZ())
@@ -400,7 +379,9 @@ class SEM_simulator: object
 	void goToClear(object self)
 	{
 		self.print("going to clear. current state: "+state)
-		
+
+		object clear = returnSEMCoordManager().getCoordAsCoord("clear")
+
 		if (state == "pickup_dropoff")
 		{
 			self.goToCoordsZFirst(clear.getX(),clear.getY(),clear.getZ())
@@ -425,12 +406,15 @@ class SEM_simulator: object
 	{
 		self.print("going to nominal_imaging. current state: "+state)
 		
+		object nominal_imaging = returnSEMCoordManager().getCoordAsCoord("nominal_imaging")
+
+		// check that parker is out of the way
 		if (myMediator.getCurrentPosition() > 400)
 		{
 			self.print("safetycheck: trying to move SEM with parker position > 400")
 			throw("safetycheck: trying to move SEM with parker position > 400")
 		}
-		
+
 		if (state == "clear")
 		{
 			self.goToCoordsZFirst(nominal_imaging.getX(),nominal_imaging.getY(),nominal_imaging.getZ())
@@ -459,7 +443,9 @@ if (XYZZY)		self.setWDForImaging()
 	{
 		self.print("going to highGridFront. current state: "+state)
 
-		
+		object highGridFront = returnSEMCoordManager().getCoordAsCoord("highGridFront")
+
+		// check that parker is out of the way
 		if (myMediator.getCurrentPosition() > 400)
 		{
 			self.print("safetycheck: trying to move SEM with parker position > 400")
@@ -491,6 +477,9 @@ if (XYZZY)		self.setWDForImaging()
 	{
 		self.print("going to highGridBack. current state: "+state)
 
+		object highGridBack = returnSEMCoordManager().getCoordAsCoord("highGridBack")
+
+		// check that parker is out of the way
 		if (myMediator.getCurrentPosition() > 400)
 		{
 			self.print("safetycheck: trying to move SEM with parker position > 400")
@@ -520,12 +509,16 @@ if (XYZZY)		self.setWDForImaging()
 	void goToScribeMark(object self)
 	{
 		self.print("going to scribe mark. current state: "+state)
-		
+
+		object scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos")
+
+		// check that parker is out of the way
 		if (myMediator.getCurrentPosition() > 400)
 		{
 			self.print("safetycheck: trying to move SEM with parker position > 400")
 			throw("safetycheck: trying to move SEM with parker position > 400")
 		}
+
 		
 		if (state == "imaging")
 		{
@@ -550,13 +543,16 @@ if (XYZZY)		self.setWDForImaging()
 	void goToLowerGrid(object self)
 	{
 		self.print("going to lowerGrid. current state: "+state)
-	
+		
+		object lowerGrid = returnSEMCoordManager().getCoordAsCoord("lowerGrid")
+
+		// check that parker is out of the way
 		if (myMediator.getCurrentPosition() > 400)
 		{
 			self.print("safetycheck: trying to move SEM with parker position > 400")
 			throw("safetycheck: trying to move SEM with parker position > 400")
 		}
-		
+
 		if (state == "imaging")
 		{
 			self.goToCoordsZFirst(lowerGrid.getX(),lowerGrid.getY(),lowerGrid.getZ())
@@ -581,13 +577,16 @@ if (XYZZY)		self.setWDForImaging()
 	void goToFWDGrid(object self)
 	{
 		self.print("going to FWD grid. current state: "+state)
-		
+
+		// check that parker is out of the way
 		if (myMediator.getCurrentPosition() > 400)
 		{
 			self.print("safetycheck: trying to move SEM with parker position > 400")
 			throw("safetycheck: trying to move SEM with parker position > 400")
 		}
-		
+
+		object fwdGrid = returnSEMCoordManager().getCoordAsCoord("fwdGrid")
+
 		if (state == "imaging")
 		{
 			self.goToCoordsZFirst(fwdGrid.getX(),fwdGrid.getY(),fwdGrid.getZ())
@@ -612,7 +611,10 @@ if (XYZZY)		self.setWDForImaging()
 	void goToStoredImaging(object self)
 	{
 		self.print("going to StoredImaging. current state: "+state)
-		
+
+		object StoredImaging = returnSEMCoordManager().getCoordAsCoord("StoredImaging")
+
+		// check that parker is out of the way
 		if (myMediator.getCurrentPosition() > 400)
 		{
 			self.print("safetycheck: trying to move SEM with parker position > 400")
@@ -643,84 +645,49 @@ if (XYZZY)		self.setWDForImaging()
 		self.printCoords()
 	}
 
-	// *** calibration ***
 
-	void calibrateCoordsFromPickup(object self)
+	// *** variable position that is in SEMCoordManager ***
+
+	void goToImagingPosition(object self, string name1)
 	{
-		// *** public ***
-		//when the stage is at the calibrated pickup/dropoff position and calibrated there for transfer, 
-		//calculate the other 3 positions (clear, nominal_imaging and StoredImaging 
-		//and save them as absolute coordinates in private data)
-		
-		self.print("calibrateCoordsFromPickup: using calibrations from 20150903 ")
-
-		// reference point is the point from which other coordinates are inferred
-		// the reference point for all coordinates is the pickup/dropoff point now
-		// TODO: change from hardcoded value to setting in global tags
+		// go to this coordinate, that assumes the SEM stage is in the imaging state
 		
 
-		// reference.set(7.5,66.5,28.755)
-		// reference.set(8,66.5,29.255)		// Pre-8/15 value
+		// make sure we have a coord with this name
+		if (returnSEMCoordManager().checkCoordExistence(name1) == 0)
+		{
+			self.print("cannot go to "+name1+", coord does not exist!")
+			throw("cannot go to "+name1+", coord does not exist!")
+		}
 
-//		scribe_pos.set( 31.117, 32.599, 30, 0 )		// 20150815 value; Assumes SEM FWD is coupled to FWD_grid, which is (29.6-7.41)=22.2 mm below the scribe mark
-		scribe_pos.set( 30.829, 32.829, 30, 0 )		// 20150827 value; Assumes SEM FWD is coupled to FWD_grid, which is (29.6-7.41)=22.2 mm below the scribe mark
-		self.print("scribe position set: ")
-		scribe_pos.print()
+		object imagingCoord = returnSEMCoordManager().getCoordAsCoord(name1)
 
-//		reference.set( scribe_pos.getX()-31.117+9.155, scribe_pos.getY()-32.599+71.133, scribe_pos.getZ()-30+12.25 ) // 20150815 value
-//		reference.set( 9.155, 71.133 , 12.25 )		// 20150815 value = > Use the pickup/dropoff point
-//		reference.set( scribe_pos.getX()-30.886+9.424, scribe_pos.getY()-32.862+71.396, scribe_pos.getZ()-30+12.753 ) // 20150828 value
-		reference.set( 11.174, 71.396 , 12.756 )		// 20150903 value = > Use the pickup/dropoff point
-		self.print("reference set: ")
-		reference.print()
+		// check that parker is out of the way
+		if (myMediator.getCurrentPosition() > 400)
+		{
+			self.print("safetycheck: trying to move SEM with parker position > 400")
+			throw("safetycheck: trying to move SEM with parker position > 400")
+		}
 
-		// pickup_dropoff is reference point, so simply set them there
-		pickup_dropoff.set(reference.getX(), reference.getY(), reference.getZ())
-		self.print("pickup_dropoff set: ")
-		pickup_dropoff.print()
+		// make sure we are in the imaging state
+		if (state == "imaging")
+		{
+			self.goToCoordsZFirst(imagingCoord.getX(),imagingCoord.getY(),imagingCoord.getZ()) 
+			self.print("at stored imaging point")
+		}
+		else 
+			throw("not allowed to go to stored imaging state coming from state: " +state)
 
-		// for clear only move in Z from reference point
-		clear.set(reference.getX(), reference.getY(), reference.getZ()+2.5)
-		self.print("clear set: ")
-		clear.print()
 
-		// nominal imaging is approximate middle of sample
-		nominal_imaging.set( scribe_pos.getX()-31.117+7.785, scribe_pos.getY()-32.599-13.226, scribe_pos.getZ()-30+30, 2.29 )
-		self.print("nominal_imaging set: ")
-		nominal_imaging.print()
-
-		// stored imaging starts at the same point as the nominal imaging point
-		StoredImaging.set( nominal_imaging.getX(), nominal_imaging.getY(), nominal_imaging.getZ(), nominal_imaging.getdf() )
-		self.print("StoredImaging set: ")
-		StoredImaging.print()
-
-		// grid on post at back position (serves as sanity check)
-		highGridBack.set( scribe_pos.getX()+(-4.831), scribe_pos.getY()+(-4.858), scribe_pos.getZ()-30+30, -0.12 )
-		self.print("highGridBack set: ")
-		highGridBack.print()
-
-		// grid on post in front position (serves as sanity check)
-		highGridFront.set( scribe_pos.getX()+(-39.755), scribe_pos.getY()+(-4.778), scribe_pos.getZ()-30+30, -0.11 )
-		self.print("highGridFront set: ")
-		highGridFront.print()
-
-		// grid on post for FWD Z-height calibration
-		fwdGrid.set( scribe_pos.getX()+22.761, scribe_pos.getY()+(-3.593), scribe_pos.getZ()-30+30, 22.19 )
-		self.print("highGridFront set: ")
-		highGridFront.print()
-
-		// grid on base plate, formerly used for FWD Z-height cal, now not used // Save to remove all references to lowerGrid
-		lowerGrid.set(scribe_pos.getX()+4.747, scribe_pos.getY()+17.652, scribe_pos.getZ()-0.5+16.987, 44.29)
-		self.print("lowerGrid set: ")
-		lowerGrid.print()
-
-		if ( imagingWD < 1 || imagingWD > 20 )
-			imagingWD = 7.41	// #TODO: Hack to ensure approx calibration on Quanta & planar dock
-
-		self.print("all coordinates calculated from scribe position")
 
 
 	}
+
+
+
+	// *** calibration ***
+
+	/* DEPRECATED: now implemented in SEMCoordManager directly
 
 	void saveCurrentAsStoredImaging(object self)
 	{
@@ -749,6 +716,9 @@ if (XYZZY)		self.setWDForImaging()
 		// TODO: should be saved in tag as part of saved tags
 
 	}
+
+	*/
+
 
 	number getShiftX(object self)
 	{
@@ -786,7 +756,7 @@ if (XYZZY)		self.setWDForImaging()
 		self.print("zeroed shift, x: "+-a/1000+", y: "+-b/1000)
 	}
 
-	void SEM_simulator(object self)
+	void SEM_Simulator(object self)
 	{
 		// constructor
 
@@ -800,16 +770,17 @@ if (XYZZY)		self.setWDForImaging()
 		state = "unknown"
 		
 		// allocate SEM coordinates
-		scribe_pos = alloc(SEMCoord)
-		reference = alloc(SEMCoord)
-		pickup_dropoff = alloc(SEMCoord)
-		clear = alloc(SEMCoord)
-		nominal_imaging = alloc(SEMCoord)
-		StoredImaging = alloc(SEMCoord)
-		highGridFront = alloc(SEMCoord)
-		highGridBack = alloc(SEMCoord)
-		lowerGrid = alloc(SEMCoord)
-		fwdGrid = alloc(SEMCoord)
+		// DEPRECATED: now coming from SEMCoordManager
+		//scribe_pos = alloc(SEMCoord)
+		//reference = alloc(SEMCoord)
+		//pickup_dropoff = alloc(SEMCoord)
+		//clear = alloc(SEMCoord)
+		//nominal_imaging = alloc(SEMCoord)
+		//StoredImaging = alloc(SEMCoord)
+		//highGridFront = alloc(SEMCoord)
+		//highGridBack = alloc(SEMCoord)
+		//lowerGrid = alloc(SEMCoord)
+		//fwdGrid = alloc(SEMCoord)
 		imagingWD = 0
 		kV = 0
 		self.print("constructor called")
@@ -819,41 +790,39 @@ if (XYZZY)		self.setWDForImaging()
 	void init(object self)
 	{
 		// *** public ***
-		// sets state and synchronizes private coord variables
+		// sets state 
+
+		coords_calibrated = 0
 
 		// register with mediator
 		myMediator = returnMediator()
 		myMediator.registerSem(self)
 
 		SEMStagePersistance.init("SEMstage")
-		SEMkVPersistance.init("SEM:kV")
-		SEMWDPersistance.init("SEM:WD")
-		imagingWD = SEMWDPersistance.getNumber()
+		SEMkVPersistance.init("SEM:kV") // deprecate
+		SEMWDPersistance.init("SEM:WD") // deprecate
+		imagingWD = SEMWDPersistance.getNumber() // deprecate
 
-		// zeroing shift does not work on simulator
-		//self.zeroShift()
+		self.zeroShift()
 		self.Update()
-		self.calibrateCoordsFromPickup()
+		//self.calibrateCoordsFromPickup() moved to dock object
 		self.print("initialized")
-		//self.printCoords()
+		
+		// initialize the SEMCoordManager - is now done in iprep_general
+		//returnSEMCoordManager() = alloc(SEMCoordManager)
+		//mySEMCoordManager.init("IPrep:SEMPositions")
 		
 		// TODO: add logic to verify that the stage location is indeed what the tag says it was left at last
 		// compare the SEM position to the stored position to verify. 
 
 		state = SEMStagePersistance.getState()
 		kV = SEMkVPersistance.getNumber()
-		
 
 		self.print("init sem voltage: " +kV)
 		self.print("init sem working distance: " +imagingWD)
 		self.print("init sem stage. starting state: " +state)
 
 	}
-
-
-
-
-	
 
 
 	void blankOn(object self)
@@ -884,8 +853,7 @@ if (XYZZY)		self.setWDForImaging()
 		self.print("HV off")
 	}	
 
-/*
-	~SEM_IPrep(object self)
+	~SEM_Simulator(object self)
 	{
 		// save last known stage position to tag
 		self.setManualState(state)
@@ -894,8 +862,13 @@ if (XYZZY)		self.setWDForImaging()
 		SEMkVPersistance.setNumber(kV)
 		SEMWDPersistance.setNumber(imagingWD)
 	}
-*/
 
+	string getSEMState(object self)
+	{
+		// different name for mediator
+		// #todo: this is where state should be checked
+		return state
+	}
 
 }
 

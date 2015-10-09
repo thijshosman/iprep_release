@@ -11,13 +11,17 @@ class SEM_IPrep: object
 	object SEMkVPersistance // stores voltage used
 	object SEMWDPersistance // stores working distance
 
-	// are SEM coords in manager calibrated?
-	coords_calibrated// 0 = no, 1 = yes
+	// are SEM coords in manager calibrated? #todo: implement
+	number coords_calibrated // 0 = no, 1 = yes
 
 	object myMediator
 
 	number X, Y, Z // sem coordinates
 	// numbers are in mm
+
+	// the threshold that determines if coord positions are close enough for the state 
+	// to be considered consistent
+	number consistencyThreshold
 
 	string state
 	// unknown
@@ -331,14 +335,31 @@ class SEM_IPrep: object
 
 	}
 
-	void addCoord(object self, object aCoord)
+
+
+	number checkPositionConsistency(object self, string coordName)
 	{
-		// add a coordinate to the manager, external use
-		mySEMCoordManager.addCoord(aCoord)
-		self.print(aCoord.getName()+" added to coordinate manager")
+		// check to see if the sem position defined in coordName corresponds to current position
+		// (within consistencyThreshold)
+
+		self.update()
+
+		object aCoord = returnSEMCoordManager().getCoordAsCoord(coordName)
+
+		if( abs(aCoord.getX() - X)<consistencyThreshold & abs(aCoord.getY() - Y)<consistencyThreshold & abs(aCoord.getZ() - Z)<consistencyThreshold  )
+		{
+			return 1
+		}
+		else
+		{
+			print("not in right position: X = "+X+", should be "+aCoord.getX())
+			print("not in right position: Y = "+Y+", should be "+aCoord.getY())
+			print("not in right position: Z = "+Z+", should be "+aCoord.getZ())
+			return 0
+		}
+
+
 	}
-
-
 
 
 	// *** state transfers ***
@@ -350,10 +371,22 @@ class SEM_IPrep: object
 		number stateThresold = 1
 		// check to see that current stage coordinates are consistent with the current state
 
-		//string currentstate = self.state
+		string currentstate = state
 
-
-
+		if (state == "clear")
+		{
+			return self.checkPositionConsistency("clear")
+		}
+		else if (state == "pickup_dropoff")
+		{
+			return self.checkPositionConsistency("clear")
+		}
+		else
+		{
+			// #TODO: imaging is a state that belongs to a lot of coordinates, so we cannot check that
+			// #easily. assuming it is right
+			return 1
+		}
 
 	}
 
@@ -651,10 +684,48 @@ if (XYZZY)		self.setWDForImaging()
 	}
 
 
+	// *** variable position that is in SEMCoordManager ***
+
+	void goToImagingPosition(object self, string name1)
+	{
+		// go to this coordinate, that assumes the SEM stage is in the imaging state
+		
+
+		// make sure we have a coord with this name
+		if (returnSEMCoordManager().checkCoordExistence(name1) == 0)
+		{
+			self.print("cannot go to "+name1+", coord does not exist!")
+			throw("cannot go to "+name1+", coord does not exist!")
+		}
+
+		object imagingCoord = returnSEMCoordManager().getCoordAsCoord(name1)
+
+		// check that parker is out of the way
+		if (myMediator.getCurrentPosition() > 400)
+		{
+			self.print("safetycheck: trying to move SEM with parker position > 400")
+			throw("safetycheck: trying to move SEM with parker position > 400")
+		}
+
+		// make sure we are in the imaging state
+		if (state == "imaging")
+		{
+			self.goToCoordsZFirst(imagingCoord.getX(),imagingCoord.getY(),imagingCoord.getZ()) 
+			self.print("at stored imaging point")
+		}
+		else 
+			throw("not allowed to go to stored imaging state coming from state: " +state)
+
+
+
+
+	}
+
+
 
 	// *** calibration ***
 
-	
+	// DEPRECATED: now implemented in SEMCoordManager directly
 
 	void saveCurrentAsStoredImaging(object self)
 	{
@@ -662,11 +733,16 @@ if (XYZZY)		self.setWDForImaging()
 		// save current position as the StoredImaging point
 		
 		self.Update()
+		
+		object StoredImaging = returnSEMCoordManager().getCoordAsCoord("StoredImaging")
+
 		StoredImaging.set(self.getX(),self.getY(),self.getZ())
 		self.print("new StoredImaging: ")
 		StoredImaging.print()
 
-		// TODO: should be saved in tag as part of saved tags
+		returnSEMCoordManager().addCoord(StoredImaging)
+
+		
 
 	}
 
@@ -675,14 +751,26 @@ if (XYZZY)		self.setWDForImaging()
 		// *** public ***
 		// save custom given position as the StoredImaging point
 		
+		object StoredImaging = returnSEMCoordManager().getCoordAsCoord("StoredImaging")
+
 		self.Update()
 		StoredImaging.set(x, y, z)
 		self.print("new StoredImaging: ")
 		StoredImaging.print()
 
-		// TODO: should be saved in tag as part of saved tags
+		returnSEMCoordManager().addCoord(StoredImaging)
 
 	}
+
+	object returnStoredImaging(object self)
+	{
+		// returns the coord object that defines StoredImaging from the SEMCoordManager
+		// method is here for legacy reasons
+
+		return returnSEMCoordManager().getCoordAsCoord("StoredImaging")
+
+	}
+
 
 	number getShiftX(object self)
 	{
@@ -734,16 +822,17 @@ if (XYZZY)		self.setWDForImaging()
 		state = "unknown"
 		
 		// allocate SEM coordinates
-		scribe_pos = alloc(SEMCoord)
-		reference = alloc(SEMCoord)
-		pickup_dropoff = alloc(SEMCoord)
-		clear = alloc(SEMCoord)
-		nominal_imaging = alloc(SEMCoord)
-		StoredImaging = alloc(SEMCoord)
-		highGridFront = alloc(SEMCoord)
-		highGridBack = alloc(SEMCoord)
-		lowerGrid = alloc(SEMCoord)
-		fwdGrid = alloc(SEMCoord)
+		// DEPRECATED: now coming from SEMCoordManager
+		//scribe_pos = alloc(SEMCoord)
+		//reference = alloc(SEMCoord)
+		//pickup_dropoff = alloc(SEMCoord)
+		//clear = alloc(SEMCoord)
+		//nominal_imaging = alloc(SEMCoord)
+		//StoredImaging = alloc(SEMCoord)
+		//highGridFront = alloc(SEMCoord)
+		//highGridBack = alloc(SEMCoord)
+		//lowerGrid = alloc(SEMCoord)
+		//fwdGrid = alloc(SEMCoord)
 		imagingWD = 0
 		kV = 0
 		self.print("constructor called")
@@ -760,6 +849,8 @@ if (XYZZY)		self.setWDForImaging()
 		// register with mediator
 		myMediator = returnMediator()
 		myMediator.registerSem(self)
+
+		consistencyThreshold = 1 // 1 mm
 
 		SEMStagePersistance.init("SEMstage")
 		SEMkVPersistance.init("SEM:kV") // deprecate

@@ -37,36 +37,107 @@ class workflow: object
 		// initialize hardware. use factory. 1 = simulation
 		// TODO: make abstract factory, use tags to define which class
 		// TODO: EBSD dock option
+		// in general: simulion = 1, normal hardware = 2
+		// dock: ebsd = 3, planar = 2
 
 		self.print("--- start init ---")
 
-		// init gripper
-		myGripper = createGripper(1)
-		myGripper.init()
-		
+		// get all simulation numbers
+		TagGroup tg = GetPersistentTagGroup() 
+		number sim_pecs, sim_digiscan, sim_sem, sim_transfer, sim_gripper, sim_pecscamera
+		string mode
+
+		TagGroupGetTagAsNumber(tg,"IPrep:simulation:pecs", sim_pecs )
+		TagGroupGetTagAsNumber(tg,"IPrep:simulation:digiscan", sim_digiscan )
+		TagGroupGetTagAsNumber(tg,"IPrep:simulation:sem", sim_sem )
+		TagGroupGetTagAsNumber(tg,"IPrep:simulation:transfer", sim_transfer )
+		TagGroupGetTagAsNumber(tg,"IPrep:simulation:gripper", sim_gripper )
+		TagGroupGetTagAsNumber(tg,"IPrep:simulation:pecscamera", sim_pecscamera )
+		TagGroupGetTagAsString(tg,"IPrep:simulation:mode", mode )
+
+		// check tag to see if we use EBSD or planar Dock
+		// "planar" or "ebsd" string in tag
+
+		// create two coordinates that we are going to set as the active coords for calibration
+		object reference
+		object scribe_pos
+
+		if (mode == "planar")
+		{
+			// planar mode selected
+			mySEMdock = createDock(2)
+
+			// get reference and scribe_pos for values defined for this dock
+
+			reference = returnSEMCoordManager().getCoordAsCoord("reference_planar")
+			scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_planar")
+			
+		} 
+		else if (mode == "ebsd")
+		{
+			// ebsd mode selected
+			mySEMdock = createDock(3)
+
+			// get reference and scribe_pos for values defined for this dock
+
+			reference = returnSEMCoordManager().getCoordAsCoord("reference_ebsd")
+			scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_ebsd")
+
+		}
+		else if (mode == "1")
+			{
+			// ebsd mode selected
+			mySEMdock = createDock(1)
+
+			// get reference and scribe_pos from somewhere
+
+			reference = returnSEMCoordManager().getCoordAsCoord("reference_ebsd")
+			scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_ebsd")
+
+		}	
+
+		else
+		{
+			throw("system mode (planar or ebsd) not set!")
+		}
+
+		// update reference and scribe_pos to the right values
+		//returnSEMCoordManager().addCoord(scribe_pos)
+		//returnSEMCoordManager().addCoord(reference)
+
+		// update pickup_dropoff point for dock used
+		// #todo
+
 		// init SEM Dock
-		mySEMdock = createDock(2)
 		mySEMdock.init()
+		mySEMdock.calibrateCoords()
 
 		// init parker
-		myTransfer = createTransfer(1)
+		myTransfer = createTransfer(sim_transfer)
 		myTransfer.init()
 
+		// init gripper
+		myGripper = createGripper(sim_gripper)
+		myGripper.init()
+
 		// init PECS 
-		myPecs = createPecs(1)
+		myPecs = createPecs(sim_pecs)
 		myPecs.init()
 
 		// init SEM
-		mySEM = createSem(1)
+		mySEM = createSem(sim_sem)
 		mySEM.init()
 
 		// init PECS camera
-		myPecsCamera = createPecsCamera(1)
+		myPecsCamera = createPecsCamera(sim_pecscamera)
 		myPecsCamera.init()
 
 		// init Digiscan
-		myDigiscan = creatDigiscan(1)
+		myDigiscan = creatDigiscan(sim_digiscan)
 		myDigiscan.init()
+
+		// init EBSD camera #todo
+
 
 		// print start states
 		self.print("parker current state: "+myTransfer.getCurrentState())
@@ -120,56 +191,56 @@ class workflow: object
 		// EBSD dock points
 
 		tempCoord.set("reference_ebsd", 0, 0, 0, 0)
-		returnSEMCoordManager.addCoord(tempCoord)
+		returnSEMCoordManager().addCoord(tempCoord)
 
 		tempCoord.set("scribe_pos_ebsd", 0, 0, 0, 0)
-		returnSEMCoordManager.addCoord(tempCoord)
+		returnSEMCoordManager().addCoord(tempCoord)
 
 		// planar dock points
 
 		tempCoord.set("reference_planar", 0, 0, 0, 0)
-		returnSEMCoordManager.addCoord(tempCoord)
+		returnSEMCoordManager().addCoord(tempCoord)
 
 		tempCoord.set("scribe_pos_planar", 0, 0, 0, 0)
-		returnSEMCoordManager.addCoord(tempCoord)		
+		returnSEMCoordManager().addCoord(tempCoord)		
 
 		// inferred points + used points
 
 		// manually calibrated "pickup_dropoff" point. used to infer "clear"
 		tempCoord.set("reference", 0, 0, 0, 0)
-		returnSEMCoordManager.addCoord(tempCoord)
+		returnSEMCoordManager().addCoord(tempCoord)
 
 		// scribe, used to infer all imaging positions
 		tempCoord.set("scribe_pos", 0, 0, 0, 0)
-		returnSEMCoordManager.addCoord(tempCoord)
+		returnSEMCoordManager().addCoord(tempCoord)
 
 		// positions defined on dock inferred from 
 
 		tempCoord.set("highGridFront", 0, 0, 0, 0)
-		returnSEMCoordManager.addCoord(tempCoord)
+		returnSEMCoordManager().addCoord(tempCoord)
 
 		tempCoord.set("highGridBack", 0, 0, 0, 0)
-		returnSEMCoordManager.addCoord(tempCoord)
+		returnSEMCoordManager().addCoord(tempCoord)
 
 		tempCoord.set("lowergrid", 0, 0, 0, 0)
-		returnSEMCoordManager.addCoord(tempCoord)	
+		returnSEMCoordManager().addCoord(tempCoord)	
 
 		tempCoord.set("fwdGrid", 0, 0, 0, 0)
-		returnSEMCoordManager.addCoord(tempCoord)
+		returnSEMCoordManager().addCoord(tempCoord)
 		
 		// positions defined on dock
 
 		tempCoord.set("pickup_dropoff", 0, 0, 0, 0)
-		returnSEMCoordManager.addCoord(tempCoord)
+		returnSEMCoordManager().addCoord(tempCoord)
 
 		tempCoord.set("clear", 0, 0, 0, 0)
-		returnSEMCoordManager.addCoord(tempCoord)
+		returnSEMCoordManager().addCoord(tempCoord)
 
 		tempCoord.set("nominal_imaging", 0, 0, 0, 0)
-		returnSEMCoordManager.addCoord(tempCoord)
+		returnSEMCoordManager().addCoord(tempCoord)
 
 		tempCoord.set("stored_imaging", 0, 0, 0, 0)
-		returnSEMCoordManager.addCoord(tempCoord)
+		returnSEMCoordManager().addCoord(tempCoord)
 
 	}
 

@@ -257,11 +257,11 @@ class planarSEMdock : object
 		// first, set "reference" and "scribe_pos" to planar coord values
 		object reference = returnSEMCoordManager().getCoordAsCoord("reference_planar")
 		reference.setName("reference")
-		returnSEMCoordManager.addCoord(reference)
+		returnSEMCoordManager().addCoord(reference)
 
 		object scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_planar")
 		reference.setName("scribe_pos")
-		returnSEMCoordManager.addCoord(scribe_pos)
+		returnSEMCoordManager().addCoord(scribe_pos)
 
 		// retrieve all coords we are going to set
 
@@ -345,18 +345,16 @@ class planarSEMdock : object
 		self.print("lowerGrid set: ")
 		lowerGrid.print()
 
-		if ( imagingWD < 1 || imagingWD > 20 )
-			imagingWD = 7.41	// #TODO: Hack to ensure approx calibration on Quanta & planar dock
-
+	
 		// now update the coords in tags to their updated values
-		returnSEMCoordManager.addCoord(pickup_dropoff)
-		returnSEMCoordManager.addCoord(clear)
-		returnSEMCoordManager.addCoord(nominal_imaging)
-		returnSEMCoordManager.addCoord(StoredImaging)
-		returnSEMCoordManager.addCoord(highGridFront)
-		returnSEMCoordManager.addCoord(highGridBack)
-		returnSEMCoordManager.addCoord(fwdGrid)
-		returnSEMCoordManager.addCoord(lowerGrid)
+		returnSEMCoordManager().addCoord(pickup_dropoff)
+		returnSEMCoordManager().addCoord(clear)
+		returnSEMCoordManager().addCoord(nominal_imaging)
+		returnSEMCoordManager().addCoord(StoredImaging)
+		returnSEMCoordManager().addCoord(highGridFront)
+		returnSEMCoordManager().addCoord(highGridBack)
+		returnSEMCoordManager().addCoord(fwdGrid)
+		returnSEMCoordManager().addCoord(lowerGrid)
 
 		self.print("all coordinates calculated from scribe position")
 

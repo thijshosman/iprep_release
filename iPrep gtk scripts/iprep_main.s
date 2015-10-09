@@ -363,6 +363,10 @@ void IPrep_init()
 	{
 		print("iprep init")
 
+
+
+
+
 		// init iprep workflow and set the default positions in tags
 		myWorkflow.init()
 		
@@ -372,6 +376,9 @@ void IPrep_init()
 		// hand over workflow object to state machine, who handles allowed transfers and keeps track of them
 		// get initial state from tag
 		myStateMachine.init(myWorkflow)
+
+
+
 
 
 
@@ -450,17 +457,7 @@ void IPrep_Align()
 }
 */
 
-void IPrep_StoreCurrentSEMPosition()
-{
-	// stores current position as StoredImaging
-	myWorkflow.returnSEM().saveCurrentAsStoredImaging()
-}
 
-void IPrep_StoreSEMPositionAsStoredImaging(number x, number y, number z)
-{
-	// stores custom position as StoredImaging
-	myWorkflow.returnSEM().saveCustomAsStoredImaging(x,y,z)
-}
 
 void IPrep_cleanup()
 {
@@ -757,7 +754,8 @@ Number IPrep_Image()
 			myPW.updateB("SEM imaging...")	
 
 		// Goto saved specimen ROI location using SEM stage
-			object mySI = myWorkflow.returnSEM().returnStoredImaging()
+			//object mySI = myWorkflow.returnSEM().returnStoredImaging()
+			object mySI = returnSEMCoordManager().getCoordAsCoord("StoredImaging")
 			number xx,yy,zz
 			xx=mySI.getX()
 			yy=mySI.getY()

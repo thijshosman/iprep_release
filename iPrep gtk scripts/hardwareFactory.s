@@ -14,8 +14,8 @@ object createDock(number type)
 		return alloc(dock_simulator)
 	else if (type == 2)
 		return alloc(planarSEMdock)
-	//else if (type == 3)
-	//	return alloc(EBSDSEMdock)
+	else if (type == 3)
+		return alloc(EBSDSEMdock)
 }
 
 object createPecs(number simulator)
@@ -57,3 +57,13 @@ object creatDigiscan(number simulator)
 	else
 		return alloc(digiscan_iprep)
 }
+
+object createUPS(number simulator)
+{
+	if(simulator == 1)
+		return alloc(UPS_simulator)
+	else
+		return alloc(UPS_APC)
+}
+
+

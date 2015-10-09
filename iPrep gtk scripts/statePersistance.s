@@ -283,6 +283,33 @@ class SEMCoordManager: object
 		return TagGroupGetOrCreateTagList( tg, location )
 	}
 
+	number checkCoordExistence(object self, string name)
+	{
+		// returns 1 if coord found
+
+		taggroup subtag // not used
+		taggroup tall = self.getCoordList()
+		number count = tall.TagGroupCountTags( ) 
+		number i
+		
+		for (i=0; i<count; i++)
+		{
+			// index the list and get single tag
+			tall.TagGroupGetIndexedTagAsTagGroup(i,subtag)
+			string name1
+			subtag.TagGroupGetTagAsString("name", name1)
+
+			if (name1 == name)
+			{			
+				//result("found "+name1+"\n")
+				//subtag.taggroupopenbrowserwindow(0)
+				return 1
+			}
+		}
+		return 0
+	}
+
+
 	number getCoordAsTag(object self, string name, taggroup &subtag)
 	{
 		// eagerly finds coord with given name and return it

@@ -6,13 +6,26 @@ object myStateMachine = returnStateMachine()
 
 try
 {
+
+	// *** sem coordinate stuff ***
+	
+	// create the tags
+	// myWorkflow.setDefaultSEMPositions() // run only once
+	
+	// calibrate the SEM for for dock (simulator)
+	//myWorkflow.returnSEMdock().calibrateCoords()
+
 	// *** workflow ***
 	//myStateMachine.changeWorkflowState("SEM")
 	//myStateMachine.changeWorkflowState("PECS")
 	
 	// *** dead safe flags ***
-	returnDeadFlag().setAliveSafe()
+	//returnDeadFlag().setAliveSafe()
 	//returnDeadFlag().checkAliveAndSafe()
+
+
+
+
 
 // temp debugging
 
@@ -20,6 +33,7 @@ try
 //image im
 //acquire_PECS_image( im )
 //im.showimage()
+//myWorkflow.init()
 
 
 // *** init when DM starts

@@ -200,7 +200,7 @@ class safetyMediator:object
 		// returns gv state 
 		
 		string status
-		//etPersistentTagGroup().TagGroupGetTagAsString("IPrep:GVState:state", status)
+		//GetPersistentTagGroup().TagGroupGetTagAsString("IPrep:GVState:state", status)
 		
 		// check pecs for state
 		status = pecs.getGVState()
