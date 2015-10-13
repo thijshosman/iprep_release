@@ -168,6 +168,25 @@ void Recall_imaging_parameters_from_image( void )
 		
 }
 
+// recovery functions
+// intended to get the system consistent again
+
+void homeSEMStageToClear(void)
+{
+	myWorkflow.returnSEM().homeToClear()
+}
+
+void openGV(void)
+{
+	myWorkflow.returnPECS().openGVandCheck()
+}
+
+void setAliveSafe(void)
+
+{
+	returnDeadFlag().setAliveSafe()
+}
+
 void Set_autofocus_enable_dialog( void )
 {	
 // Set Autofocus tag
@@ -187,6 +206,7 @@ void iprep_InstallMenuItems( void )
 	string SS_MENU_HEAD = "iPrep"
 	string SS_SUB_MENU_0 = "Workflow"
 	string SS_SUB_MENU_1 = "SEM"
+	string SS_SUB_MENU_2 = "Recovery"
 	
 	AddScriptToMenu( "Set_starting_slice_number()", "Set starting slice number...", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
 	AddScriptToMenu( "Save_imaging_XYZ_position()", "Save imaging XYZ position...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
@@ -206,6 +226,11 @@ void iprep_InstallMenuItems( void )
 	AddScriptToMenu( "Goto_scribe_mark()", "Goto scribe mark...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "Goto_alignment_grid()", "Goto FWD alignment grid...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "beep()", "--", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
+
+	AddScriptToMenu( "homeSEMStageToClear()", "home SEM stage to clear", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
+	AddScriptToMenu( "openGV()", "open gate valve", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
+	AddScriptToMenu( "beep()", "--", SS_MENU_HEAD , SS_SUB_MENU_2 , 0 )
+	AddScriptToMenu( "setAliveSafe()", "remove dead/unsafe flag", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
 
 
 }

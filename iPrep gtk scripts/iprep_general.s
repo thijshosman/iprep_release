@@ -38,9 +38,10 @@ class deadFlagObject:object
 		// get deadflag
 		deadFlag = alloc(statePersistance)
 		safetyFlag = alloc(statePersistance)
-		deviceSet = alloc(statePersistanceNumeric)
-		errorCode = alloc(statePersistance)
+		deviceSet = alloc(statePersistance)
+		errorCode = alloc(statePersistanceNumeric)
 		exceptionMessage = alloc(statePersistance)
+		unsafeReason = alloc(statePersistance)
 		deadFlag.init("flags:dead")
 		safetyFlag.init("flags:safe")
 		deviceSet.init("flags:device")

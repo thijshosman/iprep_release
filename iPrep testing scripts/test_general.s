@@ -27,10 +27,24 @@ try
 	// *** dock ***
 	//myWorkflow.returnSEMDock().setManualState("open")
 	//myWorkflow.returnSEMDock().setManualState("closed")
+	
 	//myWorkflow.returnSEMDock().unclamp()	//disengaged
 	//myWorkflow.returnSEMDock().clamp()   //engaged
-	myWorkflow.returnSEMDock().lookupState(1)
+	//sleep(3)
+	//myWorkflow.returnSEMDock().lookupState(1)
 	
+	// test dock clamping/unclamping
+	
+	
+	number i
+	for (i=0;i<20;i++)
+	{
+		myWorkflow.returnSEMDock().unclamp()	//disengaged
+		result("arrived at unclamped position, waiting..\n")
+		sleep(3)
+		myWorkflow.returnSEMDock().clamp()   //engaged
+		result("i: "+i+"\n")
+	}
 	
 	
 	// *** pecs ***
@@ -81,6 +95,9 @@ try
 	//myWorkflow.returnSEM().goToHighGridFront()
 	//myWorkflow.returnSEM().goToLowerGrid()
 	//myWorkflow.returnSEM().goToScribeMark()
+	//result(myWorkflow.returnSEM().checkPositionConsistency("pickup_dropoff")+"\n")
+	//result(myWorkflow.returnSEM().checkStateConsistency()+"\n")
+	
 	
 	// *** imaging ***
 	//number alignParamID1 = DSCreateParameters( 512, 512, 0, 16, 0 )

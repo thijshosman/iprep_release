@@ -15,6 +15,8 @@ class workflow: object
 	// haltflag used to interrupt workflow elements if set
 	object haltFlag
 
+	// mode, EBSD or Planar
+	string mode
 	
 	void log(object self, number level, string text)
 	{
@@ -109,6 +111,140 @@ class workflow: object
 	}
 
 
+
+
+
+	// *** initializations ***
+
+	void init(object self)
+	{
+		// initialize hardware. use factory. 1 = simulation
+		// TODO: make abstract factory, use tags to define which class
+		// TODO: EBSD dock option
+		// in general: simulion = 1, normal hardware = 2
+		// dock: ebsd = 3, planar = 2
+
+		self.print("--- start init ---")
+
+		// get all simulation numbers
+		TagGroup tg = GetPersistentTagGroup() 
+		number sim_pecs, sim_digiscan, sim_sem, sim_transfer, sim_gripper, sim_pecscamera
+
+
+		TagGroupGetTagAsNumber(tg,"IPrep:simulation:pecs", sim_pecs )
+		TagGroupGetTagAsNumber(tg,"IPrep:simulation:digiscan", sim_digiscan )
+		TagGroupGetTagAsNumber(tg,"IPrep:simulation:sem", sim_sem )
+		TagGroupGetTagAsNumber(tg,"IPrep:simulation:transfer", sim_transfer )
+		TagGroupGetTagAsNumber(tg,"IPrep:simulation:gripper", sim_gripper )
+		TagGroupGetTagAsNumber(tg,"IPrep:simulation:pecscamera", sim_pecscamera )
+		TagGroupGetTagAsString(tg,"IPrep:simulation:mode", mode )
+
+		// check tag to see if we use EBSD or planar Dock
+		// "planar" or "ebsd" string in tag
+
+		// create two coordinates that we are going to set as the active coords for calibration
+		object reference
+		object scribe_pos
+
+		if (mode == "planar")
+		{
+			// planar mode selected
+			mySEMdock = createDock(2)
+
+			// get reference and scribe_pos for values defined for this dock
+
+			reference = returnSEMCoordManager().getCoordAsCoord("reference_planar")
+			scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_planar")
+			
+	
+
+
+		} 
+		else if (mode == "ebsd")
+		{
+			// ebsd mode selected
+			mySEMdock = createDock(3)
+
+			// get reference and scribe_pos for values defined for this dock
+
+			reference = returnSEMCoordManager().getCoordAsCoord("reference_ebsd")
+			scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_ebsd")
+
+			
+			
+
+		}
+		else if (mode == "1")
+			{
+			// ebsd mode selected
+			mySEMdock = createDock(1)
+
+			// get reference and scribe_pos from somewhere
+
+			reference = returnSEMCoordManager().getCoordAsCoord("reference_ebsd")
+			scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_ebsd")
+
+		}	
+		else
+		{
+			throw("system mode (planar or ebsd) not set!")
+		}
+
+		// update reference and scribe_pos to the right values
+		returnSEMCoordManager().addCoord(scribe_pos)
+		returnSEMCoordManager().addCoord(reference)
+
+
+
+		// init SEM Dock
+		mySEMdock.init()
+		mySEMdock.calibrateCoords()
+
+
+
+		// init parker
+		myTransfer = createTransfer(sim_transfer)
+		myTransfer.init()
+
+		// update pickup_dropoff point for dock used
+		// #todo
+
+		// init gripper
+		myGripper = createGripper(sim_gripper)
+		myGripper.init()
+
+		// init PECS 
+		myPecs = createPecs(sim_pecs)
+		myPecs.init()
+
+		// init SEM
+		mySEM = createSem(sim_sem)
+		mySEM.init()
+
+		
+		// init PECS camera
+		myPecsCamera = createPecsCamera(sim_pecscamera)
+		myPecsCamera.init()
+
+		// init Digiscan
+		myDigiscan = creatDigiscan(sim_digiscan)
+		myDigiscan.init()
+
+		// init EBSD camera #todo
+
+
+		// print start states
+		self.print("parker current state: "+myTransfer.getCurrentState())
+		self.print("parker current position is: "+myTransfer.getCurrentPosition())
+		self.print("gripper current state: "+myGripper.getState())
+		self.print("SEM dock current state: "+mySEMdock.getState())
+		self.print("PECS GVstate: "+myPecs.getGVstate())
+		self.print("--- hardware initialization complete---\n")
+
+	}
+
+
+
 	// position calibrations as part of workflow
 
 	void setDefaultPositionsPlanar(object self)
@@ -146,136 +282,17 @@ class workflow: object
 		myTransfer.setPositionTag("dropoff_pecs_backoff",47.50) // location where sample gets dropped off in PECS // #20150827: was 46.5
 	}
 
-	// *** initializations ***
-
-	void init(object self)
+	void setDefaultPositions(object self)
 	{
-		// initialize hardware. use factory. 1 = simulation
-		// TODO: make abstract factory, use tags to define which class
-		// TODO: EBSD dock option
-		// in general: simulion = 1, normal hardware = 2
-		// dock: ebsd = 3, planar = 2
 
-		self.print("--- start init ---")
-
-		// get all simulation numbers
-		TagGroup tg = GetPersistentTagGroup() 
-		number sim_pecs, sim_digiscan, sim_sem, sim_transfer, sim_gripper, sim_pecscamera
-		string mode
-
-		TagGroupGetTagAsNumber(tg,"IPrep:simulation:pecs", sim_pecs )
-		TagGroupGetTagAsNumber(tg,"IPrep:simulation:digiscan", sim_digiscan )
-		TagGroupGetTagAsNumber(tg,"IPrep:simulation:sem", sim_sem )
-		TagGroupGetTagAsNumber(tg,"IPrep:simulation:transfer", sim_transfer )
-		TagGroupGetTagAsNumber(tg,"IPrep:simulation:gripper", sim_gripper )
-		TagGroupGetTagAsNumber(tg,"IPrep:simulation:pecscamera", sim_pecscamera )
-		TagGroupGetTagAsString(tg,"IPrep:simulation:mode", mode )
-
-		// check tag to see if we use EBSD or planar Dock
-		// "planar" or "ebsd" string in tag
-
-		// create two coordinates that we are going to set as the active coords for calibration
-		object reference
-		object scribe_pos
-
+		// save calibrated positions for transfer for correct dock
 		if (mode == "planar")
-		{
-			// planar mode selected
-			mySEMdock = createDock(2)
-
-			// get reference and scribe_pos for values defined for this dock
-
-			reference = returnSEMCoordManager().getCoordAsCoord("reference_planar")
-			scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_planar")
-			
-			// save calibrated positions for transfer
 			self.setDefaultPositionsPlanar()
-
-
-		} 
 		else if (mode == "ebsd")
-		{
-			// ebsd mode selected
-			mySEMdock = createDock(3)
-
-			// get reference and scribe_pos for values defined for this dock
-
-			reference = returnSEMCoordManager().getCoordAsCoord("reference_ebsd")
-			scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_ebsd")
-
-			// save calibrated positions for transfer
 			self.setDefaultPositionsEBSD()
-
-		}
-		else if (mode == "1")
-			{
-			// ebsd mode selected
-			mySEMdock = createDock(1)
-
-			// get reference and scribe_pos from somewhere
-
-			reference = returnSEMCoordManager().getCoordAsCoord("reference_ebsd")
-			scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_ebsd")
-
-		}	
-
 		else
-		{
-			throw("system mode (planar or ebsd) not set!")
-		}
-
-		// update reference and scribe_pos to the right values
-		returnSEMCoordManager().addCoord(scribe_pos)
-		returnSEMCoordManager().addCoord(reference)
-
-
-
-		// init SEM Dock
-		mySEMdock.init()
-		mySEMdock.calibrateCoords()
-
-		// init parker
-		myTransfer = createTransfer(sim_transfer)
-		myTransfer.init()
-
-		// update pickup_dropoff point for dock used
-		// #todo
-
-		// init gripper
-		myGripper = createGripper(sim_gripper)
-		myGripper.init()
-
-		// init PECS 
-		myPecs = createPecs(sim_pecs)
-		myPecs.init()
-
-		// init SEM
-		mySEM = createSem(sim_sem)
-		mySEM.init()
-
-		// init PECS camera
-		myPecsCamera = createPecsCamera(sim_pecscamera)
-		myPecsCamera.init()
-
-		// init Digiscan
-		myDigiscan = creatDigiscan(sim_digiscan)
-		myDigiscan.init()
-
-		// init EBSD camera #todo
-
-
-		// print start states
-		self.print("parker current state: "+myTransfer.getCurrentState())
-		self.print("parker current position is: "+myTransfer.getCurrentPosition())
-		self.print("gripper current state: "+myGripper.getState())
-		self.print("SEM dock current state: "+mySEMdock.getState())
-		self.print("PECS GVstate: "+myPecs.getGVstate())
-		self.print("--- hardware initialization complete---\n")
-
-	}
-
-
-	
+			throw("system mode not set!")
+	}	
 
 	void makeParkerAdjustments(object self)
 	{

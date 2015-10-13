@@ -420,6 +420,22 @@ class SEM_IPrep: object
 
 	}
 
+	void homeToClear(object self)
+	{
+		// intended to be used to go to the clear position as a 'homing' point manually
+		// disabling consistency checks. intended to be installed as menu command
+
+		object clear = returnSEMCoordManager().getCoordAsCoord("clear")
+
+		self.print("going to clear with checks disabled")
+		self.goToCoordsZFirst(clear.getX(),clear.getY(),clear.getZ())
+		self.printCoords()
+		self.setManualState("clear")
+
+	}
+
+
+
 	void goToClear(object self)
 	{
 		self.print("going to clear. current state: "+state)

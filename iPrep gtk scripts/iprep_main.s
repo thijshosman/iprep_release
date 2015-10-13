@@ -387,7 +387,20 @@ number IPrep_consistency_check()
 		print("SEM stage state consistent")
 	}
 
+	// dock
 
+	// gripper
+
+	// 
+
+
+	// if dead, return 0
+	if (returnDeadFlag().isDead())
+	{
+		print("system is in dead mode, devices need to be manually put in correct state")	
+		okdialog("system is in dead mode, devices need to be manually put in correct state")	
+		return 0
+	}
 
 
 	// if unsafe, there is nothing we can do without manually figuring this out
@@ -395,6 +408,7 @@ number IPrep_consistency_check()
 	{
 		print("system is in unsafe mode, please contact Gatan service")	
 		okdialog("system is in unsafe mode, please contact Gatan service")	
+		return 0
 	}
 
 	return 1
@@ -415,7 +429,7 @@ void IPrep_init()
 
 		// init iprep workflow and set the default positions in tags
 		myWorkflow.init()
-		
+		myWorkflow.setDefaultPositions()
 
 		// hand over workflow object to state machine, who handles allowed transfers and keeps track of them
 		// get initial state from tag
@@ -781,8 +795,12 @@ Number IPrep_StartRun()
 	
 	number returncode = 0
 
-	if (!returnDeadFlag().checkAliveAndSafe())
+	if(!IPrep_consistency_check())
 		return returncode // to indicate error
+
+	if(!IPrep_check())
+		return returncode // to indicate error
+
 
 	// #TODO: this routine needs to know where to start in case of DM crash. 
 	// # slice number is remembered, but also needs to know last succesfully completed step. 
@@ -824,9 +842,6 @@ Number IPrep_PauseRun()
 {
 	number returncode = 0
 
-	if (!returnDeadFlag().checkAliveAndSafe())
-		return returncode // to indicate error
-
 	returncode = 1 // to indicate success
 
 	print("IPrep_PauseRun")
@@ -837,8 +852,12 @@ Number IPrep_ResumeRun()
 {
 	number returncode = 0
 
-	if (!returnDeadFlag().checkAliveAndSafe())
+	if(!IPrep_consistency_check())
 		return returncode // to indicate error
+
+	if(!IPrep_check())
+		return returncode // to indicate error
+
 
 	returncode = 1 // to indicate success
 	
@@ -1159,8 +1178,8 @@ try
 {
 	// this get executed when this script starts / DM starts
 
-	//Iprep_init() // initialize hardware
-	//IPrep_consistency_check() // check consistency of workflowstates and hardware
+	Iprep_init() // initialize hardware
+	IPrep_consistency_check() // check consistency of workflowstates and hardware
 
 }
 catch
