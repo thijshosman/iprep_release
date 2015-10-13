@@ -26,147 +26,11 @@ class workflow: object
 	{
 		result("Workflow: "+str1+"\n")
 		self.log(2,str1)
-
 	}
 
+	// additional calibration/tag methods not part of workflow
 
-	// *** initializations ***
-
-	void init(object self)
-	{
-		// initialize hardware. use factory. 1 = simulation
-		// TODO: make abstract factory, use tags to define which class
-		// TODO: EBSD dock option
-		// in general: simulion = 1, normal hardware = 2
-		// dock: ebsd = 3, planar = 2
-
-		self.print("--- start init ---")
-
-		// get all simulation numbers
-		TagGroup tg = GetPersistentTagGroup() 
-		number sim_pecs, sim_digiscan, sim_sem, sim_transfer, sim_gripper, sim_pecscamera
-		string mode
-
-		TagGroupGetTagAsNumber(tg,"IPrep:simulation:pecs", sim_pecs )
-		TagGroupGetTagAsNumber(tg,"IPrep:simulation:digiscan", sim_digiscan )
-		TagGroupGetTagAsNumber(tg,"IPrep:simulation:sem", sim_sem )
-		TagGroupGetTagAsNumber(tg,"IPrep:simulation:transfer", sim_transfer )
-		TagGroupGetTagAsNumber(tg,"IPrep:simulation:gripper", sim_gripper )
-		TagGroupGetTagAsNumber(tg,"IPrep:simulation:pecscamera", sim_pecscamera )
-		TagGroupGetTagAsString(tg,"IPrep:simulation:mode", mode )
-
-		// check tag to see if we use EBSD or planar Dock
-		// "planar" or "ebsd" string in tag
-
-		// create two coordinates that we are going to set as the active coords for calibration
-		object reference
-		object scribe_pos
-
-		if (mode == "planar")
-		{
-			// planar mode selected
-			mySEMdock = createDock(2)
-
-			// get reference and scribe_pos for values defined for this dock
-
-			reference = returnSEMCoordManager().getCoordAsCoord("reference_planar")
-			scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_planar")
-			
-		} 
-		else if (mode == "ebsd")
-		{
-			// ebsd mode selected
-			mySEMdock = createDock(3)
-
-			// get reference and scribe_pos for values defined for this dock
-
-			reference = returnSEMCoordManager().getCoordAsCoord("reference_ebsd")
-			scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_ebsd")
-
-		}
-		else if (mode == "1")
-			{
-			// ebsd mode selected
-			mySEMdock = createDock(1)
-
-			// get reference and scribe_pos from somewhere
-
-			reference = returnSEMCoordManager().getCoordAsCoord("reference_ebsd")
-			scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_ebsd")
-
-		}	
-
-		else
-		{
-			throw("system mode (planar or ebsd) not set!")
-		}
-
-		// update reference and scribe_pos to the right values
-		//returnSEMCoordManager().addCoord(scribe_pos)
-		//returnSEMCoordManager().addCoord(reference)
-
-		// update pickup_dropoff point for dock used
-		// #todo
-
-		// init SEM Dock
-		mySEMdock.init()
-		mySEMdock.calibrateCoords()
-
-		// init parker
-		myTransfer = createTransfer(sim_transfer)
-		myTransfer.init()
-
-		// init gripper
-		myGripper = createGripper(sim_gripper)
-		myGripper.init()
-
-		// init PECS 
-		myPecs = createPecs(sim_pecs)
-		myPecs.init()
-
-		// init SEM
-		mySEM = createSem(sim_sem)
-		mySEM.init()
-
-		// init PECS camera
-		myPecsCamera = createPecsCamera(sim_pecscamera)
-		myPecsCamera.init()
-
-		// init Digiscan
-		myDigiscan = creatDigiscan(sim_digiscan)
-		myDigiscan.init()
-
-		// init EBSD camera #todo
-
-
-		// print start states
-		self.print("parker current state: "+myTransfer.getCurrentState())
-		self.print("parker current position is: "+myTransfer.getCurrentPosition())
-		self.print("gripper current state: "+myGripper.getState())
-		self.print("SEM dock current state: "+mySEMdock.getState())
-		self.print("PECS GVstate: "+myPecs.getGVstate())
-		self.print("--- initializing hardware complete---\n")
-
-	}
-
-	void setDefaultPositions(object self)
-	{
-		// save default positions in global tags
-		self.print("setDefaultPositions: using calibrations from 20150903 ")
-
-		myTransfer.setPositionTag("outofway",0) // home position, without going through homing sequence
-		myTransfer.setPositionTag("prehome",15) // location where we can move to close to home from where we home
-		myTransfer.setPositionTag("open_pecs",27) // location where arms can open in PECS  // #20150819: was 29, #20150903: was 28
-		myTransfer.setPositionTag("pickup_pecs",48) // location where open arms can be used to pickup sample // #20150827: was 48.5, #20150903: was 49.5
-		myTransfer.setPositionTag("beforeGV",100) // location where open arms can be used to pickup sample
-		myTransfer.setPositionTag("dropoff_sem",486.5) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
-		myTransfer.setPositionTag("pickup_sem",486.5) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
-		myTransfer.setPositionTag("backoff_sem",430) // location where gripper arms can safely open/close in SEM chamber
-		myTransfer.setPositionTag("dropoff_pecs",46.50) // location where sample gets dropped off in PECS // #20150827: was 45.5
-		myTransfer.setPositionTag("dropoff_pecs_backoff",47.50) // location where sample gets dropped off in PECS // #20150827: was 46.5
-	}
-
-	void setDefaultSEMPositions(object self)
+	void createSEMPositionTags(object self)
 	{
 		// set the default SEM coord tags and populate them with default values
 		// will later be overwritten by calibration routines in sem_iprep class
@@ -243,6 +107,201 @@ class workflow: object
 		returnSEMCoordManager().addCoord(tempCoord)
 
 	}
+
+
+	// position calibrations as part of workflow
+
+	void setDefaultPositionsPlanar(object self)
+	{
+		// save default positions in global tags
+		self.print("setDefaultPositions: setting default positions for use with Planar dock ")
+		self.print("setDefaultPositions: using calibrations from 20150903 ")
+
+		myTransfer.setPositionTag("outofway",0) // home position, without going through homing sequence
+		myTransfer.setPositionTag("prehome",15) // location where we can move to close to home from where we home
+		myTransfer.setPositionTag("open_pecs",27) // location where arms can open in PECS  // #20150819: was 29, #20150903: was 28
+		myTransfer.setPositionTag("pickup_pecs",48) // location where open arms can be used to pickup sample // #20150827: was 48.5, #20150903: was 49.5
+		myTransfer.setPositionTag("beforeGV",100) // location where open arms can be used to pickup sample
+		myTransfer.setPositionTag("dropoff_sem",486.5) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
+		myTransfer.setPositionTag("pickup_sem",486.5) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
+		myTransfer.setPositionTag("backoff_sem",430) // location where gripper arms can safely open/close in SEM chamber
+		myTransfer.setPositionTag("dropoff_pecs",46.50) // location where sample gets dropped off in PECS // #20150827: was 45.5
+		myTransfer.setPositionTag("dropoff_pecs_backoff",47.50) // location where sample gets dropped off in PECS // #20150827: was 46.5
+	}
+
+	void setDefaultPositionsEBSD(object self)
+	{
+		// save default positions in global tags
+		self.print("setDefaultPositions: setting positions for use with EBSD dock ")
+
+		myTransfer.setPositionTag("outofway",0) // home position, without going through homing sequence
+		myTransfer.setPositionTag("prehome",15) // location where we can move to close to home from where we home
+		myTransfer.setPositionTag("open_pecs",27) // location where arms can open in PECS  // #20150819: was 29, #20150903: was 28
+		myTransfer.setPositionTag("pickup_pecs",48) // location where open arms can be used to pickup sample // #20150827: was 48.5, #20150903: was 49.5
+		myTransfer.setPositionTag("beforeGV",100) // location where open arms can be used to pickup sample
+		myTransfer.setPositionTag("dropoff_sem",486.5) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
+		myTransfer.setPositionTag("pickup_sem",486.5) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
+		myTransfer.setPositionTag("backoff_sem",430) // location where gripper arms can safely open/close in SEM chamber
+		myTransfer.setPositionTag("dropoff_pecs",46.50) // location where sample gets dropped off in PECS // #20150827: was 45.5
+		myTransfer.setPositionTag("dropoff_pecs_backoff",47.50) // location where sample gets dropped off in PECS // #20150827: was 46.5
+	}
+
+	// *** initializations ***
+
+	void init(object self)
+	{
+		// initialize hardware. use factory. 1 = simulation
+		// TODO: make abstract factory, use tags to define which class
+		// TODO: EBSD dock option
+		// in general: simulion = 1, normal hardware = 2
+		// dock: ebsd = 3, planar = 2
+
+		self.print("--- start init ---")
+
+		// get all simulation numbers
+		TagGroup tg = GetPersistentTagGroup() 
+		number sim_pecs, sim_digiscan, sim_sem, sim_transfer, sim_gripper, sim_pecscamera
+		string mode
+
+		TagGroupGetTagAsNumber(tg,"IPrep:simulation:pecs", sim_pecs )
+		TagGroupGetTagAsNumber(tg,"IPrep:simulation:digiscan", sim_digiscan )
+		TagGroupGetTagAsNumber(tg,"IPrep:simulation:sem", sim_sem )
+		TagGroupGetTagAsNumber(tg,"IPrep:simulation:transfer", sim_transfer )
+		TagGroupGetTagAsNumber(tg,"IPrep:simulation:gripper", sim_gripper )
+		TagGroupGetTagAsNumber(tg,"IPrep:simulation:pecscamera", sim_pecscamera )
+		TagGroupGetTagAsString(tg,"IPrep:simulation:mode", mode )
+
+		// check tag to see if we use EBSD or planar Dock
+		// "planar" or "ebsd" string in tag
+
+		// create two coordinates that we are going to set as the active coords for calibration
+		object reference
+		object scribe_pos
+
+		if (mode == "planar")
+		{
+			// planar mode selected
+			mySEMdock = createDock(2)
+
+			// get reference and scribe_pos for values defined for this dock
+
+			reference = returnSEMCoordManager().getCoordAsCoord("reference_planar")
+			scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_planar")
+			
+			// save calibrated positions for transfer
+			self.setDefaultPositionsPlanar()
+
+
+		} 
+		else if (mode == "ebsd")
+		{
+			// ebsd mode selected
+			mySEMdock = createDock(3)
+
+			// get reference and scribe_pos for values defined for this dock
+
+			reference = returnSEMCoordManager().getCoordAsCoord("reference_ebsd")
+			scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_ebsd")
+
+			// save calibrated positions for transfer
+			self.setDefaultPositionsEBSD()
+
+		}
+		else if (mode == "1")
+			{
+			// ebsd mode selected
+			mySEMdock = createDock(1)
+
+			// get reference and scribe_pos from somewhere
+
+			reference = returnSEMCoordManager().getCoordAsCoord("reference_ebsd")
+			scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_ebsd")
+
+		}	
+
+		else
+		{
+			throw("system mode (planar or ebsd) not set!")
+		}
+
+		// update reference and scribe_pos to the right values
+		returnSEMCoordManager().addCoord(scribe_pos)
+		returnSEMCoordManager().addCoord(reference)
+
+
+
+		// init SEM Dock
+		mySEMdock.init()
+		mySEMdock.calibrateCoords()
+
+		// init parker
+		myTransfer = createTransfer(sim_transfer)
+		myTransfer.init()
+
+		// update pickup_dropoff point for dock used
+		// #todo
+
+		// init gripper
+		myGripper = createGripper(sim_gripper)
+		myGripper.init()
+
+		// init PECS 
+		myPecs = createPecs(sim_pecs)
+		myPecs.init()
+
+		// init SEM
+		mySEM = createSem(sim_sem)
+		mySEM.init()
+
+		// init PECS camera
+		myPecsCamera = createPecsCamera(sim_pecscamera)
+		myPecsCamera.init()
+
+		// init Digiscan
+		myDigiscan = creatDigiscan(sim_digiscan)
+		myDigiscan.init()
+
+		// init EBSD camera #todo
+
+
+		// print start states
+		self.print("parker current state: "+myTransfer.getCurrentState())
+		self.print("parker current position is: "+myTransfer.getCurrentPosition())
+		self.print("gripper current state: "+myGripper.getState())
+		self.print("SEM dock current state: "+mySEMdock.getState())
+		self.print("PECS GVstate: "+myPecs.getGVstate())
+		self.print("--- hardware initialization complete---\n")
+
+	}
+
+
+	
+
+	void makeParkerAdjustments(object self)
+	{
+		// adjust all the parker tags with the delta tags
+		// also, determine if EBSD or Planar mode set and make adjustments to pickup_sem and dropoff_sem accordingly
+		// #todo
+	}
+
+	void createDefaultTransferPositionTags(object self)
+	{
+		// save the absolute transfer positions in tags
+		// intended to be run only once
+		// the setDefaultPositions() method only adds/subtracts deltas
+
+		taggroup tg = GetPersistentTagGroup()
+		TagGroupSetTagAsNumber(tg,"IPrep:private:transfer:"+"outofway",0)
+
+
+
+
+
+	}
+
+
+
+
 
 	// *** methods for returning subclasses (used for testing)
 	
@@ -741,12 +800,6 @@ if (XYZZY)
 		// move gripper out of the way by homing
 		myTransfer.home()
 
-		// close GV
-		myPecs.closeGVandCheck()
-
-		// move SEM dock clamp down to safely move it around inside SEM
-		mySEMdock.clamp()
-
 		// turn transfer system off
 		myTransfer.turnOff()
 	}
@@ -869,6 +922,7 @@ class workflowStateMachine: object
 		// get reference to the workflow of which the state will be managed
 		myWorkflow = workflow
 
+
 		// set state from tag
 		workflowState = workflowStatePersistance.getState()
 
@@ -885,9 +939,11 @@ class workflowStateMachine: object
 		{
 			self.changeWorkflowState("reseating")
 			myWorkflow.reseat()
+			self.changeWorkflowState("PECS")
+			lastCompletedStep.setState("RESEAT")
 		}
 		else
-			throw("not allowed to reseat when not in PECS")
+			self.print("not allowed to reseat when not in PECS, remaining idle")
 	}
 
 	void PECS_to_SEM(object self)
@@ -918,7 +974,7 @@ class workflowStateMachine: object
 
 		}
 		else
-			throw("not allowed to transfer from PECS to SEM. current state is: "+workflowState)
+			self.print("not allowed to transfer from PECS to SEM. current state is: "+workflowState+". remaining idle")
 	}
 
 	void SEM_to_PECS(object self)
@@ -948,7 +1004,7 @@ class workflowStateMachine: object
 
 		}
 		else
-			throw("not allowed to transfer from SEM to PECS. current state is: "+workflowState)
+			self.print("not allowed to transfer from SEM to PECS. current state is: "+workflowState+". remaining idle")
 
 	}
 
@@ -1008,7 +1064,7 @@ class workflowStateMachine: object
 
 		}
 		else
-			throw("commanded to perform milling step when sample is not in PECS")
+			self.print("commanded to perform milling step when sample is not in PECS, remaining idle")
 
 	}
 
@@ -1035,9 +1091,7 @@ class workflowStateMachine: object
 
 		if (workflowState == "SEM")
 		{	
-		
-			
-				
+
 			myWorkflow.preimaging()
 
 			// imaging itself is now done one level up, in iprep_main

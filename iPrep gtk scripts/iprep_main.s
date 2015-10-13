@@ -258,35 +258,39 @@ number IPrep_consistency_check()
 	// run after DM restarts to make sure that:
 	// -all state machines are in a known position that we can resume from
 	// -hardware classes have their states in tags synchronized with sensors
+	// if we detect an unsafe flag, we need manual intervention
 
 	print("iprep consistency check:")
 
-	number returncode = 0
-	// #todo: see if there is a powerfailure. this information would help us
+	// workflow state machine
+	print("current workflow state: "+myStateMachine.getCurrentWorkflowState())
 
-	// if dead/unsafe, return
-	if (!returnDeadFlag().checkAliveAndSafe())
-		return returncode // to indicate error
-	
-
-	// determine where workflow is 
+	// determine where workflow is. used in case of DM crash or powerfailure of system. will tell user
+	// where system was when it was still functioning
 	if (myStateMachine.getCurrentWorkflowState() == "onTheWayToPECS"  || myStateMachine.getCurrentWorkflowState() == "onTheWayToSEM")
 	{	
+		// system crashed when doing transfer. nothing we can do. contact service and do a manual recovery
 		print("DM terminated when system was "+myStateMachine.getCurrentWorkflowState()+", manual recovery needed")
 		returnDeadFlag().setDeadUnSafe()
-		return returncode
+
 	}
 	else if (myStateMachine.getCurrentWorkflowState() == "PECS") // sample was in PECS
 	{
+		// system was last in PECS, but did milling finish
 		print("last finished step: "+myStateMachine.getLastCompletedStep())
 		if (myStateMachine.getLastCompletedStep() == "MILL") // did milling finish? 
 		{	
-			returncode = 1
+
 			print("milling was finished before DM terminated")
+		}
+		else if (myStateMachine.getLastCompletedStep() == "RESEAT")
+		{
+
+			print("reseating was finished before DM terminated")
 		}
 		else // milling did not finish
 		{
-			returncode = 2 // #TODO: figure out what these returncodes should be
+
 			print("milling was not finished when workflow was aborted")
 		}
 	}
@@ -295,12 +299,12 @@ number IPrep_consistency_check()
 		print("last finished step: "+myStateMachine.getLastCompletedStep())
 		if (myStateMachine.getLastCompletedStep() == "IMAGE") // did imaging finish?
 		{	
-			returncode = 1
+
 			print("imaging was finished before DM terminated")
 		}
 		else
 		{
-			returncode = 2 // #TODO: figure out what these returncodes should be
+			
 			print("imaging was not finished when workflow was aborted")
 		}		
 	}
@@ -308,8 +312,9 @@ number IPrep_consistency_check()
 	{
 		// workflow in unknown state, set dead unsafe. unlikely catch all state
 		print("DM crashed when system was "+myStateMachine.getCurrentWorkflowState()+", manual recovery needed")
-		returnDeadFlag().setDeadUnSafe()
-		return returncode
+		returnDeadFlag().setDead(1, "state machine", "DM crashed when system was "+myStateMachine.getCurrentWorkflowState()+", manual recovery needed")
+		returnDeadFlag().setSafety(0, "current workflow state not known: "+myStateMachine.getCurrentWorkflowState())
+
 	}
 
 	// sample is either in SEM Dock or on PECS stage, so we can most likely recover
@@ -320,35 +325,79 @@ number IPrep_consistency_check()
 	// -check stage state 
 	if (!myWorkflow.returnPecs().GVConsistencyCheck())
 	{
-		// need to set GV to correct value
-		// #TODO: provide way to tell GV what state it should assume
+		// GV is not nicely opened or closed
+		// system is now dead
+		print("GV:sensordata do not agree with previous save state. either caused by a malfunction or powerloss")
+		returnDeadFlag().setDead(1, "GV", "GV state unknown: manual recovery needed")
+		
+		// not unsafe yet
+		//returnDeadFlag().setSafety(0, "GV state unknown: manual recovery needed")
+
 	}
+	else
+	{
+		print("GV state consistent")
+	}
+
 
 	if (!myWorkflow.returnPecs().StageConsistencyCheck())
 	{
-		// need to set stage to correct value (most likely down)
-		// #TODO: provide way to tell stage what the state it should assume is
+		print("PECS stage:sensordata do not agree with previous save state. either caused by a malfunction, powerloss or argon pressure loss")
+		returnDeadFlag().setDead(1, "PECS", "pecs stage not in well defined position")
+		
+		// not unsafe yet
+		//returnDeadFlag().setSafety(0, "pecs stage not in well defined position")
+	}
+	else
+	{
+		print("PECS stage state consistent")
 	}
 
-	// transfer, is saved position equal to where it thinks it is?
+
+	// transfer, is saved position similar to where it thinks it is?
 	if (myWorkflow.returnTransfer().consistencycheck() != 1)
 	{
-		print("possible causes: powerloss or controller failure")
-		returnDeadFlag().setDeadUnSafe()
-		return returncode
+				
+		print("transfer controller: stage is not where system thinks it is. manual recovery needed")
+		returnDeadFlag().setDead(1, "TRANSFER", "transfer system not where system thinks it is. caused by faulted drive or powerloss while system was not at home")
+		
+		// set unsafe
+		returnDeadFlag().setSafety(0, "transfer system not where system thinks it is. caused by faulted drive or powerloss while system was not at home")
+
+	}
+	else
+	{
+		print("Transfer stage state consistent")
 	}
 
+
 	// semstage, check that current coordinates are consistent with the state 
-	// #TODO
-	//myWorkflow.returnSEM().consistencycheck()
+	if(!myWorkflow.returnSEM().checkStateConsistency())
+	{
 
-	// workflow state machine
-	print("current workflow state: "+myStateMachine.getCurrentWorkflowState())
+		print("sem stage: stage coordinates are not consistent with what the state of the stage is")
+		returnDeadFlag().setDead(1, "SEM", "SEM stage in "+myWorkflow.returnSEM().getState()+", but not at state coordinates of that state")
+		
+		// set unsafe
+		returnDeadFlag().setSafety(0, "SEM stage in "+myWorkflow.returnSEM().getState()+", but not at state coordinates of that state")
 
-	// all checks passed
-	returncode = 1
+	} 
+	else
+	{
+		print("SEM stage state consistent")
+	}
 
-	return returncode
+
+
+
+	// if unsafe, there is nothing we can do without manually figuring this out
+	if (!returnDeadFlag().isSafe())
+	{
+		print("system is in unsafe mode, please contact Gatan service")	
+		okdialog("system is in unsafe mode, please contact Gatan service")	
+	}
+
+	return 1
 
 }
 
@@ -364,22 +413,13 @@ void IPrep_init()
 		print("iprep init")
 
 
-
-
-
 		// init iprep workflow and set the default positions in tags
 		myWorkflow.init()
 		
-		// save calibrated positions for transfer
-		myWorkflow.setDefaultPositions()
 
 		// hand over workflow object to state machine, who handles allowed transfers and keeps track of them
 		// get initial state from tag
 		myStateMachine.init(myWorkflow)
-
-
-
-
 
 
 		print("current slice: "+IPrep_sliceNumber())
@@ -393,6 +433,8 @@ void IPrep_init()
 		result("exception during init"+ GetExceptionString() + "\n" )
 	}
 }
+
+/* not used as a thread, just checked with iprep_check once every cycle
 
 number IPrep_continous_check()
 {
@@ -412,6 +454,8 @@ number IPrep_continous_check()
 	}
 
 }
+
+*/
 
 /*
 void IPrep_Align()
@@ -459,11 +503,15 @@ void IPrep_Align()
 
 
 
+
+
+
 void IPrep_cleanup()
 {
 	// runs when there is a problem detected to return to manageable settings, ie:
 	// unlock the pecs, stop any statuschecking thread etc
 	print("cleanup called")
+	
 	/*
 	if (XYZZY)
 		{
@@ -479,6 +527,7 @@ void IPrep_cleanup()
 		DSDeleteParameters( alignParamID )
 	}
 	*/
+	
 	// unlock PECS UI
 	myWorkflow.returnPECS().unlock()
 
@@ -619,8 +668,9 @@ Number IPrep_MoveToPECS()
 	{
 
 		// system caught unhandled exception and is now considered dead/unsafe
-		print(GetExceptionString())
-		returnDeadFlag().setDeadUnSafe()
+		print(GetExceptionString()+", system now dead/unsafe")
+		returnDeadFlag().setDead(1, "movetopecs", GetExceptionString())
+		returnDeadFlag().setSafety(0, "IPrep_MoveToPECS failed")
 
 		break // so that flow contineus
 	}
@@ -648,14 +698,82 @@ Number IPrep_MoveToSEM()
 	catch
 	{
 		// system caught unhandled exception and is now considered dead/unsafe
-		print(GetExceptionString())
-		returnDeadFlag().setDeadUnSafe()
+		print(GetExceptionString()+", system now dead/unsafe")
+		returnDeadFlag().setDead(1, "movetosem", GetExceptionString())
+		returnDeadFlag().setSafety(0, "IPrep_MoveToSEM failed")
 
 		break // so that flow contineus
 	}
 	return returncode
 }
 
+Number IPrep_reseat()
+{
+	// used to pick up the sample from the PECS and put it back 
+	// use after sample vacuum transfer to make sure images taken in the PECS have the carrier 
+	// at the right location in the dovetail
+	number returncode = 0
+
+	if (!returnDeadFlag().checkAliveAndSafe())
+		return returncode // to indicate error
+
+	print("IPrep_reseat")
+	try
+	{
+		print("reseating sample")
+		myPW.updateA("sample: -> reseating")
+		myStateMachine.reseat()
+		myPW.updateA("sample: done reseating")
+		print("reseating done")
+		returncode = 1 // to indicate success
+	}
+	catch
+	{
+		// system caught unhandled exception and is now considered dead/unsafe
+		print(GetExceptionString()+", system now dead/unsafe")
+		returnDeadFlag().setDead(1, "", GetExceptionString())
+		returnDeadFlag().setSafety(0, "reseating failed")
+
+		break // so that flow contineus
+	}
+	return returncode
+
+}
+
+Number IPrep_check()
+{
+	// call this at the end of imaging step to check:
+	// -SEM status (ie emission current)
+	// -UPS status
+	// -consistency check
+	// -pecs vacuum and argon pressure
+	// #todo
+
+
+
+	if(!myWorkflow.returnPECS().argonCheck())
+	{
+		print("PECS system argon pressure below threshold")
+		return 0
+	}
+
+	if(!myWorkflow.returnPECS().TMPCheck())
+	{
+		print("PECS system not at vacuum or TMP problem")
+		return 0
+	}
+
+	// SEM (emission) status
+
+	// UPS status
+
+	// consistency of states (optional)
+
+	return 1
+
+
+
+}
 
 Number IPrep_StartRun()
 {
@@ -668,7 +786,7 @@ Number IPrep_StartRun()
 
 	// #TODO: this routine needs to know where to start in case of DM crash. 
 	// # slice number is remembered, but also needs to know last succesfully completed step. 
-	// # can query this with: myStateMachine.getLastCompletedStep() ("IMAGE", "MILL", "SEM", "PECS")
+	// # can query this with: myStateMachine.getLastCompletedStep() ("IMAGE", "MILL", "SEM", "PECS", "RESEAT")
 
 	try
 	{
@@ -680,11 +798,7 @@ Number IPrep_StartRun()
 			return returncode
 		}
 
-		if (!IPrep_continous_check())
-		{
-			print("PECS system not at vacuum or argon leak, aborting")
-			return returncode
-		}
+
 
 
 		// lockout PECS UI
@@ -922,7 +1036,7 @@ if (XYZZY)
 		// *** end repeat *** 
 
 		// do post-imaging
-		myStateMachine.stop_image()  //###
+		myStateMachine.stop_image()  
 
 		myPW.updateB("imaging done")
 		print("imaging done")
@@ -1045,7 +1159,8 @@ try
 {
 	// this get executed when this script starts / DM starts
 
-	Iprep_init()
+	//Iprep_init() // initialize hardware
+	//IPrep_consistency_check() // check consistency of workflowstates and hardware
 
 }
 catch

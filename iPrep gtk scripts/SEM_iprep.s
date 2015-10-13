@@ -337,6 +337,8 @@ class SEM_IPrep: object
 
 
 
+	// *** state transfers ***
+
 	number checkPositionConsistency(object self, string coordName)
 	{
 		// check to see if the sem position defined in coordName corresponds to current position
@@ -346,23 +348,21 @@ class SEM_IPrep: object
 
 		object aCoord = returnSEMCoordManager().getCoordAsCoord(coordName)
 
-		if( abs(aCoord.getX() - X)<consistencyThreshold & abs(aCoord.getY() - Y)<consistencyThreshold & abs(aCoord.getZ() - Z)<consistencyThreshold  )
+		if( abs(aCoord.getX() - X)<consistencyThreshold && abs(aCoord.getY() - Y)<consistencyThreshold && abs(aCoord.getZ() - Z)<consistencyThreshold  )
 		{
+			// success
 			return 1
 		}
 		else
 		{
-			print("not in right position: X = "+X+", should be "+aCoord.getX())
-			print("not in right position: Y = "+Y+", should be "+aCoord.getY())
-			print("not in right position: Z = "+Z+", should be "+aCoord.getZ())
+			//print("not in right position: X = "+X+", should be "+aCoord.getX())
+			//print("Y = "+Y+", should be "+aCoord.getY())
+			//print("Z = "+Z+", should be "+aCoord.getZ())
 			return 0
 		}
 
 
 	}
-
-
-	// *** state transfers ***
 
 	number checkStateConsistency(object self)
 	{ 
@@ -379,7 +379,7 @@ class SEM_IPrep: object
 		}
 		else if (state == "pickup_dropoff")
 		{
-			return self.checkPositionConsistency("clear")
+			return self.checkPositionConsistency("pickup_dropoff")
 		}
 		else
 		{
@@ -394,7 +394,13 @@ class SEM_IPrep: object
 	void goToPickup_Dropoff(object self)
 	{
 		self.print("going to pickup_dropoff. current state: "+state)
-		
+
+		if (!self.checkStateConsistency())
+		{
+			self.print("state inconsistent, SEM stage is not where state machine thinks it is")
+			throw("state inconsistent, SEM stage is not where state machine thinks it is")
+		}
+
 		object pickup_dropoff = returnSEMCoordManager().getCoordAsCoord("pickup_dropoff")
 
 		if (state == "clear")
@@ -417,6 +423,12 @@ class SEM_IPrep: object
 	void goToClear(object self)
 	{
 		self.print("going to clear. current state: "+state)
+
+		if (!self.checkStateConsistency())
+		{
+			self.print("state inconsistent, SEM stage is not where state machine thinks it is")
+			throw("state inconsistent, SEM stage is not where state machine thinks it is")
+		}
 
 		object clear = returnSEMCoordManager().getCoordAsCoord("clear")
 
@@ -444,6 +456,12 @@ class SEM_IPrep: object
 	{
 		self.print("going to nominal_imaging. current state: "+state)
 		
+		if (!self.checkStateConsistency())
+		{
+			self.print("state inconsistent, SEM stage is not where state machine thinks it is")
+			throw("state inconsistent, SEM stage is not where state machine thinks it is")
+		}
+
 		object nominal_imaging = returnSEMCoordManager().getCoordAsCoord("nominal_imaging")
 
 		// check that parker is out of the way
@@ -866,8 +884,12 @@ if (XYZZY)		self.setWDForImaging()
 		//returnSEMCoordManager() = alloc(SEMCoordManager)
 		//mySEMCoordManager.init("IPrep:SEMPositions")
 		
-		// TODO: add logic to verify that the stage location is indeed what the tag says it was left at last
-		// compare the SEM position to the stored position to verify. 
+		// check that the state we think SEM is in is indeed correct
+		if (!self.checkStateConsistency())
+		{
+			self.print("state inconsistent, SEM stage is not where state machine thinks it is")
+			throw("state inconsistent, SEM stage is not where state machine thinks it is")
+		}
 
 		state = SEMStagePersistance.getState()
 		kV = SEMkVPersistance.getNumber()

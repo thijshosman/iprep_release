@@ -4,7 +4,8 @@ A:
 	v-string set for deadflag with reason deadflag was set - what device did set errorcode?
 	-table of errorcodes
 	-integrate setting reason for error and last device into workflow
--save SEMcoords object into tags->use examples John
+	-add a throw method to each hardware class that sets the "last device" and "last errorcode" tag. those can be read back out by deadflagobject
+v-save SEMcoords object into tags->use examples John
 	v-new SEMcoordManager class that is instantiated by SEM_iprep that has methods for:
 	v-replace semcoord attributes of SEM_iprep class so that SEM_iprep methods that need coordinates get them directly from the tags through the semcoordmanager
 v-puncture classes with checks as defined in iprep_general
@@ -21,7 +22,7 @@ v-puncture classes with checks as defined in iprep_general
 v-ABC for hw to simulate iprep after it ships. make choice in linearWorkflow. no base
 	v-dock-simulator and dock
 		-planardock and ebsddock differentiation solution
-	-sem and sem-simulator -> waiting for semcoordsmanager class, SEM too tightly coupled to SEM
+	-sem and sem-simulator 
 	v-pecs and pecs-simulator
 	v-gripper and gripper-simulator
 	v-transfer and transfer-simulator
@@ -30,7 +31,7 @@ v-ABC for hw to simulate iprep after it ships. make choice in linearWorkflow. no
 	v-dock
 	v-pecs
 	v-transfer
-	-sem -> waiting for semcoordsmanager class
+	-sem 
 v-check for hw bridge fault (or any fault) in transfer class
 (sal)-proper start routine that does checks of hardware and states in workflow
 	-make sure workflow can start/resume from PECS as well (ie after DM restart)
@@ -45,22 +46,18 @@ v-check for hw bridge fault (or any fault) in transfer class
 	-hardware:
 		v-PECS Gate valve (open/closed) against sensor inputs
 		v-PECS stage (lowered/raised) against WL sensor state
-		-SEM add consistency check for sem state changes that checks current state against coordinates saved in tag
+		v-SEM add consistency check for sem state changes that checks current state against coordinates saved in tag
 		v-transfer last saved position vs aries controller
 	v-state inference:
 		v-workflowstate and last finished step to figure out where to recover
--UPS check once every cycle
-	-make late binding method with executescriptstring method
 -SEM state check once every cycle
 	-decide what to check in SEM - emission current? 
-	-when to check - after milling?
 v-dock change names to clamp and unclamp
 v-workflow checks that sample is present in dock - after dropoff - uncommented for now in simulator
 v-workflow checks that sample is no longer present in dock - after pickup - uncommented for now in simulator
 -absolute coordinates for SEM stage
 v-reseating function that sets carrier into dovetail but never leaves PECS
--transfer position tags become deltas, and deltas allow change. hardcode real positions, do not allow delta's more than a certain value. 
--transfer: need to update the pickup_dropoff point so that it can be different for EBSD and planar
+-transfer position solution that differentiates between ebsd and planar
 
 
 B:
@@ -73,6 +70,11 @@ B:
 	-handle pecs camera back in pecs class
 -multi ROI
 -enable 3Dvolume again
+-transfer position tags become deltas, and deltas allow change. hardcode real positions, do not allow delta's more than a certain value.
+-UPS check once every cycle
+	-make late binding method with executescriptstring method
+-transfer positions:
+	-use deltas. store real position in code, have tag for deltas
 
 device specific:
 Tranfer:

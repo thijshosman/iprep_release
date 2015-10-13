@@ -18,6 +18,7 @@ class deadFlagObject:object
 	object errorCode // errorcode 
 	object deviceSet // the device that set the dead flag
 	object exceptionMessage // if exception causes dead flag, log the exception thrown
+	object unsafeReason // reason why unsafe flag set
 
 	void log(object self, number level, string text)
 	{
@@ -45,19 +46,19 @@ class deadFlagObject:object
 		deviceSet.init("flags:device")
 		errorCode.init("flags:errorcode")
 		exceptionMessage.init("flags:exception")
+		unsafeReason.init("flags:unsafeReason")
 
 	}
 
-	void setDead(object self, number status, number code, string deviceName, string message)
+	void setDead(object self, number code, string deviceName, string message)
 	{
 		// set whether system is dead or not, most informative version
-		self.print("deadflag set to: " + status + "from device: "+deviceName+" with errorcode: "+code)
-		deadFlag.setState(""+status)
+		self.print("deadflag set to: dead from device: "+deviceName+" with errorcode: "+code)
+		deadFlag.setState("1")
 		deviceSet.setState(deviceName)
 		errorCode.setNumber(code)
 		exceptionMessage.setState(message)
 	}
-
 
 	void setDead(object self, number status)
 	{
@@ -66,8 +67,17 @@ class deadFlagObject:object
 		deadFlag.setState(""+status)
 	}
 
+	void setSafety(object self, number status, string reason)
+	{
+		// set whether system is safe to operate
+		self.print("safety flag set to " + status)
+		safetyFlag.setState(""+status)
+		unsafeReason.setState(reason)
+	}	
+
 	void setSafety(object self, number status)
 	{
+		// *** private ***
 		// set whether system is safe to operate
 		self.print("safety flag set to " + status)
 		safetyFlag.setState(""+status)
@@ -85,7 +95,6 @@ class deadFlagObject:object
 		// is system safe to operate (ie is flag set)?
 		return val(safetyFlag.getState())
 	}
-
 
 	void setDeadSafe(object self)
 	{
