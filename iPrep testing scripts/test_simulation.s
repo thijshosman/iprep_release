@@ -10,7 +10,7 @@ try
 	// *** sem coordinate stuff ***
 	
 	// create the tags
-	// myWorkflow.setDefaultSEMPositions() // run only once
+	 myWorkflow.createSEMPositionTags() // run only once
 	
 	// calibrate the SEM for for dock (simulator)
 	//myWorkflow.returnSEMdock().calibrateCoords()

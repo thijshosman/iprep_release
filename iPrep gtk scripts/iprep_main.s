@@ -388,10 +388,11 @@ number IPrep_consistency_check()
 	}
 
 	// dock
+	// does not seem like dock needs this. unlikely to be in unknown state
 
 	// gripper
+	// #todo: what if stuck in open position? go to unsafe, since gripper problems cannot be easily fixed!
 
-	// 
 
 
 	// if dead, return 0
@@ -411,13 +412,44 @@ number IPrep_consistency_check()
 		return 0
 	}
 
+	// success
+	print("consistency check passed!")
 	return 1
 
 }
 
+number IPrep_recover_deadflag()
+{
+	// attempts to recover from dead flag problem by asking user questions and doing tests where possible
+	// if problem is fixed, dead flag set to 0 again and workflow can continue
+	// -ask user if there was a power failure (check UPS)
+	// -check unsafe flag, we cannot recover from that automatically
+
+	// if set by GV:
+	// try to force open
+	// -make sure user verifies pecs and sem are under vacuum
+
+	// if set by SEM stage:
+	// try to home to clear, 
+	// -make sure user gets dialog to verify parker is out of the way
+
+	// if set by SEM:
+	// -ask user to manually make picture and verify values are ok?
+
+	// if set by pecs stage
+	// lower
+	// -make sure parker is at 0
+
+	// if set by transfer:
+	// check that position is 0, if not, we are unsafe
 
 
-void IPrep_init()
+	
+
+}
+
+
+number IPrep_init()
 {
 	// starts when IPrep DM module starts
 	// initializes workflow object, establishes connection with hardware and saves positions for transfers
@@ -441,40 +473,20 @@ void IPrep_init()
 		myPW.updateB("idle")
 		myPW.updateA("sample: "+myStateMachine.getCurrentWorkflowState())
 		print("iprep init done")
+		return 1
 	}
 	catch
 	{
 		result("exception during init"+ GetExceptionString() + "\n" )
-	}
-}
-
-/* not used as a thread, just checked with iprep_check once every cycle
-
-number IPrep_continous_check()
-{
-	// check to see if PECS is still functioning well. lauch as separate thread. 
-	// call IPrep_Abort() if triggered
-
-	number a, t
-	a = myWorkflow.returnPECS().argonCheck()
-	t = myWorkflow.returnPECS().TMPCheck()
-
-	if (a && t)
-		return 1
-	else
-	{	
-		print("argon check failed: "+a+", tmp check: "+t)
 		return 0
 	}
-
 }
 
-*/
 
 /*
 void IPrep_Align()
 {
-// may not be needed anymore
+// may not be needed anymore, alignment is now done in iprep_imaging
 	if (XYZZY)
 	{
 		// align image, called by IPrep_image()
@@ -777,7 +789,8 @@ Number IPrep_check()
 		return 0
 	}
 
-	// SEM (emission) status
+	// SEM status:
+	// - working distance active check
 
 	// UPS status
 

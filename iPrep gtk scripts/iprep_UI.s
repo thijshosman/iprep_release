@@ -43,6 +43,25 @@ void Save_imaging_XYZ_position( void )
 
 }
 
+void Goto_nominal_imaging(void)
+{
+	object myNI = returnSEMCoordManager().getCoordAsCoord("NominalImaging")
+	number xx,yy,zz
+	xx=myNI.getX()
+	yy=myNI.getY()
+	zz=myNI.getZ()
+
+	string s1 = "Nominal imaging position\n("+xx+","+yy+","+zz+")\n\nGo there now?"
+	if (OKCancelDialog(s1))
+		myWorkflow.returnSEM().goToStoredImaging()
+	
+	WorkaroundQuantaMagBug()
+
+
+
+}
+
+
 void Recall_imaging_XYZ_position( void )
 {
 	object mySI = myWorkflow.returnSEM().returnStoredImaging()
@@ -168,6 +187,16 @@ void Recall_imaging_parameters_from_image( void )
 		
 }
 
+// PECS functions
+
+void reseat(void)
+{
+	if (okcanceldialog("reseat the carrier in the PECS mount by moving it out and back in?"))
+	myStateMachine.reseat()
+}
+
+
+
 // recovery functions
 // intended to get the system consistent again
 
@@ -176,16 +205,39 @@ void homeSEMStageToClear(void)
 	myWorkflow.returnSEM().homeToClear()
 }
 
+
+void homeParker(void)
+{
+	myWorkflow.returnTransfer().home()
+}
+
+void lowerPECSStage(void)
+{
+	myWorkflow.returnPECS().moveStageDown()
+}
+
 void openGV(void)
 {
 	myWorkflow.returnPECS().openGVandCheck()
 }
 
 void setAliveSafe(void)
-
 {
 	returnDeadFlag().setAliveSafe()
 }
+
+void setSEMstate(void)
+{
+	myStateMachine.changeWorkflowState("SEM")
+}
+
+void setPECSstate(void)
+{
+	myStateMachine.changeWorkflowState("PECS")
+}
+
+
+
 
 void Set_autofocus_enable_dialog( void )
 {	
@@ -206,9 +258,14 @@ void iprep_InstallMenuItems( void )
 	string SS_MENU_HEAD = "iPrep"
 	string SS_SUB_MENU_0 = "Workflow"
 	string SS_SUB_MENU_1 = "SEM"
-	string SS_SUB_MENU_2 = "Recovery"
-	
+	string SS_SUB_MENU_2 = "Recovery and Setup"
+	string SS_SUB_MENU_3 = "PECS"
+
+	// workflow	
 	AddScriptToMenu( "Set_starting_slice_number()", "Set starting slice number...", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
+
+
+	// SEM
 	AddScriptToMenu( "Save_imaging_XYZ_position()", "Save imaging XYZ position...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 
 	AddScriptToMenu( "Recall_imaging_XYZ_position()", "Recall imaging position...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
@@ -225,12 +282,41 @@ void iprep_InstallMenuItems( void )
 	
 	AddScriptToMenu( "Goto_scribe_mark()", "Goto scribe mark...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "Goto_alignment_grid()", "Goto FWD alignment grid...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
+	AddScriptToMenu( "Goto_nominal_imaging()", "Goto nominal imaging position...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
+
 	AddScriptToMenu( "beep()", "--", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
 
-	AddScriptToMenu( "homeSEMStageToClear()", "home SEM stage to clear", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
-	AddScriptToMenu( "openGV()", "open gate valve", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
-	AddScriptToMenu( "beep()", "--", SS_MENU_HEAD , SS_SUB_MENU_2 , 0 )
+	// PECS
+	AddScriptToMenu( "reseat()", "reseat sample carrier in PECS mount", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
+
+	// RECOVERY
+	
+	AddScriptToMenu( "IPrep_init()", "Initialize Hardware and Workflow", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
+	AddScriptToMenu( "IPrep_consistency_check()", "IPrep state consistency check", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
+	AddScriptToMenu( "IPrep_recover_deadflag()", "auto recover from dead state", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
+
+
+
+	
 	AddScriptToMenu( "setAliveSafe()", "remove dead/unsafe flag", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
+
+	// service menu #todo: make password protected
+	string SS_MENU_HEAD_SERVICE = "Service"
+	string SS_SUB_MENU_SERVICE_0 = "Safety Flags"
+	string SS_SUB_MENU_SERVICE_1 = "Manual State Setup"
+
+
+	AddScriptToMenu( "homeSEMStageToClear()", "home SEM stage to clear", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
+	AddScriptToMenu( "openGV()", "open gate valve", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
+	AddScriptToMenu( "homeParker()", "home parker stage", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
+	AddScriptToMenu( "lowerPECSStage", "lower pecs stage", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
+	AddScriptToMenu( "setSEMstate()", "set workflow state to SEM", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
+	AddScriptToMenu( "setPECSstate()", "set workflow state to PECS", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
+
+
+
+	AddScriptToMenu( "setAliveSafe()", "remove dead/unsafe flag", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_0 , 0)
+
 
 
 }

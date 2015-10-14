@@ -50,7 +50,7 @@ object createPecsCamera(number simulator)
 		return alloc(pecsCamera_iprep)
 }
 
-object creatDigiscan(number simulator)
+object createDigiscan(number simulator)
 {
 	if(simulator == 1)
 		return alloc(digiscan_simulator)
@@ -64,6 +64,17 @@ object createUPS(number simulator)
 		return alloc(UPS_simulator)
 	else
 		return alloc(UPS_APC)
+}
+
+object createEBSDHandshake(number simulator)
+{
+	if(simulator == 3)
+		return alloc(EBSD_OI_automatic)
+	else if (simulator == 2)
+		return alloc(EBSD_manual)
+	else if (simulator == 1)
+		return alloc(EBSD_simulator)
+
 }
 
 

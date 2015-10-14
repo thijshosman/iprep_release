@@ -1,4 +1,4 @@
-// $BACKGROUND$
+//$BACKGROUND$
 // --- this class is intended to do the following:
 // --- * open/close gate valve, check status
 // --- * check status of gate valve through sensors

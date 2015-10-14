@@ -128,9 +128,9 @@ class workflow: object
 
 		// get all simulation numbers
 		TagGroup tg = GetPersistentTagGroup() 
-		number sim_pecs, sim_digiscan, sim_sem, sim_transfer, sim_gripper, sim_pecscamera
+		number sim_pecs, sim_digiscan, sim_sem, sim_transfer, sim_gripper, sim_pecscamera, sim_dock
 
-
+		TagGroupGetTagAsNumber(tg,"IPrep:simulation:dock", sim_dock )
 		TagGroupGetTagAsNumber(tg,"IPrep:simulation:pecs", sim_pecs )
 		TagGroupGetTagAsNumber(tg,"IPrep:simulation:digiscan", sim_digiscan )
 		TagGroupGetTagAsNumber(tg,"IPrep:simulation:sem", sim_sem )
@@ -146,10 +146,15 @@ class workflow: object
 		object reference
 		object scribe_pos
 
+		self.print(mode+"\n")
+
 		if (mode == "planar")
 		{
 			// planar mode selected
-			mySEMdock = createDock(2)
+			if (sim_dock)
+				mySEMdock = createDock(1)
+			else 
+				mySEMdock = createDock(2)
 
 			// get reference and scribe_pos for values defined for this dock
 
@@ -163,7 +168,10 @@ class workflow: object
 		else if (mode == "ebsd")
 		{
 			// ebsd mode selected
-			mySEMdock = createDock(3)
+			if (sim_dock)
+				mySEMdock = createDock(1)
+			else 
+				mySEMdock = createDock(3)
 
 			// get reference and scribe_pos for values defined for this dock
 
@@ -227,7 +235,7 @@ class workflow: object
 		myPecsCamera.init()
 
 		// init Digiscan
-		myDigiscan = creatDigiscan(sim_digiscan)
+		myDigiscan = createDigiscan(sim_digiscan)
 		myDigiscan.init()
 
 		// init EBSD camera #todo

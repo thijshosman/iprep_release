@@ -899,6 +899,9 @@ if (XYZZY)		self.setWDForImaging()
 		// initialize the SEMCoordManager - is now done in iprep_general
 		//returnSEMCoordManager() = alloc(SEMCoordManager)
 		//mySEMCoordManager.init("IPrep:SEMPositions")
+
+		state = SEMStagePersistance.getState()
+		kV = SEMkVPersistance.getNumber()		
 		
 		// check that the state we think SEM is in is indeed correct
 		if (!self.checkStateConsistency())
@@ -907,8 +910,6 @@ if (XYZZY)		self.setWDForImaging()
 			throw("state inconsistent, SEM stage is not where state machine thinks it is")
 		}
 
-		state = SEMStagePersistance.getState()
-		kV = SEMkVPersistance.getNumber()
 
 		self.print("init sem voltage: " +kV)
 		self.print("init sem working distance: " +imagingWD)
@@ -958,9 +959,64 @@ if (XYZZY)		self.setWDForImaging()
 	string getSEMState(object self)
 	{
 		// different name for mediator
-		// #todo: this is where state should be checked
+		self.checkStateConsistency()
 		return state
 	}
+
+	number checkFWDCoupling(object self, number active)
+	{
+		// check if FWD is coupled correctly
+		// -active check moves stage down to lowest point and verifies that 
+		// that number is within a threshold
+		// -passive check just 
+
+		number tol, z_limit, pos
+		z_limit = GetTagValue("IPrep:limits:sem_z_limit")
+		tol = GetTagValue("IPrep:limits:sem_z_tolerance")
+		pos = self.getZ()
+
+
+		if (active == 1)
+		{
+
+			// active check
+
+			EMSetStageZ( 50000 ) // go all the way down
+			EMWaitUntilReady( )
+			number pos_down = self.getZ()
+			if (pos_down > z_limit-tol && pos_down < z_limit+tol )
+			{	
+				self.print("Error: FWD is not coupled. (Z reading="+pos+")" )
+				return 0
+			}
+			else
+			{
+				// move back
+				self.moveZAbs(pos,1)
+				return 1
+			}
+		}
+		else
+		{
+			// passive check
+
+			if (pos > z_limit-tol && pos < z_limit+tol )
+			{	
+				self.print("Error: FWD is not coupled. (Z reading="+pos+")" )
+				return 0
+			}
+			else
+			{
+				return 1
+			}
+
+		
+		}	
+
+
+
+	}
+
 
 }
 

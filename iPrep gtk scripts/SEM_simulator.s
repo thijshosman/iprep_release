@@ -3,7 +3,7 @@ number XYZZY = 0
 
 
 
-class SEM_Simulator: object
+class SEM_simulator: object
 {
 	object SEMStagePersistance // stores position where stage is in tag
 	
@@ -19,6 +19,10 @@ class SEM_Simulator: object
 	number X, Y, Z // sem coordinates
 	// numbers are in mm
 
+	// the threshold that determines if coord positions are close enough for the state 
+	// to be considered consistent
+	number consistencyThreshold
+
 	string state
 	// unknown
 	// clear
@@ -26,6 +30,10 @@ class SEM_Simulator: object
 	// imaging
 
 	//object mySEMCoordManager
+
+	// simualtion coordinate object
+	object myLocation
+
 
 	// coordinate objects
 	// TODO: store these in tags
@@ -97,9 +105,13 @@ class SEM_Simulator: object
 	void Update(object self)
 	{
 		// divide by 1000 to get milimeters
-		X = EMGetStagex()/1000
-		Y = EMGetStagey()/1000
-		Z = EMGetStagez()/1000
+		//X = EMGetStagex()/1000
+		//Y = EMGetStagey()/1000
+		//Z = EMGetStagez()/1000
+
+		X=myLocation.getX()
+		Y=myLocation.getY()
+		Z=myLocation.getZ()
 	}
 
 	void printCoords(object self)
@@ -162,7 +174,7 @@ class SEM_Simulator: object
 	{
 		// *** private ***
 		// set voltage (in kV)
-		EMSetBeamEnergy(kV1*1000)
+		//EMSetBeamEnergy(kV1*1000)
 		self.print("voltage set to: "+kV1)
 	}
 
@@ -229,7 +241,8 @@ class SEM_Simulator: object
 	{
 		// *** public ***
 		// measures the working distance currently setup, run after manual setup of imaging
-		return EMGetFocus()/1000
+		//return EMGetFocus()/1000
+		return imagingWD
 	}
 
 	number getWD(object self)
@@ -244,50 +257,56 @@ class SEM_Simulator: object
 	void moveXRel(object self, number dist, number wait)
 	{
 		self.Update()
-		EMSetStageX((X+dist)*1000)
-		if(wait)
-			EMWaitUntilReady()
+		//EMSetStageX((X+dist)*1000)
+		myLocation.setX((X+dist))
+		//if(wait)
+			//EMWaitUntilReady()
 	}
 	
 	void moveYRel(object self, number dist, number wait)
 	{
 		self.Update()
-		EMSetStageY((Y+dist)*1000)
-		if(wait)
-			EMWaitUntilReady()
+		//EMSetStageY((Y+dist)*1000)
+		myLocation.setY((Y+dist))
+		//if(wait)
+			//EMWaitUntilReady()
 	}
 	
 	void moveZRel(object self, number dist, number wait)
 	{
 		self.Update()
-		EMSetStageZ((Z+dist)*1000)
-		if(wait)
-			EMWaitUntilReady()
+		//EMSetStageZ((Z+dist)*1000)
+		myLocation.setZ((Z+dist))
+		//if(wait)
+			//EMWaitUntilReady()
 
 	}
 
 	void moveXAbs(object self, number dist, number wait)
 	{
 		self.Update()
-		EMSetStageX((dist)*1000)
-		if(wait)
-			EMWaitUntilReady()
+		//EMSetStageX((dist)*1000)
+		myLocation.setX((dist))
+		//if(wait)
+			//EMWaitUntilReady()
 	}
 	
 	void moveYAbs(object self, number dist, number wait)
 	{
 		self.Update()
-		EMSetStageY((dist)*1000)
-		if(wait)
-			EMWaitUntilReady()
+		//EMSetStageY((dist)*1000)
+		myLocation.setY((dist))
+		//if(wait)
+			//EMWaitUntilReady()
 	}
 	
 	void moveZAbs(object self, number dist, number wait)
 	{
 		self.Update()
-		EMSetStageZ((dist)*1000)
-		if(wait)
-			EMWaitUntilReady()
+		//EMSetStageZ((dist)*1000)
+		myLocation.setZ(dist)
+		//if(wait)
+			//EMWaitUntilReady()
 
 
 	}
@@ -295,9 +314,11 @@ class SEM_Simulator: object
 	void moveXYabs(object self, number xdist, number ydist, number wait)
 	{
 		self.Update()
-		EMSetStageXY(xdist*1000,ydist*1000)
-		if(wait)
-			EMWaitUntilReady()
+		//EMSetStageXY(xdist*1000,ydist*1000)
+		myLocation.setX(xdist)
+		myLocation.setY(ydist)
+		//if(wait)
+			//EMWaitUntilReady()
 
 	}
 
@@ -333,10 +354,32 @@ class SEM_Simulator: object
 
 
 
-
-
-
 	// *** state transfers ***
+
+	number checkPositionConsistency(object self, string coordName)
+	{
+		// check to see if the sem position defined in coordName corresponds to current position
+		// (within consistencyThreshold)
+
+		self.update()
+
+		object aCoord = returnSEMCoordManager().getCoordAsCoord(coordName)
+
+		if( abs(aCoord.getX() - X)<consistencyThreshold && abs(aCoord.getY() - Y)<consistencyThreshold && abs(aCoord.getZ() - Z)<consistencyThreshold  )
+		{
+			// success
+			return 1
+		}
+		else
+		{
+			//print("not in right position: X = "+X+", should be "+aCoord.getX())
+			//print("Y = "+Y+", should be "+aCoord.getY())
+			//print("Z = "+Z+", should be "+aCoord.getZ())
+			return 0
+		}
+
+
+	}
 
 	number checkStateConsistency(object self)
 	{ 
@@ -345,10 +388,22 @@ class SEM_Simulator: object
 		number stateThresold = 1
 		// check to see that current stage coordinates are consistent with the current state
 
-		//string currentstate = self.state
+		string currentstate = state
 
-
-
+		if (state == "clear")
+		{
+			return self.checkPositionConsistency("clear")
+		}
+		else if (state == "pickup_dropoff")
+		{
+			return self.checkPositionConsistency("pickup_dropoff")
+		}
+		else
+		{
+			// #TODO: imaging is a state that belongs to a lot of coordinates, so we cannot check that
+			// #easily. assuming it is right
+			return 1
+		}
 
 	}
 
@@ -356,7 +411,13 @@ class SEM_Simulator: object
 	void goToPickup_Dropoff(object self)
 	{
 		self.print("going to pickup_dropoff. current state: "+state)
-		
+
+		if (!self.checkStateConsistency())
+		{
+			self.print("state inconsistent, SEM stage is not where state machine thinks it is")
+			throw("state inconsistent, SEM stage is not where state machine thinks it is")
+		}
+
 		object pickup_dropoff = returnSEMCoordManager().getCoordAsCoord("pickup_dropoff")
 
 		if (state == "clear")
@@ -376,9 +437,31 @@ class SEM_Simulator: object
 
 	}
 
+	void homeToClear(object self)
+	{
+		// intended to be used to go to the clear position as a 'homing' point manually
+		// disabling consistency checks. intended to be installed as menu command
+
+		object clear = returnSEMCoordManager().getCoordAsCoord("clear")
+
+		self.print("going to clear with checks disabled")
+		self.goToCoordsZFirst(clear.getX(),clear.getY(),clear.getZ())
+		self.printCoords()
+		self.setManualState("clear")
+
+	}
+
+
+
 	void goToClear(object self)
 	{
 		self.print("going to clear. current state: "+state)
+
+		if (!self.checkStateConsistency())
+		{
+			self.print("state inconsistent, SEM stage is not where state machine thinks it is")
+			throw("state inconsistent, SEM stage is not where state machine thinks it is")
+		}
 
 		object clear = returnSEMCoordManager().getCoordAsCoord("clear")
 
@@ -406,6 +489,12 @@ class SEM_Simulator: object
 	{
 		self.print("going to nominal_imaging. current state: "+state)
 		
+		if (!self.checkStateConsistency())
+		{
+			self.print("state inconsistent, SEM stage is not where state machine thinks it is")
+			throw("state inconsistent, SEM stage is not where state machine thinks it is")
+		}
+
 		object nominal_imaging = returnSEMCoordManager().getCoordAsCoord("nominal_imaging")
 
 		// check that parker is out of the way
@@ -687,7 +776,7 @@ if (XYZZY)		self.setWDForImaging()
 
 	// *** calibration ***
 
-	/* DEPRECATED: now implemented in SEMCoordManager directly
+	// DEPRECATED: now implemented in SEMCoordManager directly
 
 	void saveCurrentAsStoredImaging(object self)
 	{
@@ -695,11 +784,16 @@ if (XYZZY)		self.setWDForImaging()
 		// save current position as the StoredImaging point
 		
 		self.Update()
+		
+		object StoredImaging = returnSEMCoordManager().getCoordAsCoord("StoredImaging")
+
 		StoredImaging.set(self.getX(),self.getY(),self.getZ())
 		self.print("new StoredImaging: ")
 		StoredImaging.print()
 
-		// TODO: should be saved in tag as part of saved tags
+		returnSEMCoordManager().addCoord(StoredImaging)
+
+		
 
 	}
 
@@ -708,55 +802,64 @@ if (XYZZY)		self.setWDForImaging()
 		// *** public ***
 		// save custom given position as the StoredImaging point
 		
+		object StoredImaging = returnSEMCoordManager().getCoordAsCoord("StoredImaging")
+
 		self.Update()
 		StoredImaging.set(x, y, z)
 		self.print("new StoredImaging: ")
 		StoredImaging.print()
 
-		// TODO: should be saved in tag as part of saved tags
+		returnSEMCoordManager().addCoord(StoredImaging)
 
 	}
 
-	*/
+	object returnStoredImaging(object self)
+	{
+		// returns the coord object that defines StoredImaging from the SEMCoordManager
+		// method is here for legacy reasons
+
+		return returnSEMCoordManager().getCoordAsCoord("StoredImaging")
+
+	}
 
 
 	number getShiftX(object self)
 	{
 		number a,b
-		EMGetBeamShift(a,b)
+		//EMGetBeamShift(a,b)
 		return a/1000
 	}
 
 	number getShiftY(object self)
 	{
 		number a,b
-		EMGetBeamShift(a,b)
+		//EMGetBeamShift(a,b)
 		return b/1000
 	}
 
 	void setShiftX(object self, number a1)
 	{
 		// relative shift
-		EMChangeBeamShift(a1*1000,0)
+		//EMChangeBeamShift(a1*1000,0)
 		self.print("shifted beam in x by: "+a1)
 	}
 
 	void setShiftY(object self, number b1)
 	{
 		// relative shift
-		EMChangeBeamShift(0,b1*1000)
+		//EMChangeBeamShift(0,b1*1000)
 		self.print("shifted beam in y by: "+b1)
 	}
 
 	void zeroShift(object self)
 	{
 		number a,b
-		EMGetBeamShift(a,b)
-		EMChangeBeamShift(-a,-b)
+		//EMGetBeamShift(a,b)
+		//EMChangeBeamShift(-a,-b)
 		self.print("zeroed shift, x: "+-a/1000+", y: "+-b/1000)
 	}
 
-	void SEM_Simulator(object self)
+	void SEM_simulator(object self)
 	{
 		// constructor
 
@@ -792,68 +895,93 @@ if (XYZZY)		self.setWDForImaging()
 		// *** public ***
 		// sets state 
 
+		// simulator specific: add a coordinate that represents the active coordinate
+		// active coord
+		myLocation = alloc(SEMCoord)
+		myLocation.set(0,0,0)
+
 		coords_calibrated = 0
 
 		// register with mediator
 		myMediator = returnMediator()
 		myMediator.registerSem(self)
 
+		consistencyThreshold = 1 // 1 mm
+
 		SEMStagePersistance.init("SEMstage")
 		SEMkVPersistance.init("SEM:kV") // deprecate
 		SEMWDPersistance.init("SEM:WD") // deprecate
 		imagingWD = SEMWDPersistance.getNumber() // deprecate
 
-		self.zeroShift()
+		//self.zeroShift()
 		self.Update()
 		//self.calibrateCoordsFromPickup() moved to dock object
 		self.print("initialized")
 		
-		// initialize the SEMCoordManager - is now done in iprep_general
-		//returnSEMCoordManager() = alloc(SEMCoordManager)
-		//mySEMCoordManager.init("IPrep:SEMPositions")
-		
-		// TODO: add logic to verify that the stage location is indeed what the tag says it was left at last
-		// compare the SEM position to the stored position to verify. 
 
 		state = SEMStagePersistance.getState()
 		kV = SEMkVPersistance.getNumber()
 
+		// since this is a simulator, set the myLocation coordinates to the state
+
+
+		if (state == "clear" || state == "pickup_dropoff")
+		{
+			object tempcoord = returnSEMCoordManager().getCoordAsCoord(state)
+
+			myLocation.setX(tempcoord.getX())
+			myLocation.setY(tempcoord.getY())
+			myLocation.setZ(tempcoord.getZ())
+
+		}
+		
+		// check that the state we think SEM is in is indeed correct
+		if (!self.checkStateConsistency())
+		{
+			self.print("state inconsistent, SEM stage is not where state machine thinks it is")
+			throw("state inconsistent, SEM stage is not where state machine thinks it is")
+		}
+
+
+
 		self.print("init sem voltage: " +kV)
 		self.print("init sem working distance: " +imagingWD)
 		self.print("init sem stage. starting state: " +state)
+
+		
 
 	}
 
 
 	void blankOn(object self)
 	{
-		FEIQuanta_SetBeamBlankState(1)
+		//FEIQuanta_SetBeamBlankState(1)
 		blankState = 1
 		self.print("beam blanked")
 	}
 
 	void blankOff(object self)
 	{
-		FEIQuanta_SetBeamBlankState(0)
+		//FEIQuanta_SetBeamBlankState(0)
 		blankState = 0
 		self.print("beam unblanked")
 	}
 
 	void HVOn(object self)
 	{
-		FEIQuanta_SetHighTensionOnOff(1)
+		//FEIQuanta_SetHighTensionOnOff(1)
 		HVState = 1
 		self.print("HV on")
 	}
 
 	void HVOff(object self)
 	{
-		FEIQuanta_SetHighTensionOnOff(0)
+		//FEIQuanta_SetHighTensionOnOff(0)
 		HVState = 0
 		self.print("HV off")
 	}	
 
-	~SEM_Simulator(object self)
+	~SEM_simulator(object self)
 	{
 		// save last known stage position to tag
 		self.setManualState(state)
@@ -866,9 +994,28 @@ if (XYZZY)		self.setWDForImaging()
 	string getSEMState(object self)
 	{
 		// different name for mediator
-		// #todo: this is where state should be checked
+		self.checkStateConsistency()
 		return state
 	}
+
+	number checkFWDCoupling(object self, number active)
+	{
+		// check if FWD is coupled correctly
+		// -active check moves stage down to lowest point and verifies that 
+		// that number is within a threshold
+		// -passive check just 
+
+		number tol, z_limit, pos
+		z_limit = GetTagValue("IPrep:limits:sem_z_limit")
+		tol = GetTagValue("IPrep:limits:sem_z_tolerance")
+		pos = self.getZ()
+		
+		return 1
+
+
+
+	}
+
 
 }
 

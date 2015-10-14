@@ -30,6 +30,13 @@ number AddTag( TagGroup tg, string tagName, number tagValue1, number tagValue2 )
 	return index
 }
 
+void AddTagGroup(taggroup tg, taggroup child, string path, string label)
+{
+	// creates taggroup with name label at path and copies child into it
+	taggroup tg1 = tg.TagGroupCreateNewLabeledGroup(path)	
+	tg1.TagGroupAddLabeledTagGroup(label, child ) 
+}
+
 
 class statePersistance:object
 {
@@ -197,7 +204,20 @@ class SEMCoord: object
 		df_valid = 1
 	}
 
+	void setX(object self, number X1)
+	{
+		X=X1
+	}
 
+	void setY(object self, number Y1)
+	{
+		Y=Y1
+	}
+
+	void setZ(object self, number Z1)
+	{
+		Z=Z1
+	}
 	number getX(object self)
 	{
 		return X

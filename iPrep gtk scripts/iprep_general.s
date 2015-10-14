@@ -1,6 +1,31 @@
 // $BACKGROUND$
 // general IPrep (helper) functions used in various scripts
 
+number GetTagValue(string tagpath)
+{
+	// check if tagpath exists, and if it does, retrieve the value and return it
+	number returnvalue
+	taggroup subtag = GetPersistentTagGroup()
+	if (TagGroupDoesTagExist(subtag,tagpath)) 
+		TagGroupGetTagAsNumber(subtag,tagpath,returnvalue)
+	else
+		throw(tagpath+" does not exist!")
+
+	return returnvalue
+}
+
+string GetTagString(string tagpath)
+{
+	// check if tagpath exists, and if it does, retrieve the value and return it
+	string returnstring
+	taggroup subtag = GetPersistentTagGroup()
+	if (TagGroupDoesTagExist(subtag,tagpath)) 
+		TagGroupGetTagAsString(subtag,tagpath,returnstring)
+	else
+		throw(tagpath+" does not exist!")
+
+	return returnstring
+}
 
 class deadFlagObject:object
 {
@@ -78,7 +103,6 @@ class deadFlagObject:object
 
 	void setSafety(object self, number status)
 	{
-		// *** private ***
 		// set whether system is safe to operate
 		self.print("safety flag set to " + status)
 		safetyFlag.setState(""+status)
@@ -252,6 +276,15 @@ class safetyMediator:object
 		status = pecs.getStageState()
 
 		return status // "up", "down" or "undefined"
+
+	}
+
+	number checkFWDCoupling(object self, number active)
+	{
+		// check if FWD is coupled correctly
+		number status = sem.checkFWDCoupling(active)
+
+		return status // 1 for correctly set, 0 for incorrectly set
 
 	}
 
