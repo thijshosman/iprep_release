@@ -58,6 +58,7 @@ v-workflow checks that sample is no longer present in dock - after pickup - unco
 -absolute coordinates for SEM stage
 v-reseating function that sets carrier into dovetail but never leaves PECS
 -transfer position solution that differentiates between ebsd and planar
+-lock out SEM stage rotation/tilt in FEI software
 
 
 B:

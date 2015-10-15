@@ -236,7 +236,33 @@ void setPECSstate(void)
 	myStateMachine.changeWorkflowState("PECS")
 }
 
+void saveTagsToFile(void)
+{
+	taggroup PT = getpersistenttaggroup()
 
+	taggroup ipreptg 
+	PT.TagGroupGetTagAsTagGroup("IPrep",ipreptg)
+
+	//ipreptg.TagGroupOpenBrowserWindow( 0 )
+
+	ipreptg.TagGroupSaveToFile("c:\\temp\\iprep_tags")
+
+}
+
+void loadTagsFromFile(void)
+{
+	taggroup PT = getpersistenttaggroup()
+
+	taggroup ipreploadtg = newtaggroup()
+
+	ipreploadtg.TagGroupLoadFromFile("c:\\temp\\iprep_tags")
+
+	//ipreploadtg.TagGroupOpenBrowserWindow( 0 )
+
+	PT.addtaggroup(ipreploadtg,"IPrep")
+
+	//PT.TagGroupOpenBrowserWindow( 0 )
+}
 
 
 void Set_autofocus_enable_dialog( void )
@@ -304,6 +330,7 @@ void iprep_InstallMenuItems( void )
 	string SS_MENU_HEAD_SERVICE = "Service"
 	string SS_SUB_MENU_SERVICE_0 = "Safety Flags"
 	string SS_SUB_MENU_SERVICE_1 = "Manual State Setup"
+	string SS_SUB_MENU_SERVICE_2 = "save or load iprep tags"
 
 
 	AddScriptToMenu( "homeSEMStageToClear()", "home SEM stage to clear", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
@@ -316,6 +343,11 @@ void iprep_InstallMenuItems( void )
 
 
 	AddScriptToMenu( "setAliveSafe()", "remove dead/unsafe flag", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_0 , 0)
+
+	AddScriptToMenu( "saveTagsToFile()", "save tags", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_2 , 0)
+	AddScriptToMenu( "loadTagsFromFile()", "load tags", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_2 , 0)
+
+
 
 
 

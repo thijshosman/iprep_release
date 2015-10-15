@@ -1,24 +1,65 @@
 
-// generic
+void setSimulationTags()
+{
+	TagGroup PT = GetPersistentTagGroup()
 
-TagGroup PT = GetPersistentTagGroup()
+	// simulation
+	TagGroup tg = NewTagGroup()
+	tg.AddTag("digiscan",1)
+	tg.AddTag("dock",1)
+	tg.AddTag("gripper",1)
+	tg.AddTag("mode","ebsd")
+	tg.AddTag("pecs",1)
+	tg.AddTag("pecscamera",1)
+	tg.AddTag("sem",1)
+	tg.AddTag("transfer",1)
+	PT.AddTagGroup(tg,"IPrep","simulation")
 
-// simulation
-TagGroup tg = NewTagGroup()
-tg.AddTag("digiscan",1)
-tg.AddTag("dock",1)
-tg.AddTag("gripper",1)
-tg.AddTag("mode","ebsd")
-tg.AddTag("pecs",1)
-tg.AddTag("pecscamera",1)
-tg.AddTag("sem",1)
-tg.AddTag("transfer",1)
-PT.AddTagGroup(tg,"IPrep:simulation")
+}
+
+taggroup setFlagTags()
+{
+
+	TagGroup PT = NewTagGroup()
+
+	// dead
+	TagGroup tg1 = NewTagGroup()
+	tg1.AddTag("state",0)
+	PT.AddTagGroup(tg1,"flags","dead")
+
+	// device
+	TagGroup tg2 = NewTagGroup()
+	tg2.AddTag("state","SEM")
+	PT.AddTagGroup(tg2,"flags","device")	
+
+	// errorcode
+	TagGroup tg3 = NewTagGroup()
+	tg3.AddTag("value",0)
+	PT.AddTagGroup(tg3,"flags","errorcode")
+
+	// safety
+	TagGroup tg4 = NewTagGroup()
+	tg4.AddTag("state",1)
+	PT.AddTagGroup(tg4,"flags","safe")
+
+	// unsafeReason
+	TagGroup tg5 = NewTagGroup()
+	tg5.AddTag("state","")
+	PT.AddTagGroup(tg5,"flags","unsafeReason")
+
+	// exception
+	TagGroup tg6 = NewTagGroup()
+	tg6.AddTag("state","")
+	PT.AddTagGroup(tg6,"flags","exception")	
+
+	PT.AddTag("protected",0)
+
+	TagGroup persist = GetPersistentTagGroup()
+
+	persist.AddTagGroup(PT,"IPrep",)
 
 
-
-
-
+}
 
 
 

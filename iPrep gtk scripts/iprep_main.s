@@ -444,7 +444,7 @@ number IPrep_recover_deadflag()
 	// check that position is 0, if not, we are unsafe
 
 
-	
+
 
 }
 
@@ -832,8 +832,7 @@ Number IPrep_StartRun()
 
 
 
-		// lockout PECS UI
-		myWorkflow.returnPECS().lockOut()
+
 
 		returncode = 1 // to indicate success
 
@@ -1081,13 +1080,46 @@ if (XYZZY)
 
 }
 
+Number IPrep_Pecs_Image_beforemilling()
+{
+	// take image in PECS system before milling
 
-		
+	image temp_slice_im
+
+	// Acquire image, show it briefly, save it
+	acquire_PECS_image( temp_slice_im )
+	temp_slice_im.showimage() // only show if image is not a null image
+	IPrep_savePECSImage(temp_slice_im, "pecs_camera_beforemilling")
+	
+	// Close image
+	ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
+	imdoc.ImageDocumentClose(0)
+
+
+}
+
+
+
+Number IPrep_Pecs_Image_aftermilling()
+{
+	// take image in PECS system after milling
+
+	image temp_slice_im
+
+	// Acquire image, show it briefly, save it
+	acquire_PECS_image( temp_slice_im )
+	temp_slice_im.showimage() // only show if image is not a null image
+	IPrep_savePECSImage(temp_slice_im, "pecs_camera_aftermilling")
+	
+	// Close image
+	ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
+	imdoc.ImageDocumentClose(0)
+}
 
 
 Number IPrep_Mill()
 // Assumes sample is in PECS
-// Mills sample, saves image
+// Mills sample
 {
 	number returncode = 0
 
@@ -1097,44 +1129,27 @@ Number IPrep_Mill()
 	print("IPrep_Mill")
 	try
 	{
+		
+		// If on the first slice (which is slice 1), acquire an image before milling
+		if ( IPrep_sliceNumber() == 1 )
+
+
+
 		// initiate workflow to start milling
 		print("PECS milling started")
 		myPW.updateB("PECS milling started")
-		image temp_slice_im
-
-		// If on the first slice (which is slice 1), acquire an image before milling
-		if ( IPrep_sliceNumber() == 1 )
-		{
-			// Acquire image, show it briefly, save it
-			acquire_PECS_image( temp_slice_im )
-			temp_slice_im.showimage()
-			IPrep_savePECSImage(temp_slice_im, "pre_milling")
-		// Close image
-			ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
-			imdoc.ImageDocumentClose(0)
-		}
 
 		// Mill sample 
 		myStateMachine.start_mill(0, 8000)	// (timeout of 4000s)
 		
-		// Acquire image, show it briefly, save it
-		acquire_PECS_image( temp_slice_im )
-		temp_slice_im.showimage() // only show if image is not a null image
-		IPrep_savePECSImage(temp_slice_im, "pecs_camera")
-		
-		// Close image
-		ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
-		imdoc.ImageDocumentClose(0)
-
 		myPW.updateB("PECS milling done")
 		
 		print("milling done. new slice number: "+IPrep_sliceNumber())
-
-		// check that SEM is still functioning
-		// #TODO
-
-		
+	
 		returncode = 1
+
+
+
 	}
 	catch
 	{

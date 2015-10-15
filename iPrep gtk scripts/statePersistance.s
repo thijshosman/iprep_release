@@ -33,8 +33,15 @@ number AddTag( TagGroup tg, string tagName, number tagValue1, number tagValue2 )
 void AddTagGroup(taggroup tg, taggroup child, string path, string label)
 {
 	// creates taggroup with name label at path and copies child into it
-	taggroup tg1 = tg.TagGroupCreateNewLabeledGroup(path)	
-	tg1.TagGroupAddLabeledTagGroup(label, child ) 
+	tg.TagGroupSetTagAsTagGroup(path+":"+label, child ) 
+
+}
+
+void AddTagGroup(taggroup tg, taggroup child, string path)
+{
+	// creates taggroup with name label at path and copies child into it
+	tg.TagGroupSetTagAsTagGroup(path, child ) 
+
 }
 
 
@@ -44,10 +51,11 @@ class statePersistance:object
 	void init(object self, string name) 
 	{
 		tagname = name
+			// #TODO: create tag if it does not exist yet
+
 	}
 
 	// saves and retrieves state information from tags
-	// #TODO: create tag if it does not exist yet
 
 	string getState(object self) 
 	{
@@ -80,6 +88,7 @@ class statePersistanceNumeric:object
 	{
 		tagname = name
 		valuename = "value"
+		//if (TagGroupDoesTagExist(GetPersistentTagGroup(),))
 	}
 
 	TagGroup getStoredNumber(object self)

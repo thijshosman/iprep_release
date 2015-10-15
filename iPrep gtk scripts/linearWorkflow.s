@@ -1044,6 +1044,8 @@ class workflowStateMachine: object
 				number tick = GetOSTickCount()
 				number tock
 				myWorkflow.executeMillingStep(simulation)
+				myWorkflow.returnPECS().unlock()
+				
 				self.print("hold Option + Shift to skip remainder of milling milling")
 				
 				// if simulating, return immediately
@@ -1076,6 +1078,8 @@ class workflowStateMachine: object
 					
 				}
 					
+				myWorkflow.returnPECS().lockout()
+
 				if (simulation == 1)
 				{
 					self.print("simulation, homing stage")
