@@ -81,8 +81,18 @@ device specific:
 Tranfer:
 -detect if system has been homed since last powerup
 
+sal:
+-no more end slice
 
+existing:
+IPrep_abortrun(): called by script, aborts current loop
+IPrep_startrun(): executed when start button is pressed
+IPrep_pauserun(): executed when pause button is pressed
+IPrep_stoprun(): executed when stop button is pressed
 
+new:
+IPrep_function(): executed repeatedly by ui workflow loop until loop is stopped
+IPrep_isrunning(): returns 0 or 1, depending on whether loop runs
 
 
 

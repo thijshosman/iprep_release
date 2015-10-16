@@ -94,12 +94,6 @@ void IPrep_setSliceNumber(number setSlice)
 }
 
 
-void IPrep_Abort()
-{
-	print("abort called, aborting run stack...")
-	IPrep_AbortRun()
-}
-
 
 void IPrep_saveSEMImage(image &im, string subdir)
 {
@@ -627,7 +621,7 @@ Number IPrep_Setup_Imaging()
 		{
 			print("stopped after exception: "+GetExceptionString())
 			IPrep_cleanup()
-			IPrep_Abort()
+			IPrep_AbortRun()
 		}
 		else
 		{
@@ -697,7 +691,6 @@ Number IPrep_MoveToPECS()
 		print(GetExceptionString()+", system now dead/unsafe")
 		returnDeadFlag().setDead(1, "movetopecs", GetExceptionString())
 		returnDeadFlag().setSafety(0, "IPrep_MoveToPECS failed")
-
 		break // so that flow contineus
 	}
 
@@ -804,7 +797,7 @@ Number IPrep_check()
 
 Number IPrep_StartRun()
 {
-	print("IPrep_StartRun")
+	print("UI: IPrep_StartRun")
 	
 	number returncode = 0
 
@@ -818,20 +811,16 @@ Number IPrep_StartRun()
 	// #TODO: this routine needs to know where to start in case of DM crash. 
 	// # slice number is remembered, but also needs to know last succesfully completed step. 
 	// # can query this with: myStateMachine.getLastCompletedStep() ("IMAGE", "MILL", "SEM", "PECS", "RESEAT")
+	// we should wrap this and call this function IPrep_infer()
 
 	try
 	{
 
-		print("IPrep_StartRun")
 		if (myStateMachine.getCurrentWorkflowState() != "SEM")
 		{
 			print("cannot start workflow from "+myStateMachine.getCurrentWorkflowState()+", aborting")
 			return returncode
 		}
-
-
-
-
 
 
 		returncode = 1 // to indicate success
@@ -856,13 +845,14 @@ Number IPrep_PauseRun()
 
 	returncode = 1 // to indicate success
 
-	print("IPrep_PauseRun")
+	print("UI: IPrep_PauseRun")
 	return returncode
 }
 
 Number IPrep_ResumeRun()
 {
 	number returncode = 0
+	print("UI: Prep_ResumeRun")
 
 	if(!IPrep_consistency_check())
 		return returncode // to indicate error
@@ -873,7 +863,6 @@ Number IPrep_ResumeRun()
 
 	returncode = 1 // to indicate success
 	
-	print("IPrep_ResumeRun")
 	return returncode
 }
 
@@ -956,7 +945,7 @@ Number IPrep_Image()
 
 		// Blank SEM beam
 //			FEIQuanta_SetBeamBlankState(1)
-
+		/*
 		// Verify SEM is functioning properly - pause acquisition otherwise (might be better to do before AFS with a test scan, easier here)
 		{
 				number avg = average( temp_slice_im )
@@ -986,7 +975,7 @@ Number IPrep_Image()
 				}
 
 		}
-
+		*/
 		// Save Digiscan image
 			IPrep_saveSEMImage(temp_slice_im, "digiscan")
 
@@ -1126,7 +1115,7 @@ Number IPrep_Mill()
 	if (!returnDeadFlag().checkAliveAndSafe())
 		return returncode // to indicate error
 
-	print("IPrep_Mill")
+	print("UI: IPrep_Mill")
 	try
 	{
 		
@@ -1179,10 +1168,10 @@ Number IPrep_IncrementSliceNumber()
 Number IPrep_End_Imaging()
 {
 	// executed after final transfer
-	// take one last image
+
 	// then turn beam off etc
-	print("IPrep_End_Imaging")
-	IPrep_Image()
+	print("UI: IPrep_End_Imaging")
+	//IPrep_Image()
 	IPrep_cleanup()
 
 	return 1;
