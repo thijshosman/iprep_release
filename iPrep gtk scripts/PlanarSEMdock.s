@@ -104,7 +104,9 @@ class planarSEMdock : object
 		//self.sendCommand("m30h0I27L24V10000v2500R")
 		
 		// thijs update 10/02/2015 when testing ebsd dock
-		self.sendCommand("m30h30l27L10000V10000R")
+		self.sendCommand("m30h0l27L10000V10000R")
+
+		self.sendCommand("T")
 		self.print("dock initialized")
 	}
 	
@@ -113,7 +115,7 @@ class planarSEMdock : object
 		// contructor
 		SEMdockPersistance = alloc(statePersistance)
 		SEMdockPersistance.init("SEMdock")
-		address = 1 // 1 is gripper, 2 is dock on iprep. 
+		address = 2 // 1 is gripper, 2 is dock on iprep. 
 		timeout = 30
 		self.lookupState(1)
 
@@ -242,7 +244,7 @@ class planarSEMdock : object
 		// *** public ***
 		// checks if sample is present
 
-		self.lookupState(1)
+		self.lookupState(0)
 		return sampleStatus
 
 	}
@@ -260,7 +262,7 @@ class planarSEMdock : object
 		returnSEMCoordManager().addCoord(reference)
 
 		object scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_planar")
-		reference.setName("scribe_pos")
+		scribe_pos.setName("scribe_pos")
 		returnSEMCoordManager().addCoord(scribe_pos)
 
 		// retrieve all coords we are going to set
@@ -294,14 +296,14 @@ class planarSEMdock : object
 		// reference.set(8,66.5,29.255)		// Pre-8/15 value
 
 //		scribe_pos.set( 31.117, 32.599, 30, 0 )		// 20150815 value; Assumes SEM FWD is coupled to FWD_grid, which is (29.6-7.41)=22.2 mm below the scribe mark
-		scribe_pos.set( 30.829, 32.829, 30, 0 )		// 20150827 value; Assumes SEM FWD is coupled to FWD_grid, which is (29.6-7.41)=22.2 mm below the scribe mark
+//		scribe_pos.set( 30.829, 32.829, 30, 0 )		// 20150827 value; Assumes SEM FWD is coupled to FWD_grid, which is (29.6-7.41)=22.2 mm below the scribe mark
 		self.print("scribe position set: ")
 		scribe_pos.print()
 
 //		reference.set( scribe_pos.getX()-31.117+9.155, scribe_pos.getY()-32.599+71.133, scribe_pos.getZ()-30+12.25 ) // 20150815 value
 //		reference.set( 9.155, 71.133 , 12.25 )		// 20150815 value = > Use the pickup/dropoff point
 //		reference.set( scribe_pos.getX()-30.886+9.424, scribe_pos.getY()-32.862+71.396, scribe_pos.getZ()-30+12.753 ) // 20150828 value
-		reference.set( 11.174, 71.396 , 12.756 )		// 20150903 value = > Use the pickup/dropoff point
+//		reference.set( 11.174, 71.396 , 12.756 )		// 20150903 value = > Use the pickup/dropoff point
 		self.print("reference set: ")
 		reference.print()
 
@@ -311,12 +313,13 @@ class planarSEMdock : object
 		pickup_dropoff.print()
 
 		// for clear only move in Z from reference point
-		clear.set(reference.getX(), reference.getY(), reference.getZ()+2.5)
+		clear.set(reference.getX(), reference.getY(), reference.getZ()-5)
 		self.print("clear set: ")
 		clear.print()
 
 		// nominal imaging is approximate middle of sample
-		nominal_imaging.set( scribe_pos.getX()-31.117+7.785, scribe_pos.getY()-32.599-13.226, scribe_pos.getZ()-30+30, 2.29 )
+		//nominal_imaging.set( scribe_pos.getX()-31.117+7.785, scribe_pos.getY()-32.599-13.226, scribe_pos.getZ()-30+30, 2.29 )
+		nominal_imaging.set( 0, 0, 0, 0 )
 		self.print("nominal_imaging set: ")
 		nominal_imaging.print()
 

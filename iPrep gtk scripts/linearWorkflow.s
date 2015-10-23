@@ -122,7 +122,6 @@ class workflow: object
 		// TODO: make abstract factory, use tags to define which class
 		// TODO: EBSD dock option
 		// in general: simulion = 1, normal hardware = 2
-		// dock: ebsd = 3, planar = 2
 
 		self.print("--- start init ---")
 
@@ -180,17 +179,6 @@ class workflow: object
 
 			
 			
-
-		}
-		else if (mode == "1")
-			{
-			// ebsd mode selected
-			mySEMdock = createDock(1)
-
-			// get reference and scribe_pos from somewhere
-
-			reference = returnSEMCoordManager().getCoordAsCoord("reference_ebsd")
-			scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_ebsd")
 
 		}	
 		else
@@ -266,8 +254,8 @@ class workflow: object
 		myTransfer.setPositionTag("open_pecs",27) // location where arms can open in PECS  // #20150819: was 29, #20150903: was 28
 		myTransfer.setPositionTag("pickup_pecs",48) // location where open arms can be used to pickup sample // #20150827: was 48.5, #20150903: was 49.5
 		myTransfer.setPositionTag("beforeGV",100) // location where open arms can be used to pickup sample
-		myTransfer.setPositionTag("dropoff_sem",486.5) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
-		myTransfer.setPositionTag("pickup_sem",486.5) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
+		myTransfer.setPositionTag("dropoff_sem",545) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
+		myTransfer.setPositionTag("pickup_sem",545) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
 		myTransfer.setPositionTag("backoff_sem",430) // location where gripper arms can safely open/close in SEM chamber
 		myTransfer.setPositionTag("dropoff_pecs",46.50) // location where sample gets dropped off in PECS // #20150827: was 45.5
 		myTransfer.setPositionTag("dropoff_pecs_backoff",47.50) // location where sample gets dropped off in PECS // #20150827: was 46.5
@@ -283,8 +271,8 @@ class workflow: object
 		myTransfer.setPositionTag("open_pecs",27) // location where arms can open in PECS  // #20150819: was 29, #20150903: was 28
 		myTransfer.setPositionTag("pickup_pecs",48) // location where open arms can be used to pickup sample // #20150827: was 48.5, #20150903: was 49.5
 		myTransfer.setPositionTag("beforeGV",100) // location where open arms can be used to pickup sample
-		myTransfer.setPositionTag("dropoff_sem",486.5) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
-		myTransfer.setPositionTag("pickup_sem",486.5) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
+		myTransfer.setPositionTag("dropoff_sem",510) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
+		myTransfer.setPositionTag("pickup_sem",510) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
 		myTransfer.setPositionTag("backoff_sem",430) // location where gripper arms can safely open/close in SEM chamber
 		myTransfer.setPositionTag("dropoff_pecs",46.50) // location where sample gets dropped off in PECS // #20150827: was 45.5
 		myTransfer.setPositionTag("dropoff_pecs_backoff",47.50) // location where sample gets dropped off in PECS // #20150827: was 46.5
@@ -611,6 +599,74 @@ if (XYZZY)
 	}
 
 
+
+	void PecsToSemAlign(object self)
+	{
+
+		// used for alignment of sem transfer position
+
+		// lower pecs stage
+		myPecs.moveStageDown()
+		
+		// home pecs stage
+		myPecs.stageHome()
+	
+		// go to where gripper arms can safely open
+		myTransfer.move("open_pecs")
+
+		// open gripper arms
+		myGripper.open()
+
+		// move forward to where sample can be picked up
+		myTransfer.move("pickup_pecs")
+
+		continueCheck()
+
+		// close gripper arms
+		myGripper.close()
+
+		continueCheck()
+
+		// open GV
+		myPecs.openGVandCheck()
+
+		// move to before GV
+		myTransfer.move("beforeGV")
+
+	}
+
+	void returnFromSEMAnywhereToPecs(object self)
+	{
+		// return a sample carrier from a point in the SEM to the PECS
+
+		// slide sample into dovetail
+		myTransfer.move("dropoff_pecs")
+
+		// back off 1 mm to relax tension on springs
+		myTransfer.move("dropoff_pecs_backoff")
+
+		// open gripper arms
+		myGripper.open()
+	
+		// move gripper back so that arms can close
+		myTransfer.move("open_pecs")
+		
+		// close gripper arms
+		myGripper.close()
+		
+		// go to prehome
+		myTransfer.move("prehome")
+
+		// move gripper out of the way by homing
+		myTransfer.home()
+
+		sleep(5)
+
+		// turn transfer system off
+		myTransfer.turnOff()
+
+
+	}
 
 	void fastSemToPecs(object self)
 	{

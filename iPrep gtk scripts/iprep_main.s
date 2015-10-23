@@ -691,6 +691,7 @@ Number IPrep_MoveToPECS()
 		print(GetExceptionString()+", system now dead/unsafe")
 		returnDeadFlag().setDead(1, "movetopecs", GetExceptionString())
 		returnDeadFlag().setSafety(0, "IPrep_MoveToPECS failed")
+		returncode = 0 // irrecoverable error
 		break // so that flow contineus
 	}
 
@@ -720,7 +721,7 @@ Number IPrep_MoveToSEM()
 		print(GetExceptionString()+", system now dead/unsafe")
 		returnDeadFlag().setDead(1, "movetosem", GetExceptionString())
 		returnDeadFlag().setSafety(0, "IPrep_MoveToSEM failed")
-
+		returncode = 0 // irrecoverable error
 		break // so that flow contineus
 	}
 	return returncode
@@ -752,7 +753,7 @@ Number IPrep_reseat()
 		print(GetExceptionString()+", system now dead/unsafe")
 		returnDeadFlag().setDead(1, "", GetExceptionString())
 		returnDeadFlag().setSafety(0, "reseating failed")
-
+		returncode = 0 // irrecoverable error
 		break // so that flow contineus
 	}
 	return returncode
@@ -1196,7 +1197,7 @@ try
 	// this get executed when this script starts / DM starts
 
 	Iprep_init() // initialize hardware
-	IPrep_consistency_check() // check consistency of workflowstates and hardware
+	//IPrep_consistency_check() // check consistency of workflowstates and hardware
 
 }
 catch

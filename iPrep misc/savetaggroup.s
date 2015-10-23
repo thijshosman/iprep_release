@@ -1,13 +1,13 @@
-//taggroup tg = getpersistenttaggroup()
+taggroup PT = getpersistenttaggroup()
 
-TagGroup PT = TagGroupClone(GetPersistentTagGroup())
+//TagGroup PT = TagGroupClone(GetPersistentTagGroup())
 
-taggroup ipreptg 
-PT.TagGroupGetTagAsTagGroup("IPrep",ipreptg)
+//taggroup ipreptg 
+//PT.TagGroupGetTagAsTagGroup("IPrep",ipreptg)
 
 //ipreptg.TagGroupOpenBrowserWindow( 0 )
 
-ipreptg.TagGroupSaveToFile("c:\\temp\\iprep")
+//ipreptg.TagGroupSaveToFile("c:\\temp\\iprep")
 
 taggroup ipreploadtg = newtaggroup()
 

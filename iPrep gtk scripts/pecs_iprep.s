@@ -153,8 +153,8 @@ class pecs_iprep: object
 			}
 			i++
 				
-			self.print("SI10 = " + SI10Value )
-			self.print("SI11 = " + SI11Value )
+			//self.print("SI10 = " + SI10Value )
+			//self.print("SI11 = " + SI11Value )
 			
 
 		
@@ -400,6 +400,7 @@ class pecs_iprep: object
 		// register with mediator
 		myMediator = returnMediator()
 		myMediator.registerPecs(self)
+		self.print("pecs initialized")
 	}
 	
 

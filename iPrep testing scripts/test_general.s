@@ -2,13 +2,32 @@
 
 object myWorkflow = returnWorkflow()
 object myStateMachine = returnStateMachine()
-
+object myMediator = returnMediator()
 
 try
 {
 	// *** workflow ***
 	//myStateMachine.changeWorkflowState("SEM")
 	//myStateMachine.changeWorkflowState("PECS")
+	
+	//IPrep_init()
+	//IPrep_consistency_check()
+	
+	//IPrep_image()
+	//IPrep_incrementSliceNumber()
+	IPrep_MoveToPECS()
+	//IPrep_mill(1)
+	//IPrep_MoveToSEM()
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	// *** gate valve ***
 	//myWorkflow.returnPecs().openGVandCheck()
@@ -17,25 +36,43 @@ try
 	// *** gripper ***
 	//myWorkflow.returnGripper().setManualState("open")
 	//myWorkflow.returnGripper().setManualState("closed")
+/*
+number i
+
+for (i=0;i<50;i++)
+{
+
+	myWorkflow.returnGripper().open()		
+	myWorkflow.returnGripper().close()
+	result("i: "+i+"\n")
+}
+*/
+	
 	//myWorkflow.returnGripper().open()		
 	//myWorkflow.returnGripper().close()
+	
+//myWorkflow.returnGripper().lookupState(1)
+	//sleep(5)
+	//myWorkflow.returnGripper().sendCommand("D100000R")
 	
 	// *** manual workflow items ***
 	//myWorkflow.insertSampleIntoPecsAndRetract()
 	
 	
+	
+	
 	// *** dock ***
-	//myWorkflow.returnSEMDock().setManualState("open")
-	//myWorkflow.returnSEMDock().setManualState("closed")
+	//myWorkflow.returnSEMDock().setManualState("clamped")
+	//myWorkflow.returnSEMDock().setManualState("unclamped")
 	
 	//myWorkflow.returnSEMDock().unclamp()	//disengaged
 	//myWorkflow.returnSEMDock().clamp()   //engaged
 	//sleep(3)
 	//myWorkflow.returnSEMDock().lookupState(1)
-	
+	//result("sample present: "+myWorkflow.returnSEMDock().checkSamplePresent()+"\n")
 	// test dock clamping/unclamping
 	
-	
+	/*
 	number i
 	for (i=0;i<20;i++)
 	{
@@ -45,12 +82,13 @@ try
 		myWorkflow.returnSEMDock().clamp()   //engaged
 		result("i: "+i+"\n")
 	}
-	
+	*/
 	
 	// *** pecs ***
 	//myWorkflow.returnPecs().moveStageUp()
 	//myWorkflow.returnPecs().moveStageDown()
-	//result(IPrep_continous_check()+"\n")
+	//myWorkflow.returnPecs().stageHome()
+	//result(myWorkflow.returnPecs().argonCheck()+"\n")
 	//PIPS_SetPropertyDevice("subsystem_milling", "device_stage", "set_rotate_mode", "7")  // works,  stage to right front
 	//PIPS_SetPropertyDevice("subsystem_milling", "device_stage", "set_rotate_mode", "3")  // works,  stage to home
 	//PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_24", "1")   //turn on chamber illuminator
@@ -69,7 +107,7 @@ try
     //myWorkflow.returnTransfer().move("dropoff_pecs") // location where sample gets dropped off in PECS
     //myWorkflow.returnTransfer().move("dropoff_pecs_backoff") // location where sample gets dropped off in PECS
     //myWorkflow.returnTransfer().turnOff()  // turn off Parker to stop noise
-    // myWorkflow.returnTransfer().move("test")  // test location from tags  
+    //myWorkflow.returnTransfer().move("test")  // test location from tags  
 
 
     //result(myWorkflow.returnTransfer().getCurrentPosition())
@@ -85,7 +123,7 @@ try
 	// *** SEM ***
 	//myWorkflow.returnSEM().printCoords()
 	//result("wf now: "+myWorkflow.returnSEM().getState()+"\n")
-	//myWorkflow.returnSEM().setManualState("imaging")
+	//myWorkflow.returnSEM().setManualState("clear")
 	//myWorkflow.returnSEM().calibrateCoordsFromPickup()
 	//myWorkflow.returnSEM().goToClear()
 	//myWorkflow.returnSEM().goToPickup_Dropoff()
@@ -95,8 +133,8 @@ try
 	//myWorkflow.returnSEM().goToHighGridFront()
 	//myWorkflow.returnSEM().goToLowerGrid()
 	//myWorkflow.returnSEM().goToScribeMark()
-	//result(myWorkflow.returnSEM().checkPositionConsistency("pickup_dropoff")+"\n")
-	//result(myWorkflow.returnSEM().checkStateConsistency()+"\n")
+	//result("wposition accuracy: "+myWorkflow.returnSEM().checkPositionConsistency("pickup_dropoff")+"\n")
+	//result("state consistency: "+myWorkflow.returnSEM().checkStateConsistency()+"\n")
 	
 	
 	// *** imaging ***
@@ -106,8 +144,19 @@ try
 	//myWorkflow.returnDigiscan().acquire(temp_slice_im2)
 	//showimage(temp_slice_im2)
 	
+	// *** alignment of SEM dropoff/pickup point for parker and sem stage ***
+	
+	//myWorkflow.PecsToSemAlign()
+	//myWorkflow.returnFromSEMAnywhereToPecs()
 	
 	
+	
+	// *** mediator ***
+	//result("mediator gv: "+myMediator.getGVState()+"\n") // gate valve
+	//result("mediator current parker position: "+myMediator.getCurrentPosition()+"\n") // parker
+	//result("mediator SEM state: "+myMediator.getSEMState()+"\n") // SEM State
+	//result("mediator PECS stage state: "+myMediator.getStageState()+"\n") // getStageState pecs
+	//result("mediator FWD coupling: "+myMediator.checkFWDCoupling()+"\n") // 
 	
 }
 catch

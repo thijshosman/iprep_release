@@ -907,7 +907,8 @@ if (XYZZY)		self.setWDForImaging()
 		if (!self.checkStateConsistency())
 		{
 			self.print("state inconsistent, SEM stage is not where state machine thinks it is")
-			throw("state inconsistent, SEM stage is not where state machine thinks it is")
+			if (!okcanceldialog("state inconsistent, SEM stage is not where state machine thinks it is. continue anyway?"))
+				throw("state inconsistent, SEM stage is not where state machine thinks it is")
 		}
 
 
