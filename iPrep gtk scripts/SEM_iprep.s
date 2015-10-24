@@ -759,7 +759,6 @@ if (XYZZY)		self.setWDForImaging()
 
 	// *** calibration ***
 
-	// DEPRECATED: now implemented in SEMCoordManager directly
 
 	void saveCurrentAsStoredImaging(object self)
 	{
@@ -962,6 +961,12 @@ if (XYZZY)		self.setWDForImaging()
 		// different name for mediator
 		self.checkStateConsistency()
 		return state
+	}
+
+	number getChamberPressure(object self)
+	{
+		// prints chamber pressure in mbar
+		return FEIQuanta_GetVacuumPressure()/1000
 	}
 
 	number checkFWDCoupling(object self, number active)

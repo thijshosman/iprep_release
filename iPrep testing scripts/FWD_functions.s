@@ -1,6 +1,15 @@
 //FEIQuanta_SetRawCoordinateSystem(0)
 
-//FEIQuanta_SetZFWDCoupling(0)
+try
+{
+	FEIQuanta_SetZFWDCoupling(0)
+}
+catch
+{
+result("caught\n")
 
-//FEIQuanta_SetFWDFollowsZ(0)
+}
+
+
+//FEIQuanta_SetFWDFollowsZ(1)
 

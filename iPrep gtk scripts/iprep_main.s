@@ -17,7 +17,8 @@ object myPW = alloc(progressWindow)
 /*
 // 3d volumes
 object my3DvolumeSEM
-object my3DvolumePECS
+object my3DvolumePECSbefore
+object my3DvolumePECSafter
 */
 /* #TODO: re-enable
 	// digiscan parameters alignment
@@ -42,15 +43,6 @@ object my3DvolumePECS
 	number imagingConfigured = 0
 */
 
-// the object that will launch as a thread to see if the PECS is still useable
-object statusThread 
-
-interface I_statusCheck
-{
-	object init(object self);
-	void stop(object self);
-	void RunThread(object self);
-}
 
 void logE(number level, string str1)
 {
@@ -230,7 +222,7 @@ void acquire_PECS_image( image &img )
 
 	// Light on, acquire, light off
 	myWorkflow.returnPecs().ilumOn()
-	myWorkflow.returnPECSCamera().acquireDMNoExposure(img) // use correct method
+	myWorkflow.returnPECSCamera().acquire(img) // use correct method
 	myWorkflow.returnPecs().ilumOff()
 	
 	// If stage was originally down, then return stage to down position
@@ -438,9 +430,8 @@ number IPrep_recover_deadflag()
 	// check that position is 0, if not, we are unsafe
 
 
-
-
 }
+
 
 
 number IPrep_init()
@@ -453,7 +444,7 @@ number IPrep_init()
 		print("iprep init")
 
 
-		// init iprep workflow and set the default positions in tags
+		// init iprep workflow and set the default positions for transfer in tags
 		myWorkflow.init()
 		myWorkflow.setDefaultPositions()
 
@@ -477,7 +468,70 @@ number IPrep_init()
 }
 
 
-/*
+number IPrep_toggle_planar_ebsd(string mode)
+{
+	// guides user through changing out docks
+	// mode = 'ebsd' or 'planar'
+	// called manually by user
+
+		number returncode = 0
+
+	try
+	{
+		// check dead/unsafe
+		if (!returnDeadFlag().checkAliveAndSafe())
+			return returncode // to indicate error
+
+		// confirm sample in PECS
+		if (myStateMachine.getCurrentWorkflowState() != "PECS")
+			throw("sample not in PECS!")
+
+		// vent
+		if (!okcanceldialog("please vent and press ok when dock is replaced and connected. make sure dock motor axis is aligned along y axis"))
+			throw("user aborted during vent")
+
+		// confirm alignment in x
+			// store rotation #todo
+
+		// change mode tag
+		setSystemMode(mode)
+
+		// run iprep_init to initialize all hardware again
+		IPrep_init()
+
+		// clamp and unclamp and confirm
+
+		if (okcanceldialog("testing dock in clamped and unclamped position, press ok when ready"))
+		{
+			myWorkflow.returnSEMDock().unclamp()
+			myWorkflow.returnSEMDock().clamp()
+		}
+		else
+			throw("user aborted check")
+	}
+	catch
+	{
+		print("mode change did not succeed: exception: "+GetExceptionString())
+		
+		// set dead
+		returnDeadFlag().setDead(1, "mode", "mode change error: "+GetExceptionString())
+		// set unsafe
+		returnDeadFlag().setSafety(0, "mode change error: "+GetExceptionString())
+		return returncode
+	}
+
+	returncode = 1
+
+	return returncode
+
+}
+
+
+
+
+
+
+/* DEPRECATED
 void IPrep_Align()
 {
 // may not be needed anymore, alignment is now done in iprep_imaging
@@ -529,109 +583,83 @@ void IPrep_Align()
 void IPrep_cleanup()
 {
 	// runs when there is a problem detected to return to manageable settings, ie:
-	// unlock the pecs, stop any statuschecking thread etc
+	// unlock the pecs, turn off high voltage etc
 	print("cleanup called")
 	
-	/*
-	if (XYZZY)
-		{
 
-		// delete the digiscan parameters created for 
-		DSDeleteParameters( alignParamID )
+	// delete the digiscan parameters created for 
+	//DSDeleteParameters( alignParamID )
 
-		// turn off HV
-		if(ContinueCancelDialog( "turn off HV?" ))
-			myWorkflow.returnSEM().HVOff()
-
-		// delete the digiscan parameter array
-		DSDeleteParameters( alignParamID )
-	}
-	*/
 	
+	// turn off HV
+	if(ContinueCancelDialog( "turn off HV?" ))
+		myWorkflow.returnSEM().HVOff()
+
 	// unlock PECS UI
 	myWorkflow.returnPECS().unlock()
 
-	// stop thread that checks PECS
-	try
-		statusThread.stop()
-	recover
-		print("no statusthread running")
 
 
 }
 
 
-/*
+
 Number IPrep_Setup_Imaging()
 {
 	print("IPrep_Setup_Imaging")
+	// setup the imaging parameters and saves them 
+	// run this after manually surveying
+	// beam is assumed to be on at this point	
+
+	// save workingdistance used now during preview in SEM class so that when taking 
+	// an actual image we can set it back to that value
+	// this value is the same for each image taken
+
+	number returncode = 0
+
+	if (!returnDeadFlag().checkAliveAndSafe())
+		return returncode // to indicate error
+
 	try
 	{
-		// setup the imaging parameters and saves them 
-		// run this after manually surveying
-		// beam is assumed to be on at this point
+		// set WD in class to current value
+		number imagingWD = myWorkflow.returnSEM().measureWD()
+		myWorkflow.returnSEM().setDesiredWD(imagingWD)
+		print("working distance to do imaging at: "+imagingWD)
+		
+		// set kv in class to current value (if needed, was needed for Quanta)
+		//myWorkflow.returnSEM().setDesiredkV(IPrepVoltage)
 
-		// TODO: this query structure needs to be neatened up
-		if(ContinueCancelDialog( "is digiscan configured correctly?" ))
-		{
-			// save workingdistance used now during preview in SEM class so that when taking 
-			// an actual image we can set it back to that value
-			// this value is the same for each image taken
+		// register current coordinate to come back to
+		myWorkflow.returnSEM().saveCurrentAsStoredImaging()
 
-			if (XYZZY)
-				{
-				imagingWD = myWorkflow.returnSEM().measureWD()
-				myWorkflow.returnSEM().setDesiredWD(imagingWD)
-				print("working distance to do imaging at: "+imagingWD)
+		// blank the beam
+		myWorkflow.returnSEM().blankOn()
 
-						// 3D volume stuff, number of slices in 3D block
-						// make the displayed 3D stack of digiscan images the size of what the capture setting is
-						number slices = 10
-						my3DvolumeSEM = alloc(IPrep_3Dvolume)
-						my3DvolumePECS = alloc(IPrep_3Dvolume)
-						my3DvolumePECS.initPECS_3D(slices)
-						my3DvolumeSEM.initSEM_3D(slices, DSGetWidth(2), DSGetHeight(2))
-					
-						// set the voltage to be used for every image
-						// TODO: get this from dialog or from somewhere, now just set to 2
-						// may want to measure this and set it to the value it is right now
-						myWorkflow.returnSEM().setDesiredkV(IPrepVoltage)
+		if(!ContinueCancelDialog( "is digiscan configured correctly?" ))
+			return returncode
 
-						// TODO: register the coordinate to come back to
-						// right now this is done manually
+		// 3D volume stuff, number of slices in 3D block
+		// make the displayed 3D stack of digiscan images the size of what the capture setting is
+		//number slices = 10
+		//my3DvolumeSEM = alloc(IPrep_3Dvolume)
+		//my3DvolumePECSbefore = alloc(IPrep_3Dvolume)
+		//my3DvolumePECSafter = alloc(IPrep_3Dvolume)
+		//my3DvolumePECSbefore.initPECS_3D(slices)
+		//my3DvolumePECSafter.initPECS_3D(slices)
+		//my3DvolumeSEM.initSEM_3D(slices, DSGetWidth(4), DSGetHeight(4))
 
-						// turn on beam
-						// myWorkflow.returnSEM().HVOn()
-
-						// blank the beam
-						myWorkflow.returnSEM().blankOn()
-				}
-			imagingConfigured = 1
-
-		} 
-		else
-		{
-			imagingConfigured = 0
-
-		}
+		returncode = 1
 	}
 	catch
 	{
-		if(!ContinueCancelDialog( GetExceptionString()+". continue workflow?" ))
-		{
-			print("stopped after exception: "+GetExceptionString())
-			IPrep_cleanup()
-			IPrep_AbortRun()
-		}
-		else
-		{
-			print("continuing after exception like nothing happened")
-			break
-		}
+		okdialog("something went wrong: "+GetExceptionString())
+		break
 	}
-	return 1;
+	return returncode
+
+
 }
-*/
 
 Number IPrep_foobar()
 {
@@ -688,11 +716,13 @@ Number IPrep_MoveToPECS()
 	{
 
 		// system caught unhandled exception and is now considered dead/unsafe
-		print(GetExceptionString()+", system now dead/unsafe")
-		returnDeadFlag().setDead(1, "movetopecs", GetExceptionString())
-		returnDeadFlag().setSafety(0, "IPrep_MoveToPECS failed")
+		//print(GetExceptionString()+", system now dead/unsafe")
+		//returnDeadFlag().setDead(1, "movetopecs", GetExceptionString())
+		//returnDeadFlag().setSafety(0, "IPrep_MoveToPECS failed")
 		returncode = 0 // irrecoverable error
+		//okdialog("not allowed. "+ GetExceptionString())
 		break // so that flow contineus
+		
 	}
 
 	return returncode
@@ -718,10 +748,11 @@ Number IPrep_MoveToSEM()
 	catch
 	{
 		// system caught unhandled exception and is now considered dead/unsafe
-		print(GetExceptionString()+", system now dead/unsafe")
-		returnDeadFlag().setDead(1, "movetosem", GetExceptionString())
-		returnDeadFlag().setSafety(0, "IPrep_MoveToSEM failed")
+		//print(GetExceptionString()+", system now dead/unsafe")
+		//returnDeadFlag().setDead(1, "movetosem", GetExceptionString())
+		//returnDeadFlag().setSafety(0, "IPrep_MoveToSEM failed")
 		returncode = 0 // irrecoverable error
+		//okdialog("not allowed. "+ GetExceptionString())
 		break // so that flow contineus
 	}
 	return returncode
@@ -732,6 +763,9 @@ Number IPrep_reseat()
 	// used to pick up the sample from the PECS and put it back 
 	// use after sample vacuum transfer to make sure images taken in the PECS have the carrier 
 	// at the right location in the dovetail
+
+	// called manually from menu before workflow starts
+
 	number returncode = 0
 
 	if (!returnDeadFlag().checkAliveAndSafe())
@@ -750,10 +784,11 @@ Number IPrep_reseat()
 	catch
 	{
 		// system caught unhandled exception and is now considered dead/unsafe
-		print(GetExceptionString()+", system now dead/unsafe")
-		returnDeadFlag().setDead(1, "", GetExceptionString())
-		returnDeadFlag().setSafety(0, "reseating failed")
+		//print(GetExceptionString()+", system now dead/unsafe")
+		//returnDeadFlag().setDead(1, "", GetExceptionString())
+		//returnDeadFlag().setSafety(0, "reseating failed")
 		returncode = 0 // irrecoverable error
+		okdialog("not allowed. "+ GetExceptionString())
 		break // so that flow contineus
 	}
 	return returncode
@@ -855,12 +890,16 @@ Number IPrep_ResumeRun()
 	number returncode = 0
 	print("UI: Prep_ResumeRun")
 
+	if (!returnDeadFlag().checkAliveAndSafe())
+		return returncode // to indicate error
+
 	if(!IPrep_consistency_check())
 		return returncode // to indicate error
 
 	if(!IPrep_check())
 		return returncode // to indicate error
 
+	// send resume command
 
 	returncode = 1 // to indicate success
 	
@@ -895,8 +934,8 @@ Number IPrep_Image()
 			xx=mySI.getX()
 			yy=mySI.getY()
 			zz=mySI.getZ()
-			if (zz > 5)	// safety check, make sure tags are set -- should do proper in bounds checking
-				myWorkflow.returnSEM().goToStoredImaging()
+			//if (zz > 5)	// safety check, make sure tags are set -- should do proper in bounds checking
+			//	myWorkflow.returnSEM().goToStoredImaging()
 
 		// Set SEM focus to saved value
 			number saved_focus = EMGetFocus()/1000	// initialize to current value (in case tag is empty)
@@ -986,7 +1025,7 @@ Number IPrep_Image()
 			
 		// Update GMS status bar - SEM imaging done
 			myPW.updateB("SEM imaging completed")
-			result(datestamp()+": SEM mag 2 = "+EMGetMagnification()+"\n")
+			print(datestamp()+": SEM mag 2 = "+EMGetMagnification())
 
 		// tell the state machine taking images is done
 		myStateMachine.stop_image()
@@ -1130,8 +1169,9 @@ Number IPrep_Mill()
 		myPW.updateB("PECS milling started")
 
 		// Mill sample 
-		myStateMachine.start_mill(0, 8000)	// (timeout of 4000s)
-		
+		myStateMachine.start_mill(0, 8000)	// (timeout of 8000s)
+		myStateMachine.stop_mill() // milling done
+
 		myPW.updateB("PECS milling done")
 		
 		print("milling done. new slice number: "+IPrep_sliceNumber())

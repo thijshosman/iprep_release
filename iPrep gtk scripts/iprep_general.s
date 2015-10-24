@@ -289,6 +289,15 @@ class safetyMediator:object
 	}
 
 
+	void HVOff(object self)
+	{
+		// turn the high tension in the microscope off in case there is a problem
+		sem.HVOff()
+		result("mediator: turning high tension off\n")
+	}
+
+
+
 }
 
 // define mediator object
@@ -402,6 +411,23 @@ void manualHaltOptionShift()
 		result("user manually aborted with shift+option\n")
 		throw("user aborted with shift+option")
 	}
+}
+
+string getSystemMode()
+{
+	// return the current mode of the system
+	string mode
+	taggroup tg = GetPersistentTagGroup()
+	TagGroupGetTagAsString(tg,"IPrep:simulation:mode", mode )
+	return mode
+}
+
+void setSystemMode(string mode)
+{
+	// return the current mode of the system
+	taggroup tg = GetPersistentTagGroup()
+	TagGroupSetTagAsString(tg,"IPrep:simulation:mode", mode )
+
 }
 
 object deadFlag = alloc(deadFlagObject)

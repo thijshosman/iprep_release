@@ -136,10 +136,10 @@ class workflow: object
 		TagGroupGetTagAsNumber(tg,"IPrep:simulation:transfer", sim_transfer )
 		TagGroupGetTagAsNumber(tg,"IPrep:simulation:gripper", sim_gripper )
 		TagGroupGetTagAsNumber(tg,"IPrep:simulation:pecscamera", sim_pecscamera )
-		TagGroupGetTagAsString(tg,"IPrep:simulation:mode", mode )
-
+		
 		// check tag to see if we use EBSD or planar Dock
 		// "planar" or "ebsd" string in tag
+		mode = getSystemMode()
 
 		// create two coordinates that we are going to set as the active coords for calibration
 		object reference
@@ -467,6 +467,7 @@ class workflow: object
 		//mySEM.HVOn()
 		//sleep(1)
 		mySEM.blankOff()
+
 if (XYZZY)
 {
 
@@ -1163,7 +1164,7 @@ class workflowStateMachine: object
 			lastCompletedStep.setState("MILL")
 		}
 		else
-			throw("commanded to perform milling step when sample is not in PECS")
+			throw("commanded to perform stop milling step when sample is not in PECS")
 	}
 
 
@@ -1183,7 +1184,7 @@ class workflowStateMachine: object
 
 		}
 		else
-			throw("commanded to perform imaging step when sample is not in SEM")
+			throw("wrong state: commanded to perform imaging step when sample is not in SEM")
 	}
 
 	void stop_image(object self)
@@ -1200,7 +1201,7 @@ class workflowStateMachine: object
 				self.print("elapsed time in imaging: "+(imageTock-imageTick)/1000+" s")
 		}
 		else
-			throw("commanded to perform imaging step when sample is not in SEM")
+			throw("wrong state: commanded to stop imaging step when sample is not in SEM")
 	}
 
 

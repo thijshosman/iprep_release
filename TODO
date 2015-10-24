@@ -95,6 +95,14 @@ IPrep_function(): executed repeatedly by ui workflow loop until loop is stopped
 IPrep_isrunning(): returns 0 or 1, depending on whether loop runs
 
 
+in manchester:
+-add FWD decoupling after EBSD run (since OI might change it)
+-make sure that an unsafe condition turns off beam (though mediator)
+-check rotation value against stored value on dock install
+-dock change procedure
+	-store rotation value
+	-make sure SEM is homed/will home after transfer to ensure no inconsistency problems when changing docks
+
 
 
 

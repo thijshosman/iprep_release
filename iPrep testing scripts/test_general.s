@@ -15,8 +15,12 @@ try
 	
 	//IPrep_image()
 	//IPrep_incrementSliceNumber()
-	IPrep_MoveToPECS()
+	//IPrep_MoveToPECS()
+
+	IPrep_Pecs_Image_beforemilling()
 	//IPrep_mill(1)
+	//IPrep_Pecs_Image_aftermilling()
+	
 	//IPrep_MoveToSEM()
 	
 	
@@ -121,6 +125,15 @@ for (i=0;i<50;i++)
 
 		
 	// *** SEM ***
+	// homing to clear:
+	//myWorkflow.returnSEM().homeToClear()
+
+	// add a coord
+	//object aCoord = alloc(SEMCoord)
+	//aCoord.set("testcoord3",3.11,2.22,4.33,2.2)
+	//result(returnSEMCoordManager().checkCoordExistence("StoredImaging")+"\n")
+	//returnSEMCoordManager().addCoord(aCoord)
+
 	//myWorkflow.returnSEM().printCoords()
 	//result("wf now: "+myWorkflow.returnSEM().getState()+"\n")
 	//myWorkflow.returnSEM().setManualState("clear")
@@ -133,6 +146,8 @@ for (i=0;i<50;i++)
 	//myWorkflow.returnSEM().goToHighGridFront()
 	//myWorkflow.returnSEM().goToLowerGrid()
 	//myWorkflow.returnSEM().goToScribeMark()
+	
+	// check consistency
 	//result("wposition accuracy: "+myWorkflow.returnSEM().checkPositionConsistency("pickup_dropoff")+"\n")
 	//result("state consistency: "+myWorkflow.returnSEM().checkStateConsistency()+"\n")
 	

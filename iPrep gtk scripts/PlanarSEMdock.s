@@ -277,33 +277,14 @@ class planarSEMdock : object
 		object lowerGrid = returnSEMCoordManager().getCoordAsCoord("lowerGrid")
 
 
-
-
-
-		//when the stage is at the calibrated pickup/dropoff position and calibrated there for transfer, 
-		//calculate the other 3 positions (clear, nominal_imaging and StoredImaging 
-		//and save them as absolute coordinates in private data)
 		
-		self.print("calibrateCoords: using calibrations from 20150903 ")
+		self.print("calibrateCoords: using calibrations from 20151024 (manchester nova planar dock) ")
 
 		// reference point is the point from which other coordinates are inferred
 		// the reference point for all coordinates is the pickup/dropoff point now
-		// TODO: change from hardcoded value to setting in global tags
-		
-		
 
-		// reference.set(7.5,66.5,28.755)
-		// reference.set(8,66.5,29.255)		// Pre-8/15 value
-
-//		scribe_pos.set( 31.117, 32.599, 30, 0 )		// 20150815 value; Assumes SEM FWD is coupled to FWD_grid, which is (29.6-7.41)=22.2 mm below the scribe mark
-//		scribe_pos.set( 30.829, 32.829, 30, 0 )		// 20150827 value; Assumes SEM FWD is coupled to FWD_grid, which is (29.6-7.41)=22.2 mm below the scribe mark
 		self.print("scribe position set: ")
 		scribe_pos.print()
-
-//		reference.set( scribe_pos.getX()-31.117+9.155, scribe_pos.getY()-32.599+71.133, scribe_pos.getZ()-30+12.25 ) // 20150815 value
-//		reference.set( 9.155, 71.133 , 12.25 )		// 20150815 value = > Use the pickup/dropoff point
-//		reference.set( scribe_pos.getX()-30.886+9.424, scribe_pos.getY()-32.862+71.396, scribe_pos.getZ()-30+12.753 ) // 20150828 value
-//		reference.set( 11.174, 71.396 , 12.756 )		// 20150903 value = > Use the pickup/dropoff point
 		self.print("reference set: ")
 		reference.print()
 
@@ -318,8 +299,8 @@ class planarSEMdock : object
 		clear.print()
 
 		// nominal imaging is approximate middle of sample
-		//nominal_imaging.set( scribe_pos.getX()-31.117+7.785, scribe_pos.getY()-32.599-13.226, scribe_pos.getZ()-30+30, 2.29 )
-		nominal_imaging.set( 0, 0, 0, 0 )
+		nominal_imaging.set( scribe_pos.getX()-23.9546, scribe_pos.getY()-38.6974, scribe_pos.getZ(), 0 )
+		
 		self.print("nominal_imaging set: ")
 		nominal_imaging.print()
 
@@ -329,19 +310,19 @@ class planarSEMdock : object
 		StoredImaging.print()
 
 		// grid on post at back position (serves as sanity check)
-		highGridBack.set( scribe_pos.getX()+(-4.831), scribe_pos.getY()+(-4.858), scribe_pos.getZ()-30+30, -0.12 )
+		highGridBack.set( scribe_pos.getX()-5.0715, scribe_pos.getY()+3.6686, scribe_pos.getZ(),0)
 		self.print("highGridBack set: ")
 		highGridBack.print()
 
 		// grid on post in front position (serves as sanity check)
-		highGridFront.set( scribe_pos.getX()+(-39.755), scribe_pos.getY()+(-4.778), scribe_pos.getZ()-30+30, -0.11 )
+		highGridFront.set( scribe_pos.getX()-40.1685, scribe_pos.getY()+3.3073, scribe_pos.getZ(), 0 )
 		self.print("highGridFront set: ")
 		highGridFront.print()
 
-		// grid on post for FWD Z-height calibration
+		// grid on post for FWD Z-height calibration, not used
 		fwdGrid.set( scribe_pos.getX()+22.761, scribe_pos.getY()+(-3.593), scribe_pos.getZ()-30+30, 22.19 )
-		self.print("highGridFront set: ")
-		highGridFront.print()
+		self.print("fwdGrid set: ")
+		fwdGrid.print()
 
 		// grid on base plate, formerly used for FWD Z-height cal, now not used // Save to remove all references to lowerGrid
 		lowerGrid.set(scribe_pos.getX()+4.747, scribe_pos.getY()+17.652, scribe_pos.getZ()-0.5+16.987, 44.29)

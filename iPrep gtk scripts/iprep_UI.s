@@ -37,10 +37,6 @@ void Save_imaging_XYZ_position( void )
 	
 	result(s2)	
 
-// Workaround for SEM magnification bug after using TH class for stored imaging #TODO:Fix
-		number old = emgetmagnification()
-		emsetmagnification(old)
-
 }
 
 void Goto_nominal_imaging(void)
@@ -55,9 +51,7 @@ void Goto_nominal_imaging(void)
 	if (OKCancelDialog(s1))
 		myWorkflow.returnSEM().goToStoredImaging()
 	
-	WorkaroundQuantaMagBug()
-
-
+	//WorkaroundQuantaMagBug()
 
 }
 
@@ -74,7 +68,7 @@ void Recall_imaging_XYZ_position( void )
 	if (OKCancelDialog(s1))
 		myWorkflow.returnSEM().goToStoredImaging()
 	
-	WorkaroundQuantaMagBug()
+	//WorkaroundQuantaMagBug()
 
 }
 
@@ -114,19 +108,42 @@ void Recall_imaging_position_focus( void )
 		myWorkflow.returnSEM().setDesiredWD(saved_focus)
 	}
 	
-	WorkaroundQuantaMagBug()
+	//WorkaroundQuantaMagBug()
 }
 
-void Goto_alignment_grid( void )
+void Goto_alignment_grid( void ) // not needed in Nova
 {
 	string s1 = "Move to FWD alignment grid?"
 	if (OKCancelDialog(s1))
 	{
 		myWorkflow.returnSEM().goTofwdGrid()
-		WorkaroundQuantaMagBug()
+		//WorkaroundQuantaMagBug()
 	}
 }
 
+void Goto_highgridback( void )
+{
+	string s1 = "Move to grid on post closest to back of chamber?"
+	if (OKCancelDialog(s1))
+	{
+		myWorkflow.returnSEM().goToHighGridBack()
+		//WorkaroundQuantaMagBug()
+	}
+
+
+}
+
+void Goto_highgridfront( void )
+{
+	string s1 = "Move to grid on post closest to front of chamber?"
+	if (OKCancelDialog(s1))
+	{
+		myWorkflow.returnSEM().goToHighGridFront()
+		//WorkaroundQuantaMagBug()
+	}
+
+
+}
 
 void Goto_scribe_mark( void )
 {
@@ -134,7 +151,7 @@ void Goto_scribe_mark( void )
 	if (OKCancelDialog(s1))
 	{
 		myWorkflow.returnSEM().goToScribeMark()
-		WorkaroundQuantaMagBug()
+		//WorkaroundQuantaMagBug()
 	}
 }
 
@@ -181,7 +198,7 @@ void Recall_imaging_parameters_from_image( void )
 			EMSetStageXY( XX, YY )
 		}
 		
-		WorkaroundQuantaMagBug()
+		//WorkaroundQuantaMagBug()
 
 	}
 		
@@ -196,6 +213,19 @@ void reseat(void)
 }
 
 
+// setup and init functions
+
+void IPrep_setEBSD(void)
+{
+	// #todo: check current state
+	IPrep_toggle_planar_ebsd("ebsd")
+}
+
+void IPrep_setPlanar(void)
+{
+	// #todo: check current state
+	IPrep_toggle_planar_ebsd("planar")
+}
 
 // recovery functions
 // intended to get the system consistent again
@@ -219,6 +249,11 @@ void lowerPECSStage(void)
 void openGV(void)
 {
 	myWorkflow.returnPECS().openGVandCheck()
+}
+
+void closeGV(void)
+{
+	myWorkflow.returnPECS().closeGVandCheck()
 }
 
 void setAliveSafe(void)
@@ -284,12 +319,14 @@ void iprep_InstallMenuItems( void )
 	string SS_MENU_HEAD = "iPrep"
 	string SS_SUB_MENU_0 = "Workflow"
 	string SS_SUB_MENU_1 = "SEM"
-	string SS_SUB_MENU_2 = "Recovery and Setup"
-	string SS_SUB_MENU_3 = "PECS"
+	string SS_SUB_MENU_2 = "PECS"
+	string SS_SUB_MENU_3 = "Recovery and Setup"
+	string SS_SUB_MENU_4 = "Workflow Items"
+
 
 	// workflow	
 	AddScriptToMenu( "Set_starting_slice_number()", "Set starting slice number...", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
-
+	AddScriptToMenu( "iprep_setup_imaging()", "use current settings for imaging", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
 
 	// SEM
 	AddScriptToMenu( "Save_imaging_XYZ_position()", "Save imaging XYZ position...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
@@ -307,24 +344,32 @@ void iprep_InstallMenuItems( void )
 	AddScriptToMenu( "beep()", "------", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
 	
 	AddScriptToMenu( "Goto_scribe_mark()", "Goto scribe mark...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
-	AddScriptToMenu( "Goto_alignment_grid()", "Goto FWD alignment grid...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
+	//AddScriptToMenu( "Goto_alignment_grid()", "Goto FWD alignment grid...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "Goto_nominal_imaging()", "Goto nominal imaging position...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
+	AddScriptToMenu( "Goto_highgridback()", "Goto grid on back post...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
+	AddScriptToMenu( "Goto_highgridfront()", "Goto grid on front post...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 
 	AddScriptToMenu( "beep()", "--", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
 
 	// PECS
-	AddScriptToMenu( "reseat()", "reseat sample carrier in PECS mount", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
+	AddScriptToMenu( "reseat()", "reseat sample carrier in PECS mount", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
 
-	// RECOVERY
-	
-	AddScriptToMenu( "IPrep_init()", "Initialize Hardware and Workflow", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
-	AddScriptToMenu( "IPrep_consistency_check()", "IPrep state consistency check", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
-	AddScriptToMenu( "IPrep_recover_deadflag()", "auto recover from dead state", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
+	// setup
+	AddScriptToMenu( "IPrep_init()", "Initialize Hardware and Workflow", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
+	AddScriptToMenu( "IPrep_consistency_check()", "IPrep state consistency check", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
+	AddScriptToMenu( "IPrep_recover_deadflag()", "auto recover from dead state", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
+	AddScriptToMenu( "IPrep_setEBSD()", "setup EBSD dock and switch to EBSD mode", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
+	AddScriptToMenu( "IPrep_setPlanar()", "setup Planar dock and switch to Planar mode", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 
+	// looped workflow elements
+	AddScriptToMenu( "IPrep_image()", "Run Image step...", SS_MENU_HEAD , SS_SUB_MENU_4 , 0)
+	AddScriptToMenu( "IPrep_incrementSliceNumber()", "Increment slice number by 1", SS_MENU_HEAD , SS_SUB_MENU_4 , 0)
+	AddScriptToMenu( "IPrep_MoveToPECS()", "Move sample to PECS", SS_MENU_HEAD , SS_SUB_MENU_4 , 0)
+	AddScriptToMenu( "IPrep_Pecs_Image_beforemilling()", "Take PECS Camera image before milling", SS_MENU_HEAD , SS_SUB_MENU_4 , 0)
+	AddScriptToMenu( "IPrep_mill()", "Run Milling step...", SS_MENU_HEAD , SS_SUB_MENU_4 , 0)
+	AddScriptToMenu( "IPrep_Pecs_Image_aftermilling()", "Take PECS Camera image after milling", SS_MENU_HEAD , SS_SUB_MENU_4 , 0)
+	AddScriptToMenu( "IPrep_MoveToSEM()", "Move sample to SEM", SS_MENU_HEAD , SS_SUB_MENU_4 , 0)
 
-
-	
-	AddScriptToMenu( "setAliveSafe()", "remove dead/unsafe flag", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
 
 	// service menu #todo: make password protected
 	string SS_MENU_HEAD_SERVICE = "Service"
@@ -335,11 +380,11 @@ void iprep_InstallMenuItems( void )
 
 	AddScriptToMenu( "homeSEMStageToClear()", "home SEM stage to clear", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
 	AddScriptToMenu( "openGV()", "open gate valve", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
+	AddScriptToMenu( "closeGV()", "close gate valve", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
 	AddScriptToMenu( "homeParker()", "home parker stage", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
 	AddScriptToMenu( "lowerPECSStage", "lower pecs stage", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
 	AddScriptToMenu( "setSEMstate()", "set workflow state to SEM", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
 	AddScriptToMenu( "setPECSstate()", "set workflow state to PECS", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
-
 
 
 	AddScriptToMenu( "setAliveSafe()", "remove dead/unsafe flag", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_0 , 0)
