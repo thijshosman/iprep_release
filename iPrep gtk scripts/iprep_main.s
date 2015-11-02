@@ -748,9 +748,9 @@ Number IPrep_MoveToSEM()
 	catch
 	{
 		// system caught unhandled exception and is now considered dead/unsafe
-		//print(GetExceptionString()+", system now dead/unsafe")
-		//returnDeadFlag().setDead(1, "movetosem", GetExceptionString())
-		//returnDeadFlag().setSafety(0, "IPrep_MoveToSEM failed")
+		print(GetExceptionString()+", system now dead/unsafe")
+		returnDeadFlag().setDead(1, "movetosem", GetExceptionString())
+		returnDeadFlag().setSafety(0, "IPrep_MoveToSEM failed")
 		returncode = 0 // irrecoverable error
 		//okdialog("not allowed. "+ GetExceptionString())
 		break // so that flow contineus
@@ -1108,6 +1108,19 @@ if (XYZZY)
 */
 
 }
+
+number IPrep_acquire_ebsd()
+{
+	print("IPrep_acquire_ebsd")
+	// #todo: implement
+	if (getSystemMode() == 'ebsd')
+	{
+		myStateMachine.
+	}
+
+
+}
+
 
 Number IPrep_Pecs_Image_beforemilling()
 {

@@ -103,6 +103,9 @@ in manchester:
 	-store rotation value
 	-make sure SEM is homed/will home after transfer to ensure no inconsistency problems when changing docks
 
+-add ebsd step to workflow
+-make different functions for transfering in workflow and as ui elements
+
 
 
 

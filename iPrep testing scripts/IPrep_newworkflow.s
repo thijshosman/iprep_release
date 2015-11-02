@@ -73,12 +73,46 @@ object returnPauseVar()
 	return myPauseVar
 }
 
+number IPrep_process_response(number returnval)
+{
+	if (i==0) // imaging, repeat if function returns 0
+	{
+		
+		number returnval = IPrep_image()
+
+		if (returnval==1)
+		{	
+			// success
+			returni().increment() // increment i if function succeeds
+		}
+		else if (returnval == -1)
+		{
+			// failure, repeat step next iteration, i remains the same
+			//#todo: count number of repeats for a step and throw something if it is more than 2
+		} 
+
+		// if stop button is pressed or irrecoverable error ocuured, stop loop
+		if (returnStopVar().get() || returnval == 0)
+		{
+			returnstopVar().set(0) // set stopvar back to 0
+			//IPrep_abortrun() // send UI stop command, may not be needed #todo
+			returnPauseVar().set(0) // set pausevar back to 0, just in case in was pressed
+			return 0 
+		}
+
+		// if pause button is pressed, stop loop and wait for resume or stop
+		if (returnPauseVar().get())
+		{
+			returnPauseVar().set(0) // set pausevar back to 0
+			return 0 
+		}
+
+		return 1
+}
+
+
 number IPrep_loop()
 {
-
-
-	
-
 
 	while (1)
 	{
@@ -86,7 +120,7 @@ number IPrep_loop()
 	// get i	
 	number i = returni().get()// start loop at this step
 
-		if (i==0) // imaging
+		if (i==0) // imaging, repeat if function returns 0
 		{
 			
 			number returnval = IPrep_image()
@@ -98,9 +132,17 @@ number IPrep_loop()
 			}
 			else if (returnval == -1)
 			{
-				// failure, repeat step next time
+				// failure, repeat step next iteration
+			} 
 
-			}	
+			// if stop button is pressed or irrecoverable error ocuured, stop loop
+			if (returnStopVar().get() || returnval == 0)
+			{
+				returnstopVar().set(0) // set stopvar back to 0
+				//IPrep_abortrun() // send UI stop command, may not be needed #todo
+				returnPauseVar().set(0) // set pausevar back to 0, just in case in was pressed
+				break 
+			}
 
 			// if pause button is pressed, stop loop and wait for resume or stop
 			if (returnPauseVar().get())
@@ -109,40 +151,39 @@ number IPrep_loop()
 				break 
 			}
 
-			// if stop button is pressed or irrecoverable error ocuured, stop loop
-			if (returnStopVar().get() || returnval == 0)
-			{
-				returnstopVar().set(0) // set stopvar back to 0
-				IPrep_abortrun() // send UI stop command
-				break 
-			}
-
-
-
 		} 
-		else if (i==1) // move to pecs
+		else if (i==1) // ebsd imaging, repeat if function returns 0
 		{
-			//IPrep_MoveToPECS()
+			number returnval = IPrep_acquire_ebsd()
+			// #todo
+
+			if (!IPrep_process_response(returnval))
+				break
+
+		}		
+		else if (i==2) // increment the slice number
+		{
+			number returnval = IPrep_IncrementSliceNumber()
 		}
-		else if (i==2) // image in pecs before milling
+		else if (i==3) // move to pecs, do not repeat
 		{
-			//IPrep_Pecs_Image_beforemilling()
+			number returnval = IPrep_MoveToPECS()
 		}
-		else if (i==3) // mill
+		else if (i==4) // image in pecs before milling, repeat if function returns 0
 		{
-			//IPrep_mill()
+			number returnval = IPrep_Pecs_Image_beforemilling()
 		}
-		else if (i==4) // image in pecs after milling
+		else if (i==5) // mill, do not repeat
 		{
-			//IPrep_Pecs_Image_aftermilling()
+			number returnval = IPrep_mill()
 		}
-		else if (i==5) // increment the slice number
+		else if (i==6) // image in pecs after milling, repeat if function returns 0
 		{
-			//IPrep_IncrementSliceNumber()
+			number returnval = IPrep_Pecs_Image_aftermilling()
 		}
-		else if (i==6) // move to sem
+		else if (i==7) // move to sem
 		{
-			//IPrep_MoveToSEM()
+			number returnval = IPrep_MoveToSEM()
 		}
 		else if (i==7) 
 		{
