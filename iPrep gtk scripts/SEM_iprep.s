@@ -903,13 +903,13 @@ if (XYZZY)		self.setWDForImaging()
 		kV = SEMkVPersistance.getNumber()		
 		
 		// check that the state we think SEM is in is indeed correct
-		if (!self.checkStateConsistency())
+/*		if (!self.checkStateConsistency())
 		{
 			self.print("state inconsistent, SEM stage is not where state machine thinks it is")
 			if (!okcanceldialog("state inconsistent, SEM stage is not where state machine thinks it is. continue anyway?"))
 				throw("state inconsistent, SEM stage is not where state machine thinks it is")
 		}
-
+*/
 
 		self.print("init sem voltage: " +kV)
 		self.print("init sem working distance: " +imagingWD)

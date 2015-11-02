@@ -17,7 +17,7 @@ try
 	//IPrep_incrementSliceNumber()
 	//IPrep_MoveToPECS()
 
-	IPrep_Pecs_Image_beforemilling()
+	//IPrep_Pecs_Image_beforemilling()
 	//IPrep_mill(1)
 	//IPrep_Pecs_Image_aftermilling()
 	
@@ -40,6 +40,8 @@ try
 	// *** gripper ***
 	//myWorkflow.returnGripper().setManualState("open")
 	//myWorkflow.returnGripper().setManualState("closed")
+	//myWorkflow.returnGripper().open()		
+	//myWorkflow.returnGripper().close()
 /*
 number i
 
@@ -52,8 +54,7 @@ for (i=0;i<50;i++)
 }
 */
 	
-	//myWorkflow.returnGripper().open()		
-	//myWorkflow.returnGripper().close()
+
 	
 //myWorkflow.returnGripper().lookupState(1)
 	//sleep(5)
@@ -112,6 +113,9 @@ for (i=0;i<50;i++)
     //myWorkflow.returnTransfer().move("dropoff_pecs_backoff") // location where sample gets dropped off in PECS
     //myWorkflow.returnTransfer().turnOff()  // turn off Parker to stop noise
     //myWorkflow.returnTransfer().move("test")  // test location from tags  
+	//result(MyWorkflow.returnTransfer().getCurrentPosition())
+	//result(MyWorkflow.returnTransfer().returnParkerPositions().getCurrentPosition())
+
 
 
     //result(myWorkflow.returnTransfer().getCurrentPosition())

@@ -11,6 +11,7 @@ class workflow: object
 	object mySEM
 	object myPecsCamera
 	object myDigiscan
+	object myEBSD
 
 	// haltflag used to interrupt workflow elements if set
 	object haltFlag
@@ -119,15 +120,13 @@ class workflow: object
 	void init(object self)
 	{
 		// initialize hardware. use factory. 1 = simulation
-		// TODO: make abstract factory, use tags to define which class
-		// TODO: EBSD dock option
 		// in general: simulion = 1, normal hardware = 2
 
 		self.print("--- start init ---")
 
 		// get all simulation numbers
 		TagGroup tg = GetPersistentTagGroup() 
-		number sim_pecs, sim_digiscan, sim_sem, sim_transfer, sim_gripper, sim_pecscamera, sim_dock
+		number sim_pecs, sim_digiscan, sim_sem, sim_transfer, sim_gripper, sim_pecscamera, sim_dock, sim_ebsd
 
 		TagGroupGetTagAsNumber(tg,"IPrep:simulation:dock", sim_dock )
 		TagGroupGetTagAsNumber(tg,"IPrep:simulation:pecs", sim_pecs )
@@ -136,14 +135,13 @@ class workflow: object
 		TagGroupGetTagAsNumber(tg,"IPrep:simulation:transfer", sim_transfer )
 		TagGroupGetTagAsNumber(tg,"IPrep:simulation:gripper", sim_gripper )
 		TagGroupGetTagAsNumber(tg,"IPrep:simulation:pecscamera", sim_pecscamera )
+		TagGroupGetTagAsNumber(tg,"IPrep:simulation:ebsd", sim_ebsd )
 		
 		// check tag to see if we use EBSD or planar Dock
 		// "planar" or "ebsd" string in tag
 		mode = getSystemMode()
 
-		// create two coordinates that we are going to set as the active coords for calibration
-		object reference
-		object scribe_pos
+
 
 		self.print(mode+"\n")
 
@@ -156,10 +154,7 @@ class workflow: object
 				mySEMdock = createDock(2)
 
 			// get reference and scribe_pos for values defined for this dock
-
-			reference = returnSEMCoordManager().getCoordAsCoord("reference_planar")
-			scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_planar")
-			
+	
 	
 
 
@@ -174,8 +169,7 @@ class workflow: object
 
 			// get reference and scribe_pos for values defined for this dock
 
-			reference = returnSEMCoordManager().getCoordAsCoord("reference_ebsd")
-			scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_ebsd")
+
 
 			
 			
@@ -186,15 +180,13 @@ class workflow: object
 			throw("system mode (planar or ebsd) not set!")
 		}
 
-		// update reference and scribe_pos to the right values
-		returnSEMCoordManager().addCoord(scribe_pos)
-		returnSEMCoordManager().addCoord(reference)
-
 
 
 		// init SEM Dock
 		mySEMdock.init()
-		mySEMdock.calibrateCoords()
+
+
+
 
 
 
@@ -226,7 +218,10 @@ class workflow: object
 		myDigiscan = createDigiscan(sim_digiscan)
 		myDigiscan.init()
 
-		// init EBSD camera #todo
+		// init EBSD camera
+		myEBSD = createEBSDHandshake(sim_ebsd)
+		// type 1 is simulator, 2 is manual, 3 is OI interface
+
 
 
 		// print start states
@@ -290,6 +285,50 @@ class workflow: object
 			throw("system mode not set!")
 	}	
 
+	void calibrateForMode(object self)
+	{
+		// calibrate SEMdock and parker for this particular mode
+		self.print("calibrating sem postions and parker positions for mode")
+
+		// parker transfer		
+		self.setDefaultPositions() // queries mode and sets parker positions correctly
+		myTransfer.init()
+
+		mode = getSystemMode()
+		self.print("mode = "+mode)
+		
+		// create two coordinates that we are going to set as the active coords for calibration
+		object reference
+		object scribe_pos
+		
+		if (mode == "planar")
+		{
+
+			reference = returnSEMCoordManager().getCoordAsCoord("reference_planar")
+			scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_planar")
+			mySEMdock = createDock(2)
+		} 
+		else if (mode == "ebsd")
+		{
+			reference = returnSEMCoordManager().getCoordAsCoord("reference_ebsd")
+			scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_ebsd")		
+			mySEMdock = createDock(3)
+
+		}
+
+		// update reference and scribe_pos to the right values
+		self.print("new coords: ")
+		scribe_pos.print()
+		reference.print()
+		returnSEMCoordManager().addCoord(scribe_pos)
+		returnSEMCoordManager().addCoord(reference)
+		
+		// now calibrate SEM dock
+		
+		mySEMdock.calibrateCoords()
+
+	}
+
 	void makeParkerAdjustments(object self)
 	{
 		// adjust all the parker tags with the delta tags
@@ -346,6 +385,11 @@ class workflow: object
 	object returnDigiscan(object self)
 	{
 		return myDigiscan
+	}
+
+	object returnEBSD(object self)
+	{
+		return myEBSD
 	}
 
 	// *** testing ***
@@ -459,36 +503,10 @@ class workflow: object
 
 	}
 
-	void preImaging(object self)
-	{
-		// prepares system for taking of image, like setting HV and WD settings and unblanking beam
-		
-		// we want to keep HV on during the whole experiment, but we have enabled/disabled it during transfers for testing
-		//mySEM.HVOn()
-		//sleep(1)
-		mySEM.blankOff()
 
-if (XYZZY)
-{
 
-		// set WD and kV to correct value, as determined by configuration
-		// NB: needs to be in this order, otherwise setting kV will reset WD
-		mySEM.setkVForImaging()
-		mySEM.setWDForImaging()
-}
-		self.print("preimaging done")
-	}
-	
-	void postImaging(object self)
-	{
-		mySEM.blankOn()
 
-		// for testing purposes only, we want to leave HV on
-		// mySEM.HVOff()
-		
-		// does some cleaning up after imaging, like blanking beam 
-		self.print("postimaging done")
-	}
+
 
 	void removeSampleFromSEM(object self)
 	{
@@ -674,6 +692,9 @@ if (XYZZY)
 		// this method is part of speed improvements in the workflow. we try to get the sample as fast
 		// between the two points as a synchronous workflow allows. 
 
+		// lockout PECS UI
+		myPecs.lockout()
+
 		// move pecs stage down
 		myPecs.moveStageDown()
 
@@ -709,8 +730,8 @@ if (XYZZY)
 		// move SEM stage to clear point so that dock is out of the way
 		mySEM.goToClear()
 
-		// check that sample is no longer present in dock
-/*		if (mySEMdock.checkSamplePresent())
+/*		// check that sample is no longer present in dock
+		if (mySEMdock.checkSamplePresent())
 		{
 			self.print("sample still detected in dock after pickup")
 			throw("sample still detected in dock after pickup")
@@ -746,12 +767,18 @@ if (XYZZY)
 		// turn transfer system off
 		myTransfer.turnOff()
 
+		// unlock
+		myPecs.unlock()
+
 	}
 
 	void fastPecsToSem(object self)
 	{
 		// this method is part of speed improvements in the workflow. we try to get the sample as fast
 		// between the two points as a synchronous workflow allows. 
+
+		// lockout PECS UI
+		myPecs.lockout()
 
 		// lower pecs stage
 		myPecs.moveStageDown()
@@ -831,12 +858,18 @@ if (XYZZY)
 		// turn transfer system off
 		myTransfer.turnOff()
 
+		// unlock
+		myPecs.unlock()
+
 	}
 
 	void reseat(object self)
 	{
 		// move sample out and into dovetail 
 		// use after sample transfer so that it will be in the same position as during transfer
+
+		// lockout PECS UI
+		myPecs.lockout()
 
 		// lower pecs stage
 		myPecs.moveStageDown()
@@ -884,12 +917,18 @@ if (XYZZY)
 
 		// turn transfer system off
 		myTransfer.turnOff()
+
+		// unlock
+		myPecs.unlock()
 	}
 
 
 
-	void executeMillingStep(object self, number simulation)
+	void executeMillingStep(object self, number simulation, number timeout)
 	{
+		self.print("milling started...")
+
+		myPecs.unlock()
 
 		// raise stage
 		myPecs.moveStageUp()
@@ -899,8 +938,89 @@ if (XYZZY)
 			myPecs.startMilling()
 		else
 			myPecs.stageHome()
+
+		self.print("hold Option + Shift to skip remainder of milling milling")
+
+		number tick = GetOSTickCount()		
+		number tock
+		
+		while (myPecs.getMillingStatus()!=0)
+		{
+			tock = GetOSTickCount()
+			if ((tock-tick)/1000 > timeout)
+			{
+				self.print("timeout passed")
+				myPecs.stopMilling()
+
+				// home stage since picture should still be at home
+				myPecs.stageHome()
+				break	
+			}
+			
+			if ((optiondown() && shiftdown()))
+			{
+				self.print("aborted")
+				myPecs.stopMilling()
+
+				// home stage since picture should still be at home
+				myPecs.stageHome()
+				break
+			}
+
+			self.print("milling time remaining: "+myPecs.millingTimeRemaining())
+
+			sleep(1)
+			
+		}
+		self.print("elapsed time in milling: "+(tock-tick)/1000+" s")		
+		myPecs.lockout()
 		
 	}	
+
+	void preImaging(object self)
+	{
+		// prepares system for taking of image, like setting HV and WD settings and unblanking beam
+		
+		// we want to keep HV on during the whole experiment, but we have enabled/disabled it during transfers for testing
+		//mySEM.HVOn()
+		//sleep(1)
+		mySEM.blankOff()
+
+if (XYZZY)
+{
+
+		// set WD and kV to correct value, as determined by configuration
+		// NB: needs to be in this order, otherwise setting kV will reset WD
+		mySEM.setkVForImaging()
+		mySEM.setWDForImaging()
+}
+		self.print("preimaging done")
+	}
+	
+	void postImaging(object self)
+	{
+		mySEM.blankOn()
+
+		// for testing purposes only, we want to leave HV on
+		// mySEM.HVOff()
+		
+		// does some cleaning up after imaging, like blanking beam 
+		self.print("postimaging done")
+	}
+
+	void executeEBSD(object self)
+	{
+		// send to SEM whatever needs to be sent to start EBSD acquisition
+		// then tell ebsd handshaker to start
+		mySEM.blankOff()
+		
+	}
+
+	void postEBSD(object self)
+	{
+		mySEM.blankOn()
+		self.print("postebsd done")
+	}
 
 	// *** additional testing methods ***
 
@@ -1098,55 +1218,7 @@ class workflowStateMachine: object
 		if (workflowState == "PECS")
 		{	
 
-				number tick = GetOSTickCount()
-				number tock
-				myWorkflow.executeMillingStep(simulation)
-				myWorkflow.returnPECS().unlock()
-				
-				self.print("hold Option + Shift to skip remainder of milling milling")
-				
-				// if simulating, return immediately
-				while (myWorkflow.returnPECS().getMillingStatus()!=0)
-				{
-					tock = GetOSTickCount()
-					if ((tock-tick)/1000 > timeout)
-					{
-						self.print("timeout passed")
-						myWorkflow.returnPECS().stopMilling()
-
-						// home stage since picture should still be at home
-						myWorkflow.returnPECS().stageHome()
-						break	
-					}
-					
-					if ((optiondown() && shiftdown()))
-					{
-						self.print("aborted")
-						myWorkflow.returnPECS().stopMilling()
-
-						// home stage since picture should still be at home
-						myWorkflow.returnPECS().stageHome()
-						break
-					}
-
-					self.print("milling time remaining: "+myWorkflow.returnPECS().millingTimeRemaining())
-
-					sleep(1)
-					
-				}
-					
-				myWorkflow.returnPECS().lockout()
-
-				if (simulation == 1)
-				{
-					self.print("simulation, homing stage")
-					myWorkflow.returnPECS().stageHome()
-				}
-
-				tock = GetOSTickCount()
-				self.print("elapsed time in milling: "+(tock-tick)/1000+" s")
-				
-
+				myWorkflow.executeMillingStep(simulation, timeout)
 
 		}
 		else
@@ -1157,7 +1229,7 @@ class workflowStateMachine: object
 	void stop_mill(object self)
 	{
 		// *** public ***
-		// stop imaging	
+		// stop milling	
 
 		if (workflowState == "PECS")
 		{	
@@ -1204,6 +1276,42 @@ class workflowStateMachine: object
 			throw("wrong state: commanded to stop imaging step when sample is not in SEM")
 	}
 
+	void start_ebsd(object self)
+	{
+		// *** public ***
+		// start acquiring EBSD data
+		
+		imageTick = GetOSTickCount()
+
+		if (workflowState == "SEM")
+		{	
+
+			myWorkflow.executeEBSD()
+
+			// allow user to cancel
+
+		}
+		else
+			throw("wrong state: commanded to perform EBSD step when sample is not in SEM")
+	}
+
+	void stop_ebsd(object self)
+	{
+		// *** public ***
+		// stop acquiring EBSD data	
+
+		if (workflowState == "SEM")
+		{	
+			myWorkflow.postEBSD()
+
+			lastCompletedStep.setState("EBSD")
+			imageTock = GetOSTickCount()
+			if(imageTock > 0)
+				self.print("elapsed time in EBSD acquisition: "+(imageTock-imageTick)/1000+" s")
+		}
+		else
+			throw("wrong state: commanded to stop EBSD acquisition step when sample is not in SEM")
+	}
 
 	void SMtestroutine(object self)
 	{

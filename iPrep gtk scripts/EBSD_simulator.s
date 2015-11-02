@@ -4,11 +4,16 @@ class EBSD_simulator: object
 {
 	// give control to the EBSD system and hand it back over to the workflow when done
 
+	void init(object self)
+	{
+		//
+	}
+
 	number EBSD_start(object self)
 	{
-		result("EBSD acquiring...\n")
+		result("EBSD simulator acquiring...\n")
 		sleep(4)
-		result("EBSD acquisition done \n")
+		result("EBSD simulator acquisition done \n")
 		return 1
 	}
 

@@ -68,6 +68,10 @@ InstallFile( PathConcatenate( gPath, "pecscamera_simulator.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "digiscan_iprep.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "digiscan_simulator.s" ), package, 3 )
 
+InstallFile( PathConcatenate( gPath, "ebsd_simulator.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "ebsd_manual.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "ebsd_oi_automatic.s" ), package, 3 )
+
 InstallFile( PathConcatenate( gPath, "linearWorkflow.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "iprep_main.s" ), package, 3 )
 

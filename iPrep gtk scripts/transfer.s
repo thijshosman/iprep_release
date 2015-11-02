@@ -26,6 +26,12 @@ class parkerTransfer:object
 		self.log(2,text)
 	}
 
+	object returnParkerPositions(object self)
+	{
+		return parkerPositions
+	}
+
+
 	void restoreState(object self)
 	{
 		// *** private ***
@@ -43,18 +49,18 @@ class parkerTransfer:object
 		cmd = command
 		// try sending command. if it throws exception, silently ignore it once and try again
 		// this will help the occasional error as observed in testing
-		try 
-		{
+		//try 
+		//{
 			Parker_SendCommand(cmd, reply)
-		}
-		catch
-		{
-			self.print("level 1 error generated with command: "+cmd)
-			debug("level 1 error generated with command: "+cmd+"\n")
-			sleep(2)
-			Parker_SendCommand(cmd, reply)
-		break
-		}
+		//}
+		//catch
+		//{
+		//	self.print("level 1 error generated with command: "+cmd)
+		//	debug("level 1 error generated with command: "+cmd+"\n")
+		//	sleep(2)
+		//	Parker_SendCommand(cmd, reply)
+		//	break
+		//}
 		//self.print("Reply to command \""+cmd+"\" is "+reply)
 		sleep(0.1)
 		return reply
@@ -222,7 +228,7 @@ class parkerTransfer:object
 	number consistencycheck(object self)
 	{
 		// see if position last saved in tags is different from what controller thinks
-		if ((self.getCurrentPosition() - parkerPositions.getCurrentPosition())<accuracy)
+		if (abs(self.getCurrentPosition() - parkerPositions.getCurrentPosition())<accuracy)
 			return 1
 		else
 			return 0

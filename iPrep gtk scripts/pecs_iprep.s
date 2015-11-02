@@ -330,7 +330,7 @@ class pecs_iprep: object
 			// success
 			return 1
 		} else {
-			self.print()
+			self.print("pecs stage not in correct state")
 			return 0
 		}
 	}

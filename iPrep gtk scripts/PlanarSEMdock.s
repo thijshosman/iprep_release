@@ -107,7 +107,7 @@ class planarSEMdock : object
 		self.sendCommand("m30h0l27L10000V10000R")
 
 		self.sendCommand("T")
-		self.print("dock initialized")
+		self.print("dock initialized (planar)")
 	}
 	
 	void PLANARsemDOCK(object self) 
@@ -299,7 +299,7 @@ class planarSEMdock : object
 		clear.print()
 
 		// nominal imaging is approximate middle of sample
-		nominal_imaging.set( scribe_pos.getX()-23.9546, scribe_pos.getY()-38.6974, scribe_pos.getZ(), 0 )
+		nominal_imaging.set( scribe_pos.getX()-22.8104, scribe_pos.getY()-38.6801, scribe_pos.getZ(), 0 )
 		
 		self.print("nominal_imaging set: ")
 		nominal_imaging.print()

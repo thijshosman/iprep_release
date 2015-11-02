@@ -37,9 +37,20 @@ class progressWindow: object
 		self.flip()
 	}
 
+	void updatePW(object self, string update)
+	{
+		// for mediator
+		self.updateC(update)
+	}
+
 }
 
+// convention for use progress window:
 
+// A: where is sample
 
+// B: what is current state of active device
+
+// C: what is slice number
 
 

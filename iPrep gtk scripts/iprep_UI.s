@@ -41,7 +41,7 @@ void Save_imaging_XYZ_position( void )
 
 void Goto_nominal_imaging(void)
 {
-	object myNI = returnSEMCoordManager().getCoordAsCoord("NominalImaging")
+	object myNI = returnSEMCoordManager().getCoordAsCoord("nominal_imaging")
 	number xx,yy,zz
 	xx=myNI.getX()
 	yy=myNI.getY()
@@ -49,7 +49,7 @@ void Goto_nominal_imaging(void)
 
 	string s1 = "Nominal imaging position\n("+xx+","+yy+","+zz+")\n\nGo there now?"
 	if (OKCancelDialog(s1))
-		myWorkflow.returnSEM().goToStoredImaging()
+		myWorkflow.returnSEM().goToNominalImaging()
 	
 	//WorkaroundQuantaMagBug()
 
@@ -206,12 +206,29 @@ void Recall_imaging_parameters_from_image( void )
 
 // PECS functions
 
-void reseat(void)
+void pecs_reseat(void)
 {
 	if (okcanceldialog("reseat the carrier in the PECS mount by moving it out and back in?"))
-	myStateMachine.reseat()
+		myStateMachine.reseat()
 }
 
+void pecs_raise(void)
+{
+	if (okcanceldialog("raise the PECS stage?"))
+		myWorkflow.returnPecs().moveStageUp()
+}
+
+void pecs_lower(void)
+{
+	if (okcanceldialog("lower the PECS stage?"))
+		myWorkflow.returnPecs().moveStageDown()
+}
+
+void pecs_home(void)
+{
+	if (okcanceldialog("home the PECS stage?"))
+		myWorkflow.returnPecs().stageHome()
+}
 
 // setup and init functions
 
@@ -235,6 +252,10 @@ void homeSEMStageToClear(void)
 	myWorkflow.returnSEM().homeToClear()
 }
 
+void gotoPickupDropoff(void)
+{
+	myWorkflow.returnSEM().goToPickup_Dropoff()
+}
 
 void homeParker(void)
 {
@@ -256,6 +277,27 @@ void closeGV(void)
 	myWorkflow.returnPECS().closeGVandCheck()
 }
 
+void clamp(void)
+{
+	myWorkflow.returnSEMDock().clamp()
+}
+
+void unclamp(void)
+{
+	myWorkflow.returnSEMDock().unclamp()
+}
+
+void lockPecs(void)
+{
+	myWorkflow.returnPECS().lockout()
+}
+
+void unlockPecs(void)
+{
+	myWorkflow.returnPECS().unlock()
+}
+
+
 void setAliveSafe(void)
 {
 	returnDeadFlag().setAliveSafe()
@@ -264,12 +306,18 @@ void setAliveSafe(void)
 void setSEMstate(void)
 {
 	myStateMachine.changeWorkflowState("SEM")
+
 }
 
 void setPECSstate(void)
 {
 	myStateMachine.changeWorkflowState("PECS")
+
 }
+
+
+
+
 
 void saveTagsToFile(void)
 {
@@ -310,6 +358,15 @@ void Set_autofocus_enable_dialog( void )
 		SetPersistentNumberNote( tagname, afs_enable )
 
 }
+
+
+
+
+
+
+
+
+
 /////////////////////
 // Menus
 /////////////////////
@@ -321,7 +378,7 @@ void iprep_InstallMenuItems( void )
 	string SS_SUB_MENU_1 = "SEM"
 	string SS_SUB_MENU_2 = "PECS"
 	string SS_SUB_MENU_3 = "Recovery and Setup"
-	string SS_SUB_MENU_4 = "Workflow Items"
+	string SS_SUB_MENU_5 = "Loop Control"
 
 
 	// workflow	
@@ -329,22 +386,29 @@ void iprep_InstallMenuItems( void )
 	AddScriptToMenu( "iprep_setup_imaging()", "use current settings for imaging", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
 
 	// SEM
-	AddScriptToMenu( "Save_imaging_XYZ_position()", "Save imaging XYZ position...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
+	AddScriptToMenu( "homeSEMStageToClear()", "home SEM stage to clear", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 
-	AddScriptToMenu( "Recall_imaging_XYZ_position()", "Recall imaging position...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
+	AddScriptToMenu( "beep()", "---", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
+
+	AddScriptToMenu( "Save_imaging_XYZ_position()", "Save imaging XYZ position (as stored imaging)...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
+	AddScriptToMenu( "Recall_imaging_XYZ_position()", "Recall imaging position (as stored imaging)...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
+	
 	AddScriptToMenu( "beep()", "---", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
 
 	AddScriptToMenu( "Recall_imaging_parameters_from_image()", "Recall imaging parameters from front image...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
+	
 	AddScriptToMenu( "beep()", "-----", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
+	
 	AddScriptToMenu( "Save_imaging_position_focus()", "Save imaging position focus...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "Recall_imaging_position_focus()", "Recall imaging position focus...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
+	
 	AddScriptToMenu( "beep()", "----", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
 
 	AddScriptToMenu( "Set_autofocus_enable_dialog()", "Set autofocus state...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
+	
 	AddScriptToMenu( "beep()", "------", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
 	
 	AddScriptToMenu( "Goto_scribe_mark()", "Goto scribe mark...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
-	//AddScriptToMenu( "Goto_alignment_grid()", "Goto FWD alignment grid...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "Goto_nominal_imaging()", "Goto nominal imaging position...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "Goto_highgridback()", "Goto grid on back post...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "Goto_highgridfront()", "Goto grid on front post...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
@@ -352,37 +416,43 @@ void iprep_InstallMenuItems( void )
 	AddScriptToMenu( "beep()", "--", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
 
 	// PECS
-	AddScriptToMenu( "reseat()", "reseat sample carrier in PECS mount", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
+
+	AddScriptToMenu( "lockPecs()", "Lock PECS UI", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
+	AddScriptToMenu( "unlockPecs()", "Unlock PECS UI", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
+	AddScriptToMenu( "pecs_reseat()", "reseat sample carrier in PECS mount", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
+	AddScriptToMenu( "pecs_lower()", "lower PECS stage", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
+	AddScriptToMenu( "pecs_raise()", "raise PECS stage", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
+	AddScriptToMenu( "pecs_home()", "rotate PECS stage to home", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
 
 	// setup
 	AddScriptToMenu( "IPrep_init()", "Initialize Hardware and Workflow", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 	AddScriptToMenu( "IPrep_consistency_check()", "IPrep state consistency check", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 	AddScriptToMenu( "IPrep_recover_deadflag()", "auto recover from dead state", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
-	AddScriptToMenu( "IPrep_setEBSD()", "setup EBSD dock and switch to EBSD mode", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
-	AddScriptToMenu( "IPrep_setPlanar()", "setup Planar dock and switch to Planar mode", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
+	AddScriptToMenu( "IPrep_setEBSD()", "switch to EBSD dock and EBSD mode", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
+	AddScriptToMenu( "IPrep_setPlanar()", "switch to Planar dock and Planar mode", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
+	AddScriptToMenu( "IPrep_calibrate_transfer()", "calibrate all positions from mode selection, reference and scribe", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 
-	// looped workflow elements
-	AddScriptToMenu( "IPrep_image()", "Run Image step...", SS_MENU_HEAD , SS_SUB_MENU_4 , 0)
-	AddScriptToMenu( "IPrep_incrementSliceNumber()", "Increment slice number by 1", SS_MENU_HEAD , SS_SUB_MENU_4 , 0)
-	AddScriptToMenu( "IPrep_MoveToPECS()", "Move sample to PECS", SS_MENU_HEAD , SS_SUB_MENU_4 , 0)
-	AddScriptToMenu( "IPrep_Pecs_Image_beforemilling()", "Take PECS Camera image before milling", SS_MENU_HEAD , SS_SUB_MENU_4 , 0)
-	AddScriptToMenu( "IPrep_mill()", "Run Milling step...", SS_MENU_HEAD , SS_SUB_MENU_4 , 0)
-	AddScriptToMenu( "IPrep_Pecs_Image_aftermilling()", "Take PECS Camera image after milling", SS_MENU_HEAD , SS_SUB_MENU_4 , 0)
-	AddScriptToMenu( "IPrep_MoveToSEM()", "Move sample to SEM", SS_MENU_HEAD , SS_SUB_MENU_4 , 0)
-
+	// iprep loop control
+	//AddScriptToMenu( "IPrep_startrun()", "Start run...", SS_MENU_HEAD , SS_SUB_MENU_5 , 0)
+	//AddScriptToMenu( "iprep_pauserun()", "Pause run...", SS_MENU_HEAD , SS_SUB_MENU_5 , 0)
+	//AddScriptToMenu( "iprep_stoprun()", "Stop run...", SS_MENU_HEAD , SS_SUB_MENU_5 , 0)
+	//AddScriptToMenu( "iprep_resumerun()", "Resume run...", SS_MENU_HEAD , SS_SUB_MENU_5 , 0)
 
 	// service menu #todo: make password protected
 	string SS_MENU_HEAD_SERVICE = "Service"
 	string SS_SUB_MENU_SERVICE_0 = "Safety Flags"
 	string SS_SUB_MENU_SERVICE_1 = "Manual State Setup"
 	string SS_SUB_MENU_SERVICE_2 = "save or load iprep tags"
+	string SS_SUB_MENU_SERVICE_3 = "Workflow Items"
 
-
-	AddScriptToMenu( "homeSEMStageToClear()", "home SEM stage to clear", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
+	
+	AddScriptToMenu( "gotoPickupDropoff()", "Goto pickup_dropoff position", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
 	AddScriptToMenu( "openGV()", "open gate valve", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
 	AddScriptToMenu( "closeGV()", "close gate valve", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
+	AddScriptToMenu( "clamp()", "clamp sem dock", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
+	AddScriptToMenu( "unclamp()", "unclamp sem dock", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
 	AddScriptToMenu( "homeParker()", "home parker stage", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
-	AddScriptToMenu( "lowerPECSStage", "lower pecs stage", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
+	AddScriptToMenu( "lowerPECSStage()", "lower pecs stage", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
 	AddScriptToMenu( "setSEMstate()", "set workflow state to SEM", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
 	AddScriptToMenu( "setPECSstate()", "set workflow state to PECS", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
 
@@ -392,8 +462,14 @@ void iprep_InstallMenuItems( void )
 	AddScriptToMenu( "saveTagsToFile()", "save tags", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_2 , 0)
 	AddScriptToMenu( "loadTagsFromFile()", "load tags", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_2 , 0)
 
-
-
+	// looped workflow elements
+	AddScriptToMenu( "IPrep_image()", "Run Image step...", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_3 , 0)
+	AddScriptToMenu( "IPrep_incrementSliceNumber()", "Increment slice number by 1", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_3 , 0)
+	AddScriptToMenu( "IPrep_MoveToPECS()", "Move sample to PECS", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_3 , 0)
+	AddScriptToMenu( "IPrep_Pecs_Image_beforemilling()", "Take PECS Camera image before milling", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_3 , 0)
+	AddScriptToMenu( "IPrep_mill()", "Run Milling step...", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_3 , 0)
+	AddScriptToMenu( "IPrep_Pecs_Image_aftermilling()", "Take PECS Camera image after milling", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_3 , 0)
+	AddScriptToMenu( "IPrep_MoveToSEM()", "Move sample to SEM", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_3 , 0)
 
 
 }

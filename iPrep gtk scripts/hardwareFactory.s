@@ -16,6 +16,8 @@ object createDock(number type)
 		return alloc(planarSEMdock)
 	else if (type == 3)
 		return alloc(EBSDSEMdock)
+	else
+		throw("dock type is set to wrong value, not 1, 2 or 3")
 }
 
 object createPecs(number simulator)
@@ -74,7 +76,8 @@ object createEBSDHandshake(number simulator)
 		return alloc(EBSD_manual)
 	else if (simulator == 1)
 		return alloc(EBSD_simulator)
-
+	else
+		throw("ebsd type is set to wrong value, not 1, 2 or 3")
 }
 
 

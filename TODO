@@ -103,8 +103,11 @@ in manchester:
 	-store rotation value
 	-make sure SEM is homed/will home after transfer to ensure no inconsistency problems when changing docks
 
--add ebsd step to workflow
--make different functions for transfering in workflow and as ui elements
+-add ebsd step to workflow (first manual)
+-make different functions for transfering in workflow and as ui elements to ensure that checks are run accordingly
+-reset home position to 'soft' home position when parker fails by syncing with tag (and asumme that is correct)
+-have progresswindow updated by mediator
+	-we can use iprep_getstatus(), which gets called periodically, as the observer for updating this. 
 
 
 

@@ -8,11 +8,26 @@ number XYZZY = 0	// set to 1 to enable TH workflow
 object myWorkflow = returnWorkflow()
 object myStateMachine = returnStateMachine()
 
-object myPW = alloc(progressWindow)
+object myPW = alloc(progressWindow) //#todo migrate to mediator
 // convention for progresswindow:
 // A: sample status
 // B: operation
 // C: slice number
+
+//object myLoop
+
+// forward declare main loop
+interface I_IPrep_mainloop
+{
+	object init(object self, number p1);
+	void incrementi(object self);
+	void seti(object self, number newi);
+	number geti(object self);
+	void runthread(object self);
+}
+
+// main loop
+object myLoop = alloc(IPrep_mainloop)
 
 /*
 // 3d volumes
@@ -328,11 +343,14 @@ number IPrep_consistency_check()
 
 	if (!myWorkflow.returnPecs().StageConsistencyCheck())
 	{
-		print("PECS stage:sensordata do not agree with previous save state. either caused by a malfunction, powerloss or argon pressure loss")
-		returnDeadFlag().setDead(1, "PECS", "pecs stage not in well defined position")
+		if(!okcanceldialog("is the PECS stage in a known position?"))
+		{	
+			print("PECS stage:sensordata do not agree with previous save state. either caused by a malfunction, powerloss or argon pressure loss")
+			returnDeadFlag().setDead(1, "PECS", "pecs stage not in well defined position")
 		
-		// not unsafe yet
-		//returnDeadFlag().setSafety(0, "pecs stage not in well defined position")
+			// not unsafe yet
+			//returnDeadFlag().setSafety(0, "pecs stage not in well defined position")
+		}
 	}
 	else
 	{
@@ -432,7 +450,11 @@ number IPrep_recover_deadflag()
 
 }
 
-
+number IPrep_calibrate_transfer()
+{
+	print("iprep_calibrate_transfer")
+	myWorkflow.calibrateForMode()
+}
 
 number IPrep_init()
 {
@@ -495,9 +517,15 @@ number IPrep_toggle_planar_ebsd(string mode)
 
 		// change mode tag
 		setSystemMode(mode)
+		print("mode changed to: "+getSystemMode())
 
-		// run iprep_init to initialize all hardware again
-		IPrep_init()
+		// calibrate
+		print("calibrating points for mode")
+		myWorkflow.calibrateForMode()
+
+		//home sem stage to new clear
+		print("homing to new clear position")
+		myWorkflow.returnSEM().homeToClear()
 
 		// clamp and unclamp and confirm
 
@@ -508,6 +536,8 @@ number IPrep_toggle_planar_ebsd(string mode)
 		}
 		else
 			throw("user aborted check")
+
+		// tell user to vent
 	}
 	catch
 	{
@@ -586,16 +616,18 @@ void IPrep_cleanup()
 	// unlock the pecs, turn off high voltage etc
 	print("cleanup called")
 	
-
 	// delete the digiscan parameters created for 
 	//DSDeleteParameters( alignParamID )
 
+	// break out of ui running mode
+	IPrep_abortrun()
 	
 	// turn off HV
-	if(ContinueCancelDialog( "turn off HV?" ))
-		myWorkflow.returnSEM().HVOff()
+	print("turning off HV")
+	myWorkflow.returnSEM().HVOff()
 
 	// unlock PECS UI
+	print("unlocking PECS")
 	myWorkflow.returnPECS().unlock()
 
 
@@ -837,6 +869,9 @@ Number IPrep_StartRun()
 	
 	number returncode = 0
 
+	if (!returnDeadFlag().checkAliveAndSafe())
+		return returncode // to indicate error
+
 	if(!IPrep_consistency_check())
 		return returncode // to indicate error
 
@@ -851,15 +886,41 @@ Number IPrep_StartRun()
 
 	try
 	{
-
-		if (myStateMachine.getCurrentWorkflowState() != "SEM")
+		
+		// set stop and pause back to 0
+		returnstopVar().set(0)
+		returnPauseVar().set(0)
+		
+		if (myStateMachine.getCurrentWorkflowState() == "SEM")
 		{
-			print("cannot start workflow from "+myStateMachine.getCurrentWorkflowState()+", aborting")
+			myloop.seti(0) // start at imaging step
+			print("starting from i=0, imaging")
+		}
+		else if (myStateMachine.getCurrentWorkflowState() == "PECS")
+		{
+			myloop.seti(4) // start at image before mill
+			print("starting from i=4, pecs camera image before milling")
+		}
+		else
+		{
+			print("cannot start run, current state is "+myStateMachine.getCurrentWorkflowState())
+			IPrep_abortrun()
 			return returncode
 		}
 
 
-		returncode = 1 // to indicate success
+
+		
+
+
+
+
+	// #todo infer what i to start based on last completed step
+	// myloop.seti()
+	// start loop
+	myloop.init(9).StartThread()
+
+	returncode = 1 // to indicate success
 
 	}
 	catch
@@ -879,6 +940,9 @@ Number IPrep_PauseRun()
 {
 	number returncode = 0
 
+	// set pausevar
+	returnPauseVar().set(1)
+
 	returncode = 1 // to indicate success
 
 	print("UI: IPrep_PauseRun")
@@ -890,16 +954,8 @@ Number IPrep_ResumeRun()
 	number returncode = 0
 	print("UI: Prep_ResumeRun")
 
-	if (!returnDeadFlag().checkAliveAndSafe())
-		return returncode // to indicate error
+	IPrep_StartRun()
 
-	if(!IPrep_consistency_check())
-		return returncode // to indicate error
-
-	if(!IPrep_check())
-		return returncode // to indicate error
-
-	// send resume command
 
 	returncode = 1 // to indicate success
 	
@@ -909,6 +965,9 @@ Number IPrep_ResumeRun()
 Number IPrep_StopRun()
 {
 	print("IPrep_StopRun")
+
+	returnStopVar().set(1)
+
 	return 1
 }
 
@@ -1112,11 +1171,16 @@ if (XYZZY)
 number IPrep_acquire_ebsd()
 {
 	print("IPrep_acquire_ebsd")
-	// #todo: implement
-	if (getSystemMode() == 'ebsd')
-	{
-		myStateMachine.
-	}
+
+	//if (getSystemMode() == 'ebsd')
+	//{
+		myStateMachine.start_ebsd()
+		myStateMachine.stop_ebsd()
+	//}
+	//else
+	//	print("not in EBSD mode, skipping..")
+
+
 
 
 }
@@ -1126,17 +1190,31 @@ Number IPrep_Pecs_Image_beforemilling()
 {
 	// take image in PECS system before milling
 
-	image temp_slice_im
+	number returncode = 0
+	try
+	{
+		image temp_slice_im
 
-	// Acquire image, show it briefly, save it
-	acquire_PECS_image( temp_slice_im )
-	temp_slice_im.showimage() // only show if image is not a null image
-	IPrep_savePECSImage(temp_slice_im, "pecs_camera_beforemilling")
+		// Acquire image, show it briefly, save it
+		acquire_PECS_image( temp_slice_im )
+		temp_slice_im.showimage() // only show if image is not a null image
+		IPrep_savePECSImage(temp_slice_im, "pecs_camera_beforemilling")
+		
+		// Close image
+		ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
+		imdoc.ImageDocumentClose(0)
+		returncode = 1
+	}
+	catch 
+	{
 	
-	// Close image
-	ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
-	imdoc.ImageDocumentClose(0)
+		// system caught unhandled exception
+		print("pecs camera exception during acquisition before milling: "+GetExceptionString())
+		break // so that flow contineus
 
+	}
+
+	return returncode	
 
 }
 
@@ -1146,17 +1224,33 @@ Number IPrep_Pecs_Image_aftermilling()
 {
 	// take image in PECS system after milling
 
-	image temp_slice_im
+	number returncode = 0
+	try
+	{
+		image temp_slice_im
 
-	// Acquire image, show it briefly, save it
-	acquire_PECS_image( temp_slice_im )
-	temp_slice_im.showimage() // only show if image is not a null image
-	IPrep_savePECSImage(temp_slice_im, "pecs_camera_aftermilling")
+		// Acquire image, show it briefly, save it
+		acquire_PECS_image( temp_slice_im )
+		temp_slice_im.showimage() // only show if image is not a null image
+		IPrep_savePECSImage(temp_slice_im, "pecs_camera_aftermilling")
+		
+		// Close image
+		ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
+		imdoc.ImageDocumentClose(0)
+		returncode = 1
+	}
+	catch 
+	{
 	
-	// Close image
-	ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
-	imdoc.ImageDocumentClose(0)
+		// system caught unhandled exception
+		print("pecs camera exception during acquisition after milling: "+GetExceptionString())
+		break // so that flow contineus
+
+	}
+
+	return returncode
 }
+
 
 
 Number IPrep_Mill()
@@ -1224,8 +1318,8 @@ Number IPrep_End_Imaging()
 	// executed after final transfer
 
 	// then turn beam off etc
-	print("UI: IPrep_End_Imaging")
-	//IPrep_Image()
+	print("IPrep_End_Imaging")
+
 	IPrep_cleanup()
 
 	return 1;
@@ -1243,6 +1337,217 @@ Number IPrep_RunPercentCompleted()
 	return myStateMachine.getPercentage()
 }
 
+
+class IPrep_mainloop:thread
+{
+	// main iprep loop
+
+	number loop_running
+	
+	number p // number of steps per cycle
+
+	object iPersist
+
+	void log(object self, number level, string text)
+	{
+		// log events in log files
+		LogEvent("mainloop", level, text)
+	}
+
+	void print(object self, string text)
+	{
+		result("mainloop: "+text+"\n")
+		self.log(2,text)
+	}
+
+	void IPrep_mainloop(object self)
+	{
+		// constructor
+		loop_running = 0
+		iPersist = alloc(statePersistanceNumeric)
+		iPersist.init("step")
+	}
+
+	object init(object self, number p1)
+	{
+		p = p1 // set number of steps per cycle
+		self.print("initialized, number of steps per cycle = "+p1+", current step = "+iPersist.getNumber())
+		return self
+	}
+
+	void incrementi(object self)
+	{
+		// increment i by 1 modulo p
+		number newi = (iPersist.getNumber()+1)%p
+		iPersist.setNumber(newi)
+	}
+
+	void seti(object self, number newi)
+	{
+		// update i
+		iPersist.setNumber(newi)
+	}
+
+	number geti(object self)
+	{
+		return iPersist.getNumber()
+	}
+
+	number process_response(object self, number returnval, number repeat)
+	{
+		// look at the response value and determine what the i value needs to do
+		// check for pause and stop flags
+
+		if (returnval==1)
+		{	
+			// success
+			self.incrementi() // increment i if function succeeds
+		}
+		else if (returnval == -1)
+		{
+			// failure, repeat step next iteration, i remains the same
+			//#todo: count number of repeats for a step and throw something if it is more than 2
+			if (repeat == 0) 
+			{
+				// treat returning -1 as error
+				returnval = 0
+			}
+			// else leave i as is
+
+		} 
+
+		// if stop button is pressed or irrecoverable error ocuured, stop loop
+		if (returnStopVar().get() || returnval == 0)
+		{
+			returnstopVar().set(0) // set stopvar back to 0
+			IPrep_abortrun() // send UI stop command, tells ui to break out of loop running mode
+			returnPauseVar().set(0) // set pausevar back to 0, just in case in was pressed
+			return 0 
+		}
+
+		// if pause button is pressed, stop loop and wait for resume or stop
+		if (returnPauseVar().get())
+		{
+			returnPauseVar().set(0) // set pausevar back to 0
+			return 0 
+		}
+	
+		return 1
+	}
+
+	void runthread(object self)
+	{
+
+		while (1)
+		{
+			loop_running = 1
+		
+			// get i and start loop at this step
+			number i = self.geti()
+			self.print("current step: "+i)
+
+			if (i==0) // imaging, repeat if function returns 0
+			{
+				self.print("loop: i = 0, imaging")
+				number returnval = IPrep_image()
+				if (!self.process_response(returnval, 0)) // dont repeat for now
+					break
+
+
+			} 
+			else if (i==1) // ebsd imaging, repeat if function returns 0
+			{
+				self.print("loop: i = 1, ebsd imaging")
+				number returnval = 1//IPrep_acquire_ebsd()
+				// #todo
+
+				if (!self.process_response(returnval, 0)) // dont repeat for now
+					break
+
+			}		
+			else if (i==2) // increment the slice number
+			{
+				self.print("loop: i = 2, incrementing slice number")
+				number returnval = IPrep_IncrementSliceNumber()
+
+				if (!self.process_response(returnval, 0)) // dont repeat for now
+					break
+
+			}
+			else if (i==3) // move to pecs, do not repeat
+			{
+				self.print("loop: i = 3, move to pecs")
+				number returnval = IPrep_MoveToPECS()
+				if (!self.process_response(returnval, 0)) // dont repeat for now
+					break
+
+			}
+			else if (i==4) // image in pecs before milling, repeat if function returns 0
+			{
+				self.print("loop: i = 4, imaging before milling")
+				number returnval = IPrep_Pecs_Image_beforemilling()
+				if (!self.process_response(returnval, 0)) // dont repeat for now
+					break
+
+			}
+			else if (i==5) // mill, do not repeat
+			{
+				self.print("loop: i = 5, milling")
+				number returnval = IPrep_mill()
+				if (!self.process_response(returnval, 0)) // dont repeat for now
+					break
+
+			}
+			else if (i==6) // image in pecs after milling, repeat if function returns 0
+			{
+				self.print("loop: i = 6, imaging after milling")
+				number returnval = IPrep_Pecs_Image_aftermilling()
+				if (!self.process_response(returnval, 0)) // dont repeat for now
+					break
+
+			}
+			else if (i==7) // move to sem
+			{
+				self.print("loop: i = 7, move to sem")
+				number returnval = IPrep_MoveToSEM()
+				if (!self.process_response(returnval, 0)) // dont repeat for now
+					break
+
+
+			}
+			else if (i==8) // do a check of pressure/tmp speed/etc
+			{
+				
+				self.print("loop: check")
+				number returnval = IPrep_check()
+				if (!self.process_response(returnval, 0)) // dont repeat for now
+					break				
+			}
+
+			sleep(1)
+
+
+		}
+
+		if (!returnDeadFlag().isSafe())
+		{
+			self.print("system unsafe when exiting mainloop: running cleanup routine")
+			IPrep_cleanup()
+		}
+
+		loop_running = 0
+		self.print("done")
+
+	}
+
+
+
+
+}
+
+
+
+
 // *** actual workflow following ***
 
 try
@@ -1250,6 +1555,7 @@ try
 	// this get executed when this script starts / DM starts
 
 	Iprep_init() // initialize hardware
+
 	//IPrep_consistency_check() // check consistency of workflowstates and hardware
 
 }

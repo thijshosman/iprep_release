@@ -1,52 +1,35 @@
 // proposed workflow routine
 
-class iprep_loop_i: object
-{
-	number i // iterator
-	number p // number of steps in one cycle
 
-	void iprep_loop_i(object self)
+
+
+class stopVar:object
+{
+	// used to access stop tag
+	number i
+
+	void stopVar(object self)
 	{
 		i = 0
-		p = 0
 	}
 
-	void init(object self)
+	void set(object self, number ii)
 	{
-		// read tags to set i and p to cached values
-		i = 0
-		p = 0
+		i = ii
 	}
 
 	number get(object self)
-	{
+	{	
 		return i
 	}
 
-	void increment(object self)
-	{
-		// increment i by 1 modulo p
-		number newi = i + 1
-		i = newi%p
-	}
-
-	void set(object self, number newi)
-	{
-		// updated i (not normally needed)
-		i = newi
-	}
-
 }
 
-object myi = alloc(iprep_loop_i)
 
-object returni()
-{
-	return myi
-}
 
 class pauseVar:object
 {
+	// used to access pausevar tag
 	number i
 
 	void pauseVar(object self)
@@ -73,22 +56,96 @@ object returnPauseVar()
 	return myPauseVar
 }
 
-number IPrep_process_response(number returnval)
+object myStopVar = alloc(stopVar)
+
+object returnStopVar()
 {
-	if (i==0) // imaging, repeat if function returns 0
+	return myStopVar
+}
+
+
+
+
+
+
+
+
+class IPrep_mainloop:object
+{
+	// main iprep loop
+
+	number loop_running
+	
+	number p // number of steps per cycle
+
+	object iPersist
+
+	void log(object self, number level, string text)
 	{
+		// log events in log files
+		LogEvent("mainloop", level, text)
+	}
+
+	void print(object self, string text)
+	{
+		result("mainloop: "+text+"\n")
+		self.log(2,text)
+	}
+
+	void IPrep_mainloop(object self)
+	{
+		// constructor
+		loop_running = 0
+		iPersist = alloc(statePersistanceNumeric)
+	}
+
+	void init(object self, number p1)
+	{
+		p = p1 // set number of steps per cycle
 		
-		number returnval = IPrep_image()
+		iPersist.init("step")
+		self.print("initialized, number of steps per cycle = "+p1+", current step = "+iPersist.getNumber())
+	}
+
+	void incrementi(object self)
+	{
+		// increment i by 1 modulo p
+		number newi = (iPersist.getNumber()+1)%p
+		iPersist.setNumber(newi)
+	}
+
+	void seti(object self, number newi)
+	{
+		// update i
+		iPersist.setNumber(newi)
+	}
+
+	number geti(object self)
+	{
+		return iPersist.getNumber()
+	}
+
+	number process_response(object self, number returnval, number repeat)
+	{
+		// look at the response value and determine what the i value needs to do
+		// check for pause and stop flags
 
 		if (returnval==1)
 		{	
 			// success
-			returni().increment() // increment i if function succeeds
+			self.incrementi() // increment i if function succeeds
 		}
 		else if (returnval == -1)
 		{
 			// failure, repeat step next iteration, i remains the same
 			//#todo: count number of repeats for a step and throw something if it is more than 2
+			if (repeat == 0) 
+			{
+				// treat returning -1 as error
+				returnval = 0
+			}
+			// else leave i as is
+
 		} 
 
 		// if stop button is pressed or irrecoverable error ocuured, stop loop
@@ -106,113 +163,146 @@ number IPrep_process_response(number returnval)
 			returnPauseVar().set(0) // set pausevar back to 0
 			return 0 
 		}
-
-		return 1
-}
-
-
-number IPrep_loop()
-{
-
-	while (1)
-	{
 	
-	// get i	
-	number i = returni().get()// start loop at this step
+		return 1
+	}
 
-		if (i==0) // imaging, repeat if function returns 0
+	void startLoop(object self)
+	{
+
+		while (1)
 		{
-			
-			number returnval = IPrep_image()
+			loop_running = 1
+		
+			// get i and start loop at this step
+			number i = self.geti()
+			self.print("current step: "+i)
 
-			if (returnval==1)
-			{	
-				// success
-				returni().increment() // increment i if function succeeds
-			}
-			else if (returnval == -1)
+			if (i==0) // imaging, repeat if function returns 0
 			{
-				// failure, repeat step next iteration
+				self.print("loop: i = 0, imaging")
+				number returnval = 1//IPrep_image()
+				if (!self.process_response(returnval, 0)) // dont repeat for now
+					break
+
+
 			} 
-
-			// if stop button is pressed or irrecoverable error ocuured, stop loop
-			if (returnStopVar().get() || returnval == 0)
+			else if (i==1) // ebsd imaging, repeat if function returns 0
 			{
-				returnstopVar().set(0) // set stopvar back to 0
-				//IPrep_abortrun() // send UI stop command, may not be needed #todo
-				returnPauseVar().set(0) // set pausevar back to 0, just in case in was pressed
-				break 
+				self.print("loop: i = 1, ebsd imaging")
+				number returnval = 1//IPrep_acquire_ebsd()
+				// #todo
+
+				if (!self.process_response(returnval, 0)) // dont repeat for now
+					break
+
+			}		
+			else if (i==2) // increment the slice number
+			{
+				self.print("loop: i = 2, incrementing slice number")
+				number returnval = IPrep_IncrementSliceNumber()
+
+				if (!self.process_response(returnval, 0)) // dont repeat for now
+					break
+
+			}
+			else if (i==3) // move to pecs, do not repeat
+			{
+				self.print("loop: i = 3, move to pecs")
+				number returnval = 1//IPrep_MoveToPECS()
+				if (!self.process_response(returnval, 0)) // dont repeat for now
+					break
+
+			}
+			else if (i==4) // image in pecs before milling, repeat if function returns 0
+			{
+				self.print("loop: i = 4, imaging before milling")
+				number returnval = 1//IPrep_Pecs_Image_beforemilling()
+				if (!self.process_response(returnval, 0)) // dont repeat for now
+					break
+
+			}
+			else if (i==5) // mill, do not repeat
+			{
+				self.print("loop: i = 5, milling")
+				number returnval = 1//IPrep_mill()
+				if (!self.process_response(returnval, 0)) // dont repeat for now
+					break
+
+			}
+			else if (i==6) // image in pecs after milling, repeat if function returns 0
+			{
+				self.print("loop: i = 6, imaging after milling")
+				number returnval = 1//IPrep_Pecs_Image_aftermilling()
+				if (!self.process_response(returnval, 0)) // dont repeat for now
+					break
+
+			}
+			else if (i==7) // move to sem
+			{
+				self.print("loop: i = 7, move to sem")
+				number returnval = 1//IPrep_MoveToSEM()
+				if (!self.process_response(returnval, 0)) // dont repeat for now
+					break
+
+
+			}
+			else if (i==8) 
+			{
+				//
+				self.print("end of loop")
+				number returnval
+				if (okcanceldialog("continue looping?"))
+					returnval = 1
+				else
+					returnval = 0
+					
+				if (!self.process_response(returnval, 0)) // dont repeat for now
+					break				
 			}
 
-			// if pause button is pressed, stop loop and wait for resume or stop
-			if (returnPauseVar().get())
-			{
-				returnPauseVar().set(0) // set pausevar back to 0
-				break 
-			}
-
-		} 
-		else if (i==1) // ebsd imaging, repeat if function returns 0
-		{
-			number returnval = IPrep_acquire_ebsd()
-			// #todo
-
-			if (!IPrep_process_response(returnval))
+			// check
+			if (optiondown() + shiftdown())
 				break
+				
+			sleep(1)
+		}
 
-		}		
-		else if (i==2) // increment the slice number
-		{
-			number returnval = IPrep_IncrementSliceNumber()
-		}
-		else if (i==3) // move to pecs, do not repeat
-		{
-			number returnval = IPrep_MoveToPECS()
-		}
-		else if (i==4) // image in pecs before milling, repeat if function returns 0
-		{
-			number returnval = IPrep_Pecs_Image_beforemilling()
-		}
-		else if (i==5) // mill, do not repeat
-		{
-			number returnval = IPrep_mill()
-		}
-		else if (i==6) // image in pecs after milling, repeat if function returns 0
-		{
-			number returnval = IPrep_Pecs_Image_aftermilling()
-		}
-		else if (i==7) // move to sem
-		{
-			number returnval = IPrep_MoveToSEM()
-		}
-		else if (i==7) 
-		{
-			//
-		}
-		else if (i==8) 
-
-
-
-
-
+		loop_running = 0
+		self.print("done")
 
 	}
 
 
 
 
-
-
 }
 
-number iprep_infer()
+
+
+
+
+
+
+
+	object myLoop = alloc(IPrep_mainloop)
+	number p, i
+	p=9
+	i=0
+
+	myLoop.init(p)
+
+myLoop.startLoop()
+/*
+number r
+for (r=0;r<10;r++)
 {
-	// returns next step to run in iprep_loop()
+
+	myloop.incrementi()
+	result(myloop.geti()+"\n")
+	
 }
-
-
-
-
+*/
 number IPrep_startRun()
 {
 	// called by start button in UI
@@ -237,10 +327,7 @@ number IPrep_startRun()
 
 	// infer the previous state
 
-	number i // 
-	i = iprep_infer()
 
-	IPrep_loop()
 
 }
 

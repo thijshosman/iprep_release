@@ -185,6 +185,9 @@ class safetyMediator:object
 	object sem
 	object transfer
 	object gripper
+
+	// the mediator is the perfect place to change the progresswindow from
+	object progresswindow
 	
 	void registerPecs(object self, object obj)
 	{
@@ -209,6 +212,12 @@ class safetyMediator:object
 		gripper = obj
 		result("mediator: gripper registered\n")
 	}
+
+	void registerProgressWindow(object self, object obj)
+	{
+		progresswindow = obj
+		result("mediator: progresswindow registered\n")
+	}	
 
 	// *** test checks ***
 
@@ -282,12 +291,13 @@ class safetyMediator:object
 	number checkFWDCoupling(object self, number active)
 	{
 		// check if FWD is coupled correctly
+		// active measn stage can move during check, passive that it does not
+		// may not be used on nova if absolute stage coordinates work
 		number status = sem.checkFWDCoupling(active)
 
 		return status // 1 for correctly set, 0 for incorrectly set
 
 	}
-
 
 	void HVOff(object self)
 	{
@@ -295,6 +305,14 @@ class safetyMediator:object
 		sem.HVOff()
 		result("mediator: turning high tension off\n")
 	}
+
+	void updatePW(object self, string sliceN)
+	{
+		// update progress window
+
+		progresswindow.updatePW(sliceN)
+	}
+
 
 
 
@@ -448,7 +466,65 @@ object returnHaltFlag()
 
 
 
+class stopVar:object
+{
+	// used to catch/set stop event
+	number i
 
+	void stopVar(object self)
+	{
+		i = 0
+	}
+
+	void set(object self, number ii)
+	{
+		i = ii
+	}
+
+	number get(object self)
+	{	
+		return i
+	}
+
+}
+
+
+
+class pauseVar:object
+{
+	// used to catch/set pause event
+	number i
+
+	void pauseVar(object self)
+	{
+		i = 0
+	}
+
+	void set(object self, number ii)
+	{
+		i = ii
+	}
+
+	number get(object self)
+	{	
+		return i
+	}
+
+}
+
+object myPauseVar = alloc(pauseVar)
+
+object returnPauseVar()
+{
+	return myPauseVar
+}
+
+object myStopVar = alloc(stopVar)
+
+object returnStopVar()
+{
+	return myStopVar
+}
 
 
 

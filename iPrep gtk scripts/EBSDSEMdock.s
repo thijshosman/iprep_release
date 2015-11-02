@@ -108,7 +108,7 @@ class EBSDSEMdock : object
 
 		self.sendCommand("T")
 
-		self.print("dock initialized")
+		self.print("dock initialized (EBSD)")
 	}
 	
 	void EBSDSEMdock(object self) 
@@ -281,7 +281,7 @@ class EBSDSEMdock : object
 		//calculate the other 3 positions (clear, nominal_imaging and StoredImaging 
 		//and save them as absolute coordinates in private data)
 		
-		self.print("calibrateCoords: using calibrations from 20150903 ")
+		self.print("calibrateCoords: calibrate for ebsd dock ")
 
 		// reference point is the point from which other coordinates are inferred
 		// the reference point for all coordinates is the pickup/dropoff point now
@@ -305,7 +305,8 @@ class EBSDSEMdock : object
 
 		// nominal imaging is approximate middle of sample
 		//nominal_imaging.set( scribe_pos.getX()-31.117+7.785, scribe_pos.getY()-32.599-13.226, scribe_pos.getZ(), 2.29 )
-		nominal_imaging.set( 0, 0, 0, 0 )
+		// set by thijs after alignment, absolute for now 10/28/2015
+		nominal_imaging.set( -39.1327, -1.4971, 10, 0 )
 		self.print("nominal_imaging set: ")
 		nominal_imaging.print()
 
@@ -315,12 +316,16 @@ class EBSDSEMdock : object
 		StoredImaging.print()
 
 		// grid on post at back position (serves as sanity check)
-		highGridBack.set( scribe_pos.getX()+(-4.831), scribe_pos.getY()+(-4.858), scribe_pos.getZ(), -0.12 )
+		// highGridBack.set( scribe_pos.getX()+(-4.831), scribe_pos.getY()+(-4.858), scribe_pos.getZ(), -0.12 )
+		// set by thijs after alignment, absolute for now 10/28/2015
+		highGridBack.set( -23.9891, 0.8618, 10, 0 )
 		self.print("highGridBack set: ")
 		highGridBack.print()
 
 		// grid on post in front position (serves as sanity check)
-		highGridFront.set( scribe_pos.getX()+(-39.755), scribe_pos.getY()+(-4.778), scribe_pos.getZ(), -0.11 )
+		//highGridFront.set( scribe_pos.getX()+(-39.755), scribe_pos.getY()+(-4.778), scribe_pos.getZ(), -0.11 )
+		// set by thijs after alignment, absolute for now 10/28/2015
+		highGridFront.set( -53.9845, 1.1817, 10, 0 )
 		self.print("highGridFront set: ")
 		highGridFront.print()
 
