@@ -234,6 +234,12 @@ class dock_simulator : object
 		return sampleStatus
 
 	}
+
+	void scribemarkVectorCorrection(object self)
+	{
+		
+	}
+
 	void calibrateCoords(object self)
 	{
 		// calibrate SEM points:

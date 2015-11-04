@@ -100,6 +100,13 @@ void IPrep_setSliceNumber(number setSlice)
 	myPW.updateC("slice: "+IPrep_sliceNumber())
 }
 
+number IPrep_maxSliceNumber()
+{
+	string tagname = "IPrep:Record Settings:Number of Cycles"
+	number slices = 0
+	GetPersistentNumberNote( tagname, slices )
+	return slices
+}
 
 
 void IPrep_saveSEMImage(image &im, string subdir)
@@ -663,7 +670,7 @@ Number IPrep_Setup_Imaging()
 		//myWorkflow.returnSEM().setDesiredkV(IPrepVoltage)
 
 		// register current coordinate to come back to
-		myWorkflow.returnSEM().saveCurrentAsStoredImaging()
+		//myWorkflow.returnSEM().saveCurrentAsStoredImaging()
 
 		// blank the beam
 		myWorkflow.returnSEM().blankOn()
@@ -834,7 +841,7 @@ Number IPrep_check()
 	// -UPS status
 	// -consistency check
 	// -pecs vacuum and argon pressure
-	// #todo
+	// -end condition met (number of slices)
 
 
 
@@ -849,6 +856,13 @@ Number IPrep_check()
 		print("PECS system not at vacuum or TMP problem")
 		return 0
 	}
+
+	if(IPrep_sliceNumber() => IPrep_maxSliceNumber())
+	{
+		print("Maximum number of slices ("+IPrep_maxSliceNumber()+") reached")
+		return 0
+	}
+
 
 	// SEM status:
 	// - working distance active check
@@ -994,7 +1008,7 @@ Number IPrep_Image()
 			yy=mySI.getY()
 			zz=mySI.getZ()
 			//if (zz > 5)	// safety check, make sure tags are set -- should do proper in bounds checking
-			//	myWorkflow.returnSEM().goToStoredImaging()
+			myWorkflow.returnSEM().goToStoredImaging()
 
 		// Set SEM focus to saved value
 			number saved_focus = EMGetFocus()/1000	// initialize to current value (in case tag is empty)
@@ -1011,7 +1025,7 @@ Number IPrep_Image()
 		// Unblank SEM beam
 //			FEIQuanta_SetBeamBlankState(0)
 //			EMWaitUntilReady()
-			sleep(1)	// Beam on stabilization delay, #TODO: Move to tag
+//			sleep(1)	// Beam on stabilization delay, #TODO: Move to tag
 
 		// Autofocus, if enabled in tag
 		tagname = "IPrep:SEM:AF:Enable"
@@ -1042,8 +1056,7 @@ Number IPrep_Image()
 			image temp_slice_im
 			AcquireDigiscanImage( temp_slice_im )
 
-		// Blank SEM beam
-//			FEIQuanta_SetBeamBlankState(1)
+
 		/*
 		// Verify SEM is functioning properly - pause acquisition otherwise (might be better to do before AFS with a test scan, easier here)
 		{
@@ -1075,6 +1088,7 @@ Number IPrep_Image()
 
 		}
 		*/
+
 		// Save Digiscan image
 			IPrep_saveSEMImage(temp_slice_im, "digiscan")
 
@@ -1515,7 +1529,7 @@ class IPrep_mainloop:thread
 
 
 			}
-			else if (i==8) // do a check of pressure/tmp speed/etc
+			else if (i==8) // do a check of pressure/tmp speed/end conditions
 			{
 				
 				self.print("loop: check")

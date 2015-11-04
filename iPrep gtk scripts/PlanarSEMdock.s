@@ -249,6 +249,11 @@ class planarSEMdock : object
 
 	}
 
+	void scribemarkVectorCorrection(object self)
+	{
+		
+	}
+
 	void calibrateCoords(object self)
 	{
 		// calibrate SEM points:
