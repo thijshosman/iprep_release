@@ -246,11 +246,6 @@ class EBSDSEMdock : object
 
 	}
 
-	void scribemarkVectorCorrection(object self)
-	{
-		
-	}
-
 	void calibrateCoords(object self)
 	{
 		// calibrate SEM points:
@@ -275,8 +270,8 @@ class EBSDSEMdock : object
 		object StoredImaging = returnSEMCoordManager().getCoordAsCoord("StoredImaging")
 		object highGridFront = returnSEMCoordManager().getCoordAsCoord("highGridFront")
 		object highGridBack = returnSEMCoordManager().getCoordAsCoord("highGridBack")
-		object fwdGrid = returnSEMCoordManager().getCoordAsCoord("fwdGrid")
-		object lowerGrid = returnSEMCoordManager().getCoordAsCoord("lowerGrid")
+		//object fwdGrid = returnSEMCoordManager().getCoordAsCoord("fwdGrid")
+		//object lowerGrid = returnSEMCoordManager().getCoordAsCoord("lowerGrid")
 
 
 
@@ -286,10 +281,10 @@ class EBSDSEMdock : object
 		//calculate the other 3 positions (clear, nominal_imaging and StoredImaging 
 		//and save them as absolute coordinates in private data)
 		
-		self.print("calibrateCoords: calibrate for ebsd dock ")
+		self.print("calibrateCoords: using calibrations from 20151028 (manchester nova ebsd dock) ")
 
 		// reference point is the point from which other coordinates are inferred
-		// the reference point for all coordinates is the pickup/dropoff point now
+		// the reference pointf or all coordinates is the pickup/dropoff point now
 		// TODO: change from hardcoded value to setting in global tags
 		
 		self.print("scribe position set: ")
@@ -308,10 +303,10 @@ class EBSDSEMdock : object
 		self.print("clear set: ")
 		clear.print()
 
-		// nominal imaging is approximate middle of sample
-		//nominal_imaging.set( scribe_pos.getX()-31.117+7.785, scribe_pos.getY()-32.599-13.226, scribe_pos.getZ(), 2.29 )
+		// nominal imaging is approximate middle of sample #todo
+		nominal_imaging.set( scribe_pos.getX()-17.5526, scribe_pos.getY()-2.6368, scribe_pos.getZ(), 0 )
 		// set by thijs after alignment, absolute for now 10/28/2015
-		nominal_imaging.set( -39.1327, -1.4971, 10, 0 )
+		//nominal_imaging.set( -39.1327, -1.4971, 10, 0 )
 		self.print("nominal_imaging set: ")
 		nominal_imaging.print()
 
@@ -320,29 +315,29 @@ class EBSDSEMdock : object
 		self.print("StoredImaging set: ")
 		StoredImaging.print()
 
-		// grid on post at back position (serves as sanity check)
-		// highGridBack.set( scribe_pos.getX()+(-4.831), scribe_pos.getY()+(-4.858), scribe_pos.getZ(), -0.12 )
+		// grid on post at back position (serves as sanity check) #todo
+		highGridBack.set( scribe_pos.getX()-2.409, scribe_pos.getY()-0.2779, scribe_pos.getZ(), 0 )
 		// set by thijs after alignment, absolute for now 10/28/2015
-		highGridBack.set( -23.9891, 0.8618, 10, 0 )
+		//highGridBack.set( -23.9891, 0.8618, 10, 0 )
 		self.print("highGridBack set: ")
 		highGridBack.print()
 
-		// grid on post in front position (serves as sanity check)
-		//highGridFront.set( scribe_pos.getX()+(-39.755), scribe_pos.getY()+(-4.778), scribe_pos.getZ(), -0.11 )
+		// grid on post in front position (serves as sanity check) #todo
+		highGridFront.set( scribe_pos.getX()-32.4044, scribe_pos.getY()+0.042, scribe_pos.getZ(), 0 )
 		// set by thijs after alignment, absolute for now 10/28/2015
-		highGridFront.set( -53.9845, 1.1817, 10, 0 )
+		//highGridFront.set( -53.9845, 1.1817, 10, 0 )
 		self.print("highGridFront set: ")
 		highGridFront.print()
 
 		// grid on post for FWD Z-height calibration
-		fwdGrid.set( scribe_pos.getX()+22.761, scribe_pos.getY()+(-3.593), scribe_pos.getZ(), 22.19 )
-		self.print("fwdGrid set: ")
-		fwdGrid.print()
+		//fwdGrid.set( scribe_pos.getX()+22.761, scribe_pos.getY()+(-3.593), scribe_pos.getZ(), 22.19 )
+		//self.print("fwdGrid set: ")
+		//fwdGrid.print()
 
 		// grid on base plate, formerly used for FWD Z-height cal, now not used // Save to remove all references to lowerGrid
-		lowerGrid.set(scribe_pos.getX()+4.747, scribe_pos.getY()+17.652, scribe_pos.getZ()-0.5+16.987, 44.29)
-		self.print("lowerGrid set: ")
-		lowerGrid.print()
+		//lowerGrid.set(scribe_pos.getX()+4.747, scribe_pos.getY()+17.652, scribe_pos.getZ()-0.5+16.987, 44.29)
+		//self.print("lowerGrid set: ")
+		//lowerGrid.print()
 
 	
 		// now update the coords in tags to their updated values
@@ -352,10 +347,10 @@ class EBSDSEMdock : object
 		returnSEMCoordManager().addCoord(StoredImaging)
 		returnSEMCoordManager().addCoord(highGridFront)
 		returnSEMCoordManager().addCoord(highGridBack)
-		returnSEMCoordManager().addCoord(fwdGrid)
-		returnSEMCoordManager().addCoord(lowerGrid)
+		//returnSEMCoordManager().addCoord(fwdGrid)
+		//returnSEMCoordManager().addCoord(lowerGrid)
 
-		self.print("all coordinates calculated from scribe position")
+		self.print("all coordinates calculated from (nominal) scribe position")
 
 
 	}

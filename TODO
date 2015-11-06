@@ -90,15 +90,10 @@ IPrep_startrun(): executed when start button is pressed
 IPrep_pauserun(): executed when pause button is pressed
 IPrep_stoprun(): executed when stop button is pressed
 
-new workflow proposal:
-IPrep_function(): executed repeatedly by ui workflow loop until loop is stopped
-IPrep_isrunning(): returns 0 or 1, depending on whether loop runs
-
-
 After install:
 Features
 -add FWD decoupling after EBSD run (since OI might change it)
--lock out pecs UI during reseating
+v-lock out pecs UI during reseating
 -lock out SEM ui (rotation/tilt)
 -make sure that an unsafe condition turns off beam (though mediator)
 -store vector of where scribe mark should be and compare to old value. adjust transfer positions with this vector
@@ -113,8 +108,8 @@ Features
 -make different functions for transfering in workflow and as ui elements to ensure that checks are run accordingly
 -have progresswindow updated by mediator
 	-we can use iprep_getstatus(), which gets called periodically, as the observer for updating this. 
--use number of slices as stop condition of workflow loop
--re-enable check for average pixel value after acquisition
+v-use number of slices as stop condition of workflow loop
+v-re-enable check for average pixel value after acquisition
 -re-enable 3D volume history stack
 -show current step in workflow (in progresswindow?)
 -turn protected flag on or off in ui

@@ -249,11 +249,6 @@ class planarSEMdock : object
 
 	}
 
-	void scribemarkVectorCorrection(object self)
-	{
-		
-	}
-
 	void calibrateCoords(object self)
 	{
 		// calibrate SEM points:
@@ -278,8 +273,8 @@ class planarSEMdock : object
 		object StoredImaging = returnSEMCoordManager().getCoordAsCoord("StoredImaging")
 		object highGridFront = returnSEMCoordManager().getCoordAsCoord("highGridFront")
 		object highGridBack = returnSEMCoordManager().getCoordAsCoord("highGridBack")
-		object fwdGrid = returnSEMCoordManager().getCoordAsCoord("fwdGrid")
-		object lowerGrid = returnSEMCoordManager().getCoordAsCoord("lowerGrid")
+		//object fwdGrid = returnSEMCoordManager().getCoordAsCoord("fwdGrid")
+		//object lowerGrid = returnSEMCoordManager().getCoordAsCoord("lowerGrid")
 
 
 		
@@ -290,6 +285,7 @@ class planarSEMdock : object
 
 		self.print("scribe position set: ")
 		scribe_pos.print()
+
 		self.print("reference set: ")
 		reference.print()
 
@@ -305,7 +301,6 @@ class planarSEMdock : object
 
 		// nominal imaging is approximate middle of sample
 		nominal_imaging.set( scribe_pos.getX()-22.8104, scribe_pos.getY()-38.6801, scribe_pos.getZ(), 0 )
-		
 		self.print("nominal_imaging set: ")
 		nominal_imaging.print()
 
@@ -325,14 +320,14 @@ class planarSEMdock : object
 		highGridFront.print()
 
 		// grid on post for FWD Z-height calibration, not used
-		fwdGrid.set( scribe_pos.getX()+22.761, scribe_pos.getY()+(-3.593), scribe_pos.getZ()-30+30, 22.19 )
-		self.print("fwdGrid set: ")
-		fwdGrid.print()
+		//fwdGrid.set( scribe_pos.getX()+22.761, scribe_pos.getY()+(-3.593), scribe_pos.getZ()-30+30, 22.19 )
+		//self.print("fwdGrid set: ")
+		//fwdGrid.print()
 
 		// grid on base plate, formerly used for FWD Z-height cal, now not used // Save to remove all references to lowerGrid
-		lowerGrid.set(scribe_pos.getX()+4.747, scribe_pos.getY()+17.652, scribe_pos.getZ()-0.5+16.987, 44.29)
-		self.print("lowerGrid set: ")
-		lowerGrid.print()
+		//lowerGrid.set(scribe_pos.getX()+4.747, scribe_pos.getY()+17.652, scribe_pos.getZ()-0.5+16.987, 44.29)
+		//self.print("lowerGrid set: ")
+		//lowerGrid.print()
 
 	
 		// now update the coords in tags to their updated values
@@ -342,10 +337,10 @@ class planarSEMdock : object
 		returnSEMCoordManager().addCoord(StoredImaging)
 		returnSEMCoordManager().addCoord(highGridFront)
 		returnSEMCoordManager().addCoord(highGridBack)
-		returnSEMCoordManager().addCoord(fwdGrid)
-		returnSEMCoordManager().addCoord(lowerGrid)
+		//returnSEMCoordManager().addCoord(fwdGrid)
+		//returnSEMCoordManager().addCoord(lowerGrid)
 
-		self.print("all coordinates calculated from scribe position")
+		self.print("all coordinates calculated from (nominal) scribe position")
 
 
 	}

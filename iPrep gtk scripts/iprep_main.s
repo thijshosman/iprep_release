@@ -563,7 +563,66 @@ number IPrep_toggle_planar_ebsd(string mode)
 
 }
 
+number IPrep_scribemarkVectorCorrection(number x_corr, number y_corr)
+{
+	// adjust nominal_imaging, stored_imaging, highGridFront, highGridBack, pickup_dropoff and clear by vector
 
+	if (abs(x_corr) > 2 || abs(y_corr) > 2)
+	{
+		print("correction too big: x: "+x_corr+", y: "+y_corr)
+		return 0
+	}
+
+	object pickup_dropoff = returnSEMCoordManager().getCoordAsCoord("pickup_dropoff")
+	object clear = returnSEMCoordManager().getCoordAsCoord("clear")
+	object nominal_imaging = returnSEMCoordManager().getCoordAsCoord("nominal_imaging")
+	object StoredImaging = returnSEMCoordManager().getCoordAsCoord("StoredImaging")
+	object highGridFront = returnSEMCoordManager().getCoordAsCoord("highGridFront")
+	object highGridBack = returnSEMCoordManager().getCoordAsCoord("highGridBack")
+	
+	// do corrections on these points
+	pickup_dropoff.corrX(x_corr)
+	pickup_dropoff.corrY(y_corr)
+	print("new corrected pickup_dropoff: ")
+	pickup_dropoff.print()
+
+	clear.corrX(x_corr)
+	clear.corrY(y_corr)
+	print("new corrected clear: ")
+	clear.print()
+
+	nominal_imaging.corrX(x_corr)
+	nominal_imaging.corrY(y_corr)
+	print("new corrected nominal_imaging: ")
+	nominal_imaging.print()
+
+	StoredImaging.corrX(x_corr)
+	StoredImaging.corrY(y_corr)
+	print("new corrected nominal_imaging: ")
+	nominal_imaging.print()
+
+	highGridFront.corrX(x_corr)
+	highGridFront.corrY(y_corr)
+	print("new corrected highGridFront: ")
+	highGridFront.print()
+
+	highGridBack.corrX(x_corr)
+	highGridBack.corrY(y_corr)	
+	print("new corrected highGridBack: ")
+	highGridBack.print()
+
+	// save the points with corrections added
+	returnSEMCoordManager().addCoord(pickup_dropoff)
+	returnSEMCoordManager().addCoord(clear)
+	returnSEMCoordManager().addCoord(nominal_imaging)
+	returnSEMCoordManager().addCoord(StoredImaging)
+	returnSEMCoordManager().addCoord(highGridFront)
+	returnSEMCoordManager().addCoord(highGridBack)
+
+
+	return 1
+
+}
 
 
 
@@ -857,7 +916,7 @@ Number IPrep_check()
 		return 0
 	}
 
-	if(IPrep_sliceNumber() => IPrep_maxSliceNumber())
+	if(IPrep_sliceNumber() > IPrep_maxSliceNumber())
 	{
 		print("Maximum number of slices ("+IPrep_maxSliceNumber()+") reached")
 		return 0
@@ -1057,37 +1116,35 @@ Number IPrep_Image()
 			AcquireDigiscanImage( temp_slice_im )
 
 
-		/*
+		
 		// Verify SEM is functioning properly - pause acquisition otherwise (might be better to do before AFS with a test scan, easier here)
+		// if tag exists
+		number pixel_threshold = 500
+		tagname = "IPrep:SEM:Emission check threshold"
+		if(GetPersistentNumberNote( tagname, pixel_threshold ))
 		{
-				number avg = average( temp_slice_im )
-				number threshold = 500
-				string tagname = "IPrep:SEM:Emission check threshold"
-				GetPersistentNumberNote( tagname, threshold )
+			number avg = average( temp_slice_im )
 
-				if ( avg < threshold )
+			if ( avg < pixel_threshold )
+			{
+				// average image value is less than threshold, assume SEM emission problem, pause acq
+				string str = datestamp()+": Average image value ("+avg+") is less than emission check threshold ("+pixel_threshold+")\n"
+				print(""+ str )
+				string str2 = "\nAcquisition has been paused.\n\nCheck SEM is working properly and press <Continue> to resume acquisition, or <Cancel> to stop."
+				string str3 = "\n\nNote: Threshold can be set at global tag: IPrep:SEM:Emission check threshold"
+				if ( !ContinueCancelDialog( str + str2 +str3 ) )
 				{
-					// average image value is less than threshold, assume SEM emission problem, pause acq
-					string str = datestamp()+": Average image value ("+avg+") is less than emission check threshold ("+threshold+")\n"
-					result( str )
-					string str2 = "\nAcquisition has been paused.\n\nCheck SEM is working properly and press <Continue> to resume acquisition, or <Cancel> to stop."
-					string str3 = "\n\nNote: Threshold can be set at global tag: IPrep:SEM:Emission check threshold"
-					if ( !ContinueCancelDialog( str + str2 +str3 ) )
-					{
-
-							str = datestamp()+": Acquisition terminated by user" 
-							print(str)
-							
-							iprep_abort()
-					}
+						str = datestamp()+": Acquisition terminated by user" 
+						print(str)		
 				}
-				else
-				{
-					result( datestamp()+": Average image value ("+avg+") is greater than emission check threshold ("+threshold+"). SEM emission assumed OK.\n" )	
-				}
+			}
+			else
+			{
+				result( datestamp()+": Average image value ("+avg+") is greater than emission check threshold ("+pixel_threshold+"). SEM emission assumed OK.\n" )	
+			}
 
 		}
-		*/
+		
 
 		// Save Digiscan image
 			IPrep_saveSEMImage(temp_slice_im, "digiscan")

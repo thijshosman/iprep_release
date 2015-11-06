@@ -227,6 +227,22 @@ class SEMCoord: object
 	{
 		Z=Z1
 	}
+
+	void corrX(object self, number corr)
+	{
+		X=X+corr
+	}
+
+	void corrY(object self, number corr)
+	{
+		Y=Y+corr
+	}
+
+	void corrZ(object self, number corr)
+	{
+		Z=Z+corr
+	}
+
 	number getX(object self)
 	{
 		return X
