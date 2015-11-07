@@ -573,14 +573,22 @@ number IPrep_scribemarkVectorCorrection(number x_corr, number y_corr)
 		return 0
 	}
 
+	object scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos")
 	object pickup_dropoff = returnSEMCoordManager().getCoordAsCoord("pickup_dropoff")
 	object clear = returnSEMCoordManager().getCoordAsCoord("clear")
 	object nominal_imaging = returnSEMCoordManager().getCoordAsCoord("nominal_imaging")
 	object StoredImaging = returnSEMCoordManager().getCoordAsCoord("StoredImaging")
 	object highGridFront = returnSEMCoordManager().getCoordAsCoord("highGridFront")
 	object highGridBack = returnSEMCoordManager().getCoordAsCoord("highGridBack")
+
 	
 	// do corrections on these points
+
+	scribe_pos.corrX(x_corr)
+	scribe_pos.corrY(y_corr)
+	print("new corrected scribe_pos: ")
+	scribe_pos.print()
+
 	pickup_dropoff.corrX(x_corr)
 	pickup_dropoff.corrY(y_corr)
 	print("new corrected pickup_dropoff: ")
@@ -598,8 +606,8 @@ number IPrep_scribemarkVectorCorrection(number x_corr, number y_corr)
 
 	StoredImaging.corrX(x_corr)
 	StoredImaging.corrY(y_corr)
-	print("new corrected nominal_imaging: ")
-	nominal_imaging.print()
+	print("new corrected StoredImaging: ")
+	StoredImaging.print()
 
 	highGridFront.corrX(x_corr)
 	highGridFront.corrY(y_corr)
@@ -618,7 +626,7 @@ number IPrep_scribemarkVectorCorrection(number x_corr, number y_corr)
 	returnSEMCoordManager().addCoord(StoredImaging)
 	returnSEMCoordManager().addCoord(highGridFront)
 	returnSEMCoordManager().addCoord(highGridBack)
-
+	returnSEMCoordManager().addCoord(scribe_pos)
 
 	return 1
 
