@@ -97,6 +97,8 @@ v-lock out pecs UI during reseating
 -lock out SEM ui (rotation/tilt)
 -make sure that an unsafe condition turns off beam (though mediator)
 -store vector of where scribe mark should be and compare to old value. adjust transfer positions with this vector
+	-have user click on screen and save value
+	-move scribe mark with user supplied vector and have user confirm before storing position/correction in tags
 -dock swap/install:
 	-store rotation value
 	-make sure SEM is homed/will home after swap to ensure no inconsistency problems when changing docks

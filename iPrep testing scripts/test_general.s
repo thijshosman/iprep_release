@@ -23,10 +23,10 @@ try
 	
 	//IPrep_MoveToSEM()
 	
+	//IPrep_scribemarkVectorCorrection(-0.1,0)
 	
 	
-	
-	
+	//IPrep_cleanup()
 	
 	
 	
