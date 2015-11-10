@@ -96,14 +96,16 @@ Features
 v-lock out pecs UI during reseating
 -lock out SEM ui (rotation/tilt)
 -make sure that an unsafe condition turns off beam (though mediator)
+-clear and pickup_dropoff are 5 mm from eachother. this may be too much and lead to interference of planar fork with sample. make 3 mm instaed. test with ali
 -store vector of where scribe mark should be and compare to old value. adjust transfer positions with this vector
-	-have user click on screen and save value
+	-have user move ROI into position and determine center
+	-determine vector in um from center of image to center of ROI
 	-move scribe mark with user supplied vector and have user confirm before storing position/correction in tags
 -dock swap/install:
-	-store rotation value
+	-store rotation value in tag
 	-make sure SEM is homed/will home after swap to ensure no inconsistency problems when changing docks
 	-warn the user to use correct carrier
--check rotation value against stored value on dock install
+-IPrep_check: check rotation value against stored value on dock install
 -add pogo pin check to workflow. use dialog with timeout to ensure user has option to override
 	-?how do we have a ui okcanceldialog with tiemout?
 -add ebsd step to workflow (first manual)
