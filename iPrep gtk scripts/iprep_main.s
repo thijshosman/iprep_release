@@ -516,7 +516,7 @@ number IPrep_toggle_planar_ebsd(string mode)
 			throw("sample not in PECS!")
 
 		// vent
-		if (!okcanceldialog("please vent and press ok when dock is replaced and connected. make sure dock motor axis is aligned along y axis"))
+		if (!okcanceldialog("Has the dock been swapped, connected and has the dock motor axis been aligned along y axis?"))
 			throw("user aborted during vent")
 
 		// confirm alignment in x
@@ -544,7 +544,8 @@ number IPrep_toggle_planar_ebsd(string mode)
 		else
 			throw("user aborted check")
 
-		// tell user to vent
+		okdialog("dock test has succeeded. please pump down the system and recalibrate scribe mark")
+
 	}
 	catch
 	{
@@ -567,11 +568,7 @@ number IPrep_scribemarkVectorCorrection(number x_corr, number y_corr)
 {
 	// adjust nominal_imaging, stored_imaging, highGridFront, highGridBack, pickup_dropoff and clear by vector
 
-	if (abs(x_corr) > 2 || abs(y_corr) > 2)
-	{
-		print("correction too big: x: "+x_corr+", y: "+y_corr)
-		return 0
-	}
+
 
 	object scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos")
 	object pickup_dropoff = returnSEMCoordManager().getCoordAsCoord("pickup_dropoff")

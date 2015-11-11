@@ -307,6 +307,18 @@ class SEMCoordManager: object
 	// manages a list of SEMCoord object saved in tags
 	string location // location in persistent taggroup
 
+	void log(object self, number level, string text)
+	{
+		// log events in log files
+		LogEvent("SEMCoordManager", level, text)
+	}
+
+	void print(object self, string printstr)
+	{
+		result("SEMCoordManager: "+printstr+"\n")
+		self.log(2,printstr)
+	}
+
 	void SEMCoordManager(object self)
 	{
 		// constructor
@@ -371,7 +383,7 @@ class SEMCoordManager: object
 
 			if (name1 == name)
 			{			
-				result("found "+name1+"\n")
+				self.print("found "+name1)
 				//subtag.taggroupopenbrowserwindow(0)
 				return 1
 			}
@@ -395,7 +407,7 @@ class SEMCoordManager: object
 		if (self.getCoordAsTag(aCoord.getName(),subtag))
 		{
 			// coord with same name found, now replace it with the new one
-			result("replacing existing "+aCoord.getName()+"\n")
+			self.print("replacing existing "+aCoord.getName())
 			TagGroupReplaceTagsWithCopy(subtag,aCoord.returnAsTag())
 			
 			//subtag.TagGroupOpenBrowserWindow( 0 )
@@ -403,7 +415,7 @@ class SEMCoordManager: object
 		}
 		else
 		{
-			result("inserting "+aCoord.getName()+"\n")
+			self.print("inserting "+aCoord.getName())
 			t1.TagGroupAddTagGroupAtEnd( aCoord.returnAsTag() )
 		}
 		
@@ -439,10 +451,11 @@ class SEMCoordManager: object
 	{
 		// returns tag with given name from persistent list and create coord
 		taggroup subtag
-		self.getCoordAsTag(name,subtag)
-		return self.convertTagToCoord(subtag)
+		if (self.getCoordAsTag(name,subtag))
+			return self.convertTagToCoord(subtag)
+		else
+			return NULL
 
-		//return self.convertTagToCoord(subtag)
 
 	}
 

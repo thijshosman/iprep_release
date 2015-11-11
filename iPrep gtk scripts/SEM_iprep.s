@@ -745,7 +745,7 @@ if (XYZZY)		self.setWDForImaging()
 		if (state == "imaging")
 		{
 			self.goToCoordsZFirst(imagingCoord.getX(),imagingCoord.getY(),imagingCoord.getZ()) 
-			self.print("at stored imaging point")
+			self.print("at "+imagingCoord.getName())
 		}
 		else 
 			throw("not allowed to go to stored imaging state coming from state: " +state)

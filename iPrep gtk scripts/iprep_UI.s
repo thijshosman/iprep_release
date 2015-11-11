@@ -31,7 +31,7 @@ void Save_imaging_XYZ_position( void )
 	z=myWorkflow.returnSEM().getZ()
 
 	string s1 = "Save SEM position\n("+x+","+y+","+z+")\nas default iPrep imaging location?"
-	string s2 = Datestamp()+": SEM position ("+x+","+y+","+z+") saved as default iPrep imaging location.\n"
+	string s2 = Datestamp()+": SEM position ("+x+","+y+","+z+") saved as default iPrep imaging location (storedImaging).\n"
 	if (OKCancelDialog(s1))
 		myWorkflow.returnSEM().saveCustomAsStoredImaging(x,y,z)
 	
@@ -64,7 +64,7 @@ void Recall_imaging_XYZ_position( void )
 	yy=mySI.getY()
 	zz=mySI.getZ()
 
-	string s1 = "Currently saved iPrep SEM imaging position\n("+xx+","+yy+","+zz+")\n\nGo there now?"
+	string s1 = "Currently saved iPrep SEM imaging position (storedImaging)\n("+xx+","+yy+","+zz+")\n\nGo there now?"
 	if (OKCancelDialog(s1))
 		myWorkflow.returnSEM().goToStoredImaging()
 	
@@ -159,8 +159,8 @@ void Goto_scribe_mark( void )
 void Set_starting_slice_number( void )
 {
 	number slice = IPrep_sliceNumber() + 1
-	if ( GetNumber("Enter slice number (>=1) for first acquired image slice:", slice, slice ) )
-		IPrep_setSliceNumber( slice - 1 )
+	if ( GetNumber("Enter slice number (>=0) for first acquired image slice:", slice, slice ) )
+		IPrep_setSliceNumber( slice )
 
 	if ( slice < 0)
 		slice = 0
@@ -235,26 +235,137 @@ void pecs_home(void)
 void IPrep_setEBSD(void)
 {
 	// #todo: check current state
-	IPrep_toggle_planar_ebsd("ebsd")
+	string s1 = "Are you sure you want to change the system mode to EBSD?"
+	if (OKCancelDialog(s1))
+		IPrep_toggle_planar_ebsd("ebsd")
 }
 
 void IPrep_setPlanar(void)
 {
 	// #todo: check current state
-	IPrep_toggle_planar_ebsd("planar")
+	string s1 = "Are you sure you want to change the system mode to Planar?"
+	if (OKCancelDialog(s1))
+		IPrep_toggle_planar_ebsd("planar")
 }
+
+void IPrep_setScribeROI(void)
+{
+	// interprets user rectangular ROI and realigns scribe mark
+
+
+	string s1 = "Is live view running and is there an ROI on image around the correct scribe position?"
+	if(!okcanceldialog(s1))
+		return
+
+	try
+	{
+		image im := getfrontimage()
+
+		//get roi
+		number t,l,b,r
+		GetSelection(im,t,l,b,r)
+		result("top: "+t+", left: "+l+", bottom: "+b+", right: "+r+"\n")
+
+		//get size
+		number x,y,z
+		getsize(im,x,y)
+		result("width: "+x+", height: "+y+"\n")
+
+		// center of image: 
+		number image_center_x, image_center_y
+		image_center_x = x/2
+		image_center_y = y/2
+		result("image center: ("+image_center_x+","+image_center_y+")\n")
+
+		// center of roi: 
+		number roi_center_x, roi_center_y
+		roi_center_x = l+(r-l)/2
+		roi_center_y = t+(b-t)/2
+		result("roi center: ("+roi_center_x+","+roi_center_y+")\n")
+
+		// calculate vector from center: 
+		number misalignment_vector_x, misalignment_vector_y
+		misalignment_vector_x = image_center_x - roi_center_x
+		misalignment_vector_y = roi_center_y - image_center_y
+		result("vector: ("+misalignment_vector_x+","+misalignment_vector_y+")\n")
+
+		// get calibration data from image
+		number scale_x, scale_y, x_cal, y_cal
+		im.GetScale(scale_x, scale_y)
+		string units = im.GetUnitString()
+		x_cal = misalignment_vector_x * scale_x
+		y_cal = misalignment_vector_y * scale_y
+		result( "misalignment of x="+x_cal+", y="+y_cal+" "+units+"\n")
+
+
+
+		// add a new coordinate that functions as the test point to see if calibration succeeded
+		object newscribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos")
+		newscribe_pos.corrX(-x_cal)
+		newscribe_pos.corrY(-y_cal)
+		newscribe_pos.setName("testcal")
+		returnSEMCoordManager().addCoord(newscribe_pos)
+
+		myWorkflow.returnSEM().goToImagingPosition("testcal")
+
+		if (abs(x_cal) > 2 || abs(y_cal) > 2)
+		{
+			result("correction too big: x= "+x_cal+", y= "+y_cal+"\n")
+			throw("correction too big, aborting")
+		}
+
+
+		if (okcanceldialog("Did the stage move the scribe mark to the center of the live view image?"))
+			IPrep_scribemarkVectorCorrection(-x_cal,-y_cal)
+		else
+		{
+			result("not succeeded, user did not accept change\n")	
+			return
+		}
+
+	}
+	catch
+	{
+		okdialog("something went wrong: "+GetExceptionString())
+		break
+	}
+
+
+
+}
+
+
+
+
+
 
 // recovery functions
 // intended to get the system consistent again
 
 void homeSEMStageToClear(void)
 {
-	myWorkflow.returnSEM().homeToClear()
+	object myClear = returnSEMCoordManager().getCoordAsCoord("clear")
+	number xx,yy,zz
+	xx=myClear.getX()
+	yy=myClear.getY()
+	zz=myClear.getZ()
+
+	string s1 = "clear position\n("+xx+","+yy+","+zz+")\n\nGo (home) there now?"
+	if (OKCancelDialog(s1))
+		myWorkflow.returnSEM().homeToClear()
 }
 
 void gotoPickupDropoff(void)
 {
-	myWorkflow.returnSEM().goToPickup_Dropoff()
+	object myP = returnSEMCoordManager().getCoordAsCoord("pickup_dropoff")
+	number xx,yy,zz
+	xx=myP.getX()
+	yy=myP.getY()
+	zz=myP.getZ()
+
+	string s1 = "pickup dropoff position\n("+xx+","+yy+","+zz+")\n\nGo there now?"
+	if (OKCancelDialog(s1))
+		myWorkflow.returnSEM().goToPickup_Dropoff()
 }
 
 void homeParker(void)
@@ -416,7 +527,6 @@ void iprep_InstallMenuItems( void )
 	AddScriptToMenu( "beep()", "--", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
 
 	// PECS
-
 	AddScriptToMenu( "lockPecs()", "Lock PECS UI", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
 	AddScriptToMenu( "unlockPecs()", "Unlock PECS UI", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
 	AddScriptToMenu( "pecs_reseat()", "reseat sample carrier in PECS mount", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
@@ -430,7 +540,10 @@ void iprep_InstallMenuItems( void )
 	AddScriptToMenu( "IPrep_recover_deadflag()", "auto recover from dead state", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 	AddScriptToMenu( "IPrep_setEBSD()", "switch to EBSD dock and EBSD mode", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 	AddScriptToMenu( "IPrep_setPlanar()", "switch to Planar dock and Planar mode", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
-	AddScriptToMenu( "IPrep_calibrate_transfer()", "calibrate all positions from mode selection, reference and scribe", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
+	AddScriptToMenu( "IPrep_calibrate_transfer()", "reinitialize all SEM stage and Parker calibrations from mode selection", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
+	AddScriptToMenu( "IPrep_setScribeROI()", "calibrate scribe mark position after setting ROI", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
+
+
 
 	// iprep loop control
 	//AddScriptToMenu( "IPrep_startrun()", "Start run...", SS_MENU_HEAD , SS_SUB_MENU_5 , 0)
