@@ -58,8 +58,8 @@ v-workflow checks that sample is no longer present in dock - after pickup - unco
 -absolute coordinates for SEM stage
 v-reseating function that sets carrier into dovetail but never leaves PECS
 -transfer position solution that differentiates between ebsd and planar
--lock out SEM stage rotation/tilt in FEI software
 
+v-detect if system has been homed since last powerup
 
 B:
 -implement consistent and well thought out user dialog in combination of results/debug/logfile/UI menus
@@ -69,20 +69,11 @@ B:
 	-remove kv/wd stuff from sem class
 	-handle imaging from main, remove from state machine and workflow
 	-handle pecs camera back in pecs class
--multi ROI
--enable 3Dvolume again
 -transfer position tags become deltas, and deltas allow change. hardcode real positions, do not allow delta's more than a certain value.
--UPS check once every cycle
-	-make late binding method with executescriptstring method
--transfer positions:
-	-use deltas. store real position in code, have tag for deltas
 
-device specific:
-Tranfer:
--detect if system has been homed since last powerup
 
-sal:
--no more end slice
+
+
 
 existing:
 IPrep_abortrun(): called by script, aborts current loop
@@ -93,8 +84,7 @@ IPrep_stoprun(): executed when stop button is pressed
 After install:
 Features
 -add FWD decoupling after EBSD run (since OI might change it)
--lock out SEM ui (rotation/tilt)
--clear and pickup_dropoff are 5 mm from eachother. this may be too much and lead to interference of planar fork with sample. make 3 mm instaed. test with ali
+-lock out SEM ui (rotation/tilt/x/y/z) - Mingkai
 -dock swap/install:
 	-store rotation value in tag
 	v-make sure SEM is homed/will home after swap to ensure no inconsistency problems when changing docks
@@ -104,12 +94,13 @@ Features
 	-use dialog with timeout to ensure user has option to override
 	-?how do we have a ui okcanceldialog with tiemout?
 	-make check optional by setting samplecheck flag to 1
--make different functions for transfering in workflow and as ui elements to ensure that checks are run accordingly
 -have current action as a query-able item in mediator so that user can see what the system is doing. this will be queried by ui
 -turn protected flag on or off in ui
 -add ebsd step to workflow (first manual)
 -make workflow items optional
 	-items in myloop are on/off depending on what the mediator/tag says
+-EBSD dock: define 'no go' zones, taking further extend of EBSD detector in mind. these are a combination of y and z in microscope. 
+
 
 features:
 -IPrep_Setup_Imaging() needs to selectively enable things that happen every slice before imaging. this needs to be handled by multi-roi as well, so maybe save as part of a coord object?
@@ -124,6 +115,8 @@ features:
 	-focus shift as option
 -re-enable 3D volume history stack
 -on iprep_startrun: check that dock installed is correct (by looking at logic readout of encoder inputs)
+-UPS check once every cycle
+	-make late binding method with executescriptstring method
 
 done:
 v-use number of slices as stop condition of workflow loop
@@ -134,6 +127,11 @@ v-store vector of where scribe mark should be and compare to old value and adjus
 	-move scribe mark with user supplied vector and have user confirm before storing position/correction in tags
 v-lock out pecs UI during reseating
 v-make sure that an unsafe condition turns off beam (though mediator)
+v-clear and pickup_dropoff are 5 mm from eachother. this may be too much and lead to interference of planar fork with sample. make 3 mm instaed. test with ali
+v-make different functions for transfering in workflow and as ui elements to ensure that checks are run accordingly
+
+
+
 
 Bugs:
 v-workflow goes to nominal imaging, not stored imaging
