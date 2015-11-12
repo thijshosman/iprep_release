@@ -301,23 +301,22 @@ void IPrep_setScribeROI(void)
 
 		// add a new coordinate that functions as the test point to see if calibration succeeded
 		object newscribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos")
-		newscribe_pos.corrX(-x_cal/1000)
-		newscribe_pos.corrY(-y_cal/1000)
+		newscribe_pos.corrX(-x_cal)
+		newscribe_pos.corrY(-y_cal)
 		newscribe_pos.setName("testcal")
 		returnSEMCoordManager().addCoord(newscribe_pos)
 
 		myWorkflow.returnSEM().goToImagingPosition("testcal")
 
-		if (abs(x_cal/1000) > 2 || abs(y_cal/1000) > 2)
+		if (abs(x_cal) > 2 || abs(y_cal) > 2)
 		{
-			result("correction too big: x= "+x_cal+" um, y= "+y_cal+" um\n")
-			result("maximum correction is 2 mm in x and y")
+			result("correction too big: x= "+x_cal+", y= "+y_cal+"\n")
 			throw("correction too big, aborting")
 		}
 
 
 		if (okcanceldialog("Did the stage move the scribe mark to the center of the live view image?"))
-			IPrep_scribemarkVectorCorrection(-x_cal/1000,-y_cal/1000)
+			IPrep_scribemarkVectorCorrection(-x_cal,-y_cal)
 		else
 		{
 			result("not succeeded, user did not accept change\n")	
