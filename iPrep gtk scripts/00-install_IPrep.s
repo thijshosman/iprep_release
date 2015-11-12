@@ -75,7 +75,7 @@ InstallFile( PathConcatenate( gPath, "ebsd_oi_automatic.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "linearWorkflow.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "iprep_main.s" ), package, 3 )
 
-InstallFile( PathConcatenate( gPath, "iprep_pecsstatuschecker.s" ), package, 3 )
+//InstallFile( PathConcatenate( gPath, "iprep_pecsstatuschecker.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "iprep_UI.s" ), package, 3 )
 
 result("Done installing "+package+" scripts as plugin.\n")
