@@ -295,7 +295,7 @@ class planarSEMdock : object
 		pickup_dropoff.print()
 
 		// for clear only move in Z from reference point
-		clear.set(reference.getX(), reference.getY(), reference.getZ()-5)
+		clear.set(reference.getX(), reference.getY(), reference.getZ()-3)
 		self.print("clear set: ")
 		clear.print()
 
