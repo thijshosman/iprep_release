@@ -676,15 +676,11 @@ void IPrep_Align()
 }
 */
 
-
-
-
-
-
 void IPrep_cleanup()
 {
 	// runs when there is a problem detected to return to manageable settings, ie:
 	// unlock the pecs, turn off high voltage etc
+	
 	print("cleanup called")
 	
 	// delete the digiscan parameters created for 
@@ -704,8 +700,6 @@ void IPrep_cleanup()
 
 
 }
-
-
 
 Number IPrep_Setup_Imaging()
 {
@@ -796,9 +790,11 @@ Number IPrep_foobar()
 }
 
 
-// *** methods directly called by UI elements ***
 
-Number IPrep_MoveToPECS()
+
+// *** methods directly called by workflow ***
+
+Number IPrep_MoveToPECS_workflow()
 {
 	number returncode = 0
 
@@ -819,19 +815,19 @@ Number IPrep_MoveToPECS()
 	{
 
 		// system caught unhandled exception and is now considered dead/unsafe
-		//print(GetExceptionString()+", system now dead/unsafe")
-		//returnDeadFlag().setDead(1, "movetopecs", GetExceptionString())
-		//returnDeadFlag().setSafety(0, "IPrep_MoveToPECS failed")
+		print(GetExceptionString()+", system now dead/unsafe")
+		returnDeadFlag().setDead(1, "movetopecs", GetExceptionString())
+		returnDeadFlag().setSafety(0, "IPrep_MoveToPECS failed")
 		returncode = 0 // irrecoverable error
 		//okdialog("not allowed. "+ GetExceptionString())
-		break // so that flow contineus
+		break // so that flow continues
 		
 	}
 
 	return returncode
 }
 
-Number IPrep_MoveToSEM()
+Number IPrep_MoveToSEM_workflow()
 {
 	number returncode = 0
 
@@ -856,47 +852,12 @@ Number IPrep_MoveToSEM()
 		returnDeadFlag().setSafety(0, "IPrep_MoveToSEM failed")
 		returncode = 0 // irrecoverable error
 		//okdialog("not allowed. "+ GetExceptionString())
-		break // so that flow contineus
+		break // so that flow continues
 	}
 	return returncode
 }
 
-Number IPrep_reseat()
-{
-	// used to pick up the sample from the PECS and put it back 
-	// use after sample vacuum transfer to make sure images taken in the PECS have the carrier 
-	// at the right location in the dovetail
 
-	// called manually from menu before workflow starts
-
-	number returncode = 0
-
-	if (!returnDeadFlag().checkAliveAndSafe())
-		return returncode // to indicate error
-
-	print("IPrep_reseat")
-	try
-	{
-		print("reseating sample")
-		myPW.updateA("sample: -> reseating")
-		myStateMachine.reseat()
-		myPW.updateA("sample: done reseating")
-		print("reseating done")
-		returncode = 1 // to indicate success
-	}
-	catch
-	{
-		// system caught unhandled exception and is now considered dead/unsafe
-		//print(GetExceptionString()+", system now dead/unsafe")
-		//returnDeadFlag().setDead(1, "", GetExceptionString())
-		//returnDeadFlag().setSafety(0, "reseating failed")
-		returncode = 0 // irrecoverable error
-		okdialog("not allowed. "+ GetExceptionString())
-		break // so that flow contineus
-	}
-	return returncode
-
-}
 
 Number IPrep_check()
 {
@@ -986,15 +947,6 @@ Number IPrep_StartRun()
 			return returncode
 		}
 
-
-
-		
-
-
-
-
-	// #todo infer what i to start based on last completed step
-	// myloop.seti()
 	// start loop
 	myloop.init(9).StartThread()
 
@@ -1007,7 +959,7 @@ Number IPrep_StartRun()
 		print(GetExceptionString())
 		returnDeadFlag().setDeadUnSafe()
 
-		break // so that flow contineus
+		break // so that flow continues
 
 	}
 
@@ -1033,7 +985,6 @@ Number IPrep_ResumeRun()
 	print("UI: Prep_ResumeRun")
 
 	IPrep_StartRun()
-
 
 	returncode = 1 // to indicate success
 	
@@ -1172,12 +1123,12 @@ Number IPrep_Image()
 	{
 		
 		// system caught unhandled exception and is now considered dead/unsafe
-		print(GetExceptionString())
+		print("exception caught in iprep_image(): "+GetExceptionString())
 
 		// #TODO: an exception in iprep_imaging is most likely safe
 		returnDeadFlag().setDeadUnSafe()
 
-		break // so that flow contineus
+		break // so that flow continues
 
 	}
 
@@ -1286,7 +1237,7 @@ Number IPrep_Pecs_Image_beforemilling()
 	
 		// system caught unhandled exception
 		print("pecs camera exception during acquisition before milling: "+GetExceptionString())
-		break // so that flow contineus
+		break // so that flow continues
 
 	}
 
@@ -1413,6 +1364,67 @@ Number IPrep_RunPercentCompleted()
 	return myStateMachine.getPercentage()
 }
 
+// *** methods manually called by UI/user ***
+
+Number IPrep_MoveToPECS()
+{
+		
+	if(!IPrep_MoveToPECS_workflow())
+	{
+		okdialog("Did not finish transfer to PECS. check log")
+	
+	}
+
+	return 1
+}
+
+Number IPrep_MoveToSEM()
+{
+	if(!IPrep_MoveToSEM_workflow())
+	{
+		okdialog("Did not finish transfer to SEM. check log")
+	
+	}
+
+	return 1
+}
+
+Number IPrep_reseat()
+{
+	// used to pick up the sample from the PECS and put it back 
+	// use after sample vacuum transfer to make sure images taken in the PECS have the carrier 
+	// at the right location in the dovetail
+
+	// called manually from menu before workflow starts
+
+	number returncode = 0
+
+	if (!returnDeadFlag().checkAliveAndSafe())
+		return returncode // to indicate error
+
+	print("IPrep_reseat")
+	try
+	{
+		print("reseating sample")
+		myPW.updateA("sample: -> reseating")
+		myStateMachine.reseat()
+		myPW.updateA("sample: done reseating")
+		print("reseating done")
+		returncode = 1 // to indicate success
+	}
+	catch
+	{
+		// system caught unhandled exception and is now considered dead/unsafe
+		print(GetExceptionString()+", system now dead/unsafe")
+		returnDeadFlag().setDead(1, "", GetExceptionString())
+		returnDeadFlag().setSafety(0, "reseating failed")
+		returncode = 0 // irrecoverable error
+		okdialog("not allowed. "+ GetExceptionString())
+		break // so that flow contineus
+	}
+	return returncode
+
+}
 
 class IPrep_mainloop:thread
 {
@@ -1553,7 +1565,7 @@ class IPrep_mainloop:thread
 			else if (i==3) // move to pecs, do not repeat
 			{
 				self.print("loop: i = 3, move to pecs")
-				number returnval = IPrep_MoveToPECS()
+				number returnval = IPrep_MoveToPECS_workflow()
 				if (!self.process_response(returnval, 0)) // dont repeat for now
 					break
 
@@ -1585,7 +1597,7 @@ class IPrep_mainloop:thread
 			else if (i==7) // move to sem
 			{
 				self.print("loop: i = 7, move to sem")
-				number returnval = IPrep_MoveToSEM()
+				number returnval = IPrep_MoveToSEM_workflow()
 				if (!self.process_response(returnval, 0)) // dont repeat for now
 					break
 

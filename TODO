@@ -93,34 +93,47 @@ IPrep_stoprun(): executed when stop button is pressed
 After install:
 Features
 -add FWD decoupling after EBSD run (since OI might change it)
-v-lock out pecs UI during reseating
 -lock out SEM ui (rotation/tilt)
--make sure that an unsafe condition turns off beam (though mediator)
 -clear and pickup_dropoff are 5 mm from eachother. this may be too much and lead to interference of planar fork with sample. make 3 mm instaed. test with ali
--store vector of where scribe mark should be and compare to old value. adjust transfer positions with this vector
-	-have user move ROI into position and determine center
-	-determine vector in um from center of image to center of ROI
-	-move scribe mark with user supplied vector and have user confirm before storing position/correction in tags
 -dock swap/install:
 	-store rotation value in tag
-	-make sure SEM is homed/will home after swap to ensure no inconsistency problems when changing docks
-	-warn the user to use correct carrier
+	v-make sure SEM is homed/will home after swap to ensure no inconsistency problems when changing docks
+	v-warn the user to use correct carrier
 -IPrep_check: check rotation value against stored value on dock install
--add pogo pin check to workflow. use dialog with timeout to ensure user has option to override
+-add pogo pin check to workflow items. 
+	-use dialog with timeout to ensure user has option to override
 	-?how do we have a ui okcanceldialog with tiemout?
--add ebsd step to workflow (first manual)
+	-make check optional by setting samplecheck flag to 1
 -make different functions for transfering in workflow and as ui elements to ensure that checks are run accordingly
--have progresswindow updated by mediator
-	-we can use iprep_getstatus(), which gets called periodically, as the observer for updating this. 
-v-use number of slices as stop condition of workflow loop
-v-re-enable check for average pixel value after acquisition
--re-enable 3D volume history stack
--show current step in workflow (in progresswindow?)
+-have current action as a query-able item in mediator so that user can see what the system is doing. this will be queried by ui
 -turn protected flag on or off in ui
+-add ebsd step to workflow (first manual)
+-make workflow items optional
+	-items in myloop are on/off depending on what the mediator/tag says
+
+features:
+-IPrep_Setup_Imaging() needs to selectively enable things that happen every slice before imaging. this needs to be handled by multi-roi as well, so maybe save as part of a coord object?
+	-set working distance to value (in case it changed)
+	-set brightness to value
+	-set contrast to value
+	-set magnification
+	-set voltage
 -multi ROI
 	-some ui for this
 	-autofocus as option
 	-focus shift as option
+-re-enable 3D volume history stack
+-on iprep_startrun: check that dock installed is correct (by looking at logic readout of encoder inputs)
+
+done:
+v-use number of slices as stop condition of workflow loop
+v-re-enable check for average pixel value after acquisition
+v-store vector of where scribe mark should be and compare to old value and adjust transfer positions with this vector
+	-have user move ROI into position and determine center
+	-determine vector in um from center of image to center of ROI
+	-move scribe mark with user supplied vector and have user confirm before storing position/correction in tags
+v-lock out pecs UI during reseating
+v-make sure that an unsafe condition turns off beam (though mediator)
 
 Bugs:
 v-workflow goes to nominal imaging, not stored imaging
