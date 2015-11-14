@@ -337,6 +337,26 @@ object returnSEMCoordManager()
 	return mySEMCoordManager
 }
 
+// define multi-ROI object and the object defining what is enabled
+
+// create the ROIManager
+object myROIManager = alloc(ROIManager)
+
+// allow the workflow and UI access to the ROI manager
+object returnROIManager()
+{
+	return myROIManager
+}
+
+// create the object that figures out which part of the ROI is enabled
+object myROIEnables = alloc(ROIEnables)
+
+// allow the workflow and UI access to the ROI enables
+object returnROIEnables()
+{
+	return myROIEnables
+}
+
 
 class haltCheckObject:object
 {

@@ -295,11 +295,7 @@ class SEMCoord: object
 
 		return tg
 	}
-
-
-
 }
-
 
 
 class SEMCoordManager: object
@@ -396,11 +392,8 @@ class SEMCoordManager: object
 	{
 		// adds a coord to the list. create if name does not exist, overwrite if it does
 		
-		// #todo: check if coord exists
-		
 		// get the taglist we want to add the coord to
 		taggroup t1 = self.getCoordList()
-		
 		
 		taggroup subtag
 		// search for the name
@@ -415,12 +408,24 @@ class SEMCoordManager: object
 		}
 		else
 		{
+			// coord with that name does not exist yet. add it. 
 			self.print("inserting "+aCoord.getName())
 			t1.TagGroupAddTagGroupAtEnd( aCoord.returnAsTag() )
 		}
 		
 		ApplicationSavePreferences()
 
+	}
+
+	void delCoord(object self, string name1)
+	{
+		taggroup tg1
+		if (self.getCoordAsTag(name1,tg1) && name1 != "")
+		{	
+			tg1.TagGroupDeleteAllTags()
+			self.print("deleted coord: "+name1)
+			//tg1.TagGroupOpenBrowserWindow( 0 )
+		}
 	}
 
 	object convertTagToCoord(object self, taggroup subtag)
@@ -486,6 +491,9 @@ class SEMCoordManager: object
 	}
 
 }
+
+
+
 
 
 class positionManager: object

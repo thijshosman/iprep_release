@@ -72,17 +72,14 @@ B:
 -transfer position tags become deltas, and deltas allow change. hardcode real positions, do not allow delta's more than a certain value.
 
 
+Maintenance tasks:
+-write good unittest for coord object and coordmanager to make sure all upcoming changes work and don't break existing code
+-allow semcoordmanager to delete coords
+	-how to delete an empty index in a taglist or how to find the index of a taglist (ask Robin)
 
-
-
-existing:
-IPrep_abortrun(): called by script, aborts current loop
-IPrep_startrun(): executed when start button is pressed
-IPrep_pauserun(): executed when pause button is pressed
-IPrep_stoprun(): executed when stop button is pressed
 
 After install:
-Features
+Features:
 -add FWD decoupling after EBSD run (since OI might change it)
 -lock out SEM ui (rotation/tilt/x/y/z) - Mingkai
 -dock swap/install:
@@ -103,12 +100,16 @@ Features
 
 
 features:
--IPrep_Setup_Imaging() needs to selectively enable things that happen every slice before imaging. this needs to be handled by multi-roi as well, so maybe save as part of a coord object?
-	-set working distance to value (in case it changed)
-	-set brightness to value
-	-set contrast to value
-	-set magnification
-	-set voltage
+-IPrep_Setup_Imaging() needs to selectively enable things that happen every slice before imaging. this needs to be handled by multi-roi as well, so maybe save as part of a coord object? or separate object, since that leaves coord intact and scales to multi-roi easily. this 'roi_object' would store: 
+	-set working distance to value or leave working distance alone (if 0)
+	-set brightness to value or leave brightness alone (if 0)
+	-set contrast to value or leave contrast alone (if 0)
+	-set magnification or leave magnification alone (if 0)
+	-set voltage or leave voltage alone (if 0)
+	-turn on autofocus or not 
+	-spot size
+	-stig x
+	-stig y
 -multi ROI
 	-some ui for this
 	-autofocus as option
