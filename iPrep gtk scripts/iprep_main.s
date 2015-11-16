@@ -8,6 +8,7 @@ number XYZZY = 0	// set to 1 to enable TH workflow
 object myWorkflow = returnWorkflow()
 object myStateMachine = returnStateMachine()
 
+
 object myPW = alloc(progressWindow) //#todo migrate to mediator
 // convention for progresswindow:
 // A: sample status
@@ -67,7 +68,7 @@ void logE(number level, string str1)
 
 void print(string str1)
 {
-	result("main: "+str1+"\n")
+	result("main: "+datestamp()+": "+str1+"\n")
 	logE(2, str1)
 }
 
@@ -176,12 +177,10 @@ void WorkaroundQuantaMagBug( void )
 
 
 
-
-void AcquireDigiscanImage( image &img )
+void AcquireDigiscanImage(number paramID, image &img )
 // JH version
 // #TODO: migrate to digiscan class
 {
-	Number paramID = 2	// capture ID
 	number width, height,pixeltime,linesync,rotation
 	width = DSGetWidth( paramID )
 	height = DSGetHeight( paramID)
@@ -216,7 +215,13 @@ void AcquireDigiscanImage( image &img )
 	DSDeleteParameters( paramID2 )
 }
 
-
+void AcquireDigiscanImage( image &img )
+{
+	// acquire digiscan image with capture settings
+	Number paramID = 2	// capture ID
+	AcquireDigiscanImage(paramID, img )
+	
+}
 
 void acquire_PECS_image( image &img )
 // Use this routine to acquire a PECS image in any PECS stage position.
@@ -719,6 +724,29 @@ Number IPrep_Setup_Imaging()
 
 	try
 	{
+		// for single ROI imaging (legacy mode)
+		// create the default ROI, linked to coord StoredImaging
+		object myDefaultROI = ROIFactory(0,"StoredImaging")
+		
+		// set focus
+		number imagingWD = myWorkflow.returnSEM().measureWD()
+		myDefaultROI.setFocus(imagingWD)
+
+		// update StoredImaging position with current position
+		myWorkflow.returnSEM().saveCurrentAsStoredImaging()
+
+		// blank the beam
+		myWorkflow.returnSEM().blankOn()
+
+		// save the ROI to the manager
+		returnROIManager().addROI(myDefaultROI)
+
+
+
+
+
+		/* // legacy
+
 		// set WD in class to current value
 		number imagingWD = myWorkflow.returnSEM().measureWD()
 		myWorkflow.returnSEM().setDesiredWD(imagingWD)
@@ -746,11 +774,13 @@ Number IPrep_Setup_Imaging()
 		//my3DvolumePECSafter.initPECS_3D(slices)
 		//my3DvolumeSEM.initSEM_3D(slices, DSGetWidth(4), DSGetHeight(4))
 
+		*/
+
 		returncode = 1
 	}
 	catch
 	{
-		okdialog("something went wrong: "+GetExceptionString())
+		okdialog("something went wrong in setting up imaging: "+GetExceptionString())
 		break
 	}
 	return returncode
@@ -1000,7 +1030,7 @@ Number IPrep_StopRun()
 	return 1
 }
 
-Number IPrep_Image()
+Number IPrep_Image_single()
 {
 	number returncode = 0
 
@@ -1194,6 +1224,175 @@ if (XYZZY)
 */
 
 }
+
+number IPrep_image()
+{
+	// supports multi ROI
+
+	number returncode = 0
+
+	try
+	{
+
+		// call old function
+		//IPrep_Image_single()
+
+
+		// tell the state machine it is time to image
+		myStateMachine.start_image()
+
+		// get the ROI (default/StoredImaging in this case)
+		object myROI 
+		string name1 = "StoredImaging"
+		if (!returnROIManager().getROIAsObject(name1, myROI))
+		{
+			print("IMAGE: tag does not exist!")
+			return returncode
+		}
+
+		// Update GMS status bar - SEM imaging started
+		myPW.updateB("SEM imaging...")	
+
+		// go to ROI
+		print("IMAGE: going to location: "+myROI.getName())
+		myWorkflow.returnSEM().goToImagingPosition(myROI.getName())
+		
+		// focus
+		if (myROI.getAFMode() == 1) //autofocus on every slice
+		{
+			print("IMAGE: autofocusing")
+			//afs_run()
+			number afs_sleep = 1	// seconds of delay
+			sleep( afs_sleep )
+
+			number current_focus = myWorkflow.returnSEM().measureWD()	
+			number saved_focus = returnROIManager().getFocus()
+			number change = current_focus - saved_focus
+			print("IMAGE: Autofocus changed focus value by "+change+" mm")
+		}
+		else // no autofocus, use stored value
+		{
+			print("IMAGE: focus is: "+myROI.getFocus())
+			myWorkflow.returnSEM().setDesiredWD(myROI.getFocus()) // automatically sets it after storing it in object
+		}
+
+		// brightness
+		if(returnROIManager().brightness())
+		{
+			print("IMAGE: brightness is: "+myROI.getBrightness())
+			myROI.getBrightness()
+		}
+
+		// contrast
+		if(returnROIManager().contrast())
+		{
+			print("IMAGE: contrast is: "+myROI.getContrast())
+			myROI.getContrast()
+		}
+
+		// mag
+		if(returnROIManager().mag())
+		{
+			print("IMAGE: magnification is: "+myROI.getMag())
+			myROI.getMag()
+		}
+
+		// voltage
+		if(returnROIManager().voltage())
+		{
+			print("IMAGE: voltage is: "+myROI.getVoltage())
+			myROI.getVoltage()
+		}
+
+		// ss
+		if(returnROIManager().ss())
+		{
+			print("IMAGE: spot size is: "+myROI.getss())
+			myROI.getss()
+		}	
+
+		// stigx
+		if(returnROIManager().stigx())
+		{
+			print("IMAGE: stigmation in X is: "+myROI.getStigx())
+			myROI.getStigx()
+		}
+
+		// stigy
+		if(returnROIManager().stigy())
+		{
+			print("IMAGE: stigmation in Y is: "+myROI.getStigy())
+			myROI.getStigy()
+		}
+
+		// Acquire Digiscan image, use digiscan parameter ID saved in settings
+		image temp_slice_im
+		AcquireDigiscanImage(myROI.getDigiscanParamID(), temp_slice_im )
+		
+		// Verify SEM is functioning properly - pause acquisition otherwise (might be better to do before AFS with a test scan, easier here)
+		// if tag exists
+		number pixel_threshold = 500
+		string tagname = "IPrep:SEM:Emission check threshold"
+		if(GetPersistentNumberNote( tagname, pixel_threshold ))
+		{
+			number avg = average( temp_slice_im )
+
+			if ( avg < pixel_threshold )
+			{
+				// average image value is less than threshold, assume SEM emission problem, pause acq
+				string str = datestamp()+": Average image value ("+avg+") is less than emission check threshold ("+pixel_threshold+")\n"
+				print(""+ str )
+				string str2 = "\nAcquisition has been paused.\n\nCheck SEM is working properly and press <Continue> to resume acquisition, or <Cancel> to stop."
+				string str3 = "\n\nNote: Threshold can be set at global tag: IPrep:SEM:Emission check threshold"
+				if ( !ContinueCancelDialog( str + str2 +str3 ) )
+				{
+						str = ": Acquisition terminated by user" 
+						print("IMAGE: "+str)		
+				}
+			}
+			else
+			{
+				print("IMAGE: Average image value ("+avg+") is greater than emission check threshold ("+pixel_threshold+"). SEM emission assumed OK." )	
+			}
+
+		}
+		
+
+		// Save Digiscan image
+		IPrep_saveSEMImage(temp_slice_im, "digiscan")
+
+		// Close Digiscan image
+		ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
+		imdoc.ImageDocumentClose(0)
+			
+		// Update GMS status bar - SEM imaging done
+		myPW.updateB("SEM imaging completed")
+		print("IMAGE: SEM mag 2 = "+EMGetMagnification())
+
+		// do post-imaging
+		myStateMachine.stop_image()  
+
+		myPW.updateB("imaging done")
+		print("imaging done")
+
+	}
+	catch
+	{
+		
+		// system caught unhandled exception and is now considered dead/unsafe
+		print("exception caught in iprep_image(): "+GetExceptionString())
+
+		// #TODO: an exception in iprep_imaging is most likely safe
+		returnDeadFlag().setDeadUnSafe()
+
+		break // so that flow continues
+
+	}
+
+	return returncode
+
+}
+
 
 number IPrep_acquire_ebsd()
 {

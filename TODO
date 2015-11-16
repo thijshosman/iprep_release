@@ -100,20 +100,10 @@ Features:
 
 
 features:
--IPrep_Setup_Imaging() needs to selectively enable things that happen every slice before imaging. this needs to be handled by multi-roi as well, so maybe save as part of a coord object? or separate object, since that leaves coord intact and scales to multi-roi easily. this 'roi_object' would store: 
-	-set working distance to value or leave working distance alone (if 0)
-	-set brightness to value or leave brightness alone (if 0)
-	-set contrast to value or leave contrast alone (if 0)
-	-set magnification or leave magnification alone (if 0)
-	-set voltage or leave voltage alone (if 0)
-	-turn on autofocus or not 
-	-spot size
-	-stig x
-	-stig y
--multi ROI
-	-some ui for this
-	-autofocus as option
-	-focus shift as option
+-IPrep_Setup_Imaging() needs to selectively enable things that happen every slice before imaging based on roi enabler. this needs to be handled by multi-roi as well, so maybe save as part of a coord object? or separate object, since that leaves coord intact and scales to multi-roi easily. this 'roi_object' would store: 
+	-add digiscan_parameter
+	-add show stack option
+-update iprep_image() single roi to use multi-roi framework
 -re-enable 3D volume history stack
 -on iprep_startrun: check that dock installed is correct (by looking at logic readout of encoder inputs)
 -UPS check once every cycle

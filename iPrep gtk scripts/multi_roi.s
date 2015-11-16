@@ -2,7 +2,6 @@ class IROI: object
 {
 	// simple container class for Region of Interest
 	string name
-
 	number enabled
 
 	// attributes
@@ -16,8 +15,8 @@ class IROI: object
 	number stigx // stig x value used
 	number stigy // stig y value used
 
-	number af_mode // autofocus mode used
-
+	number digiscan_param_ID
+	number af_mode // autofocus mode used. 0 = off, 1 = on every slice, 2 = on for first slice, then off
 
 	string getName(object self)
 	{
@@ -54,7 +53,8 @@ class IROI: object
 		stigx =0
 		stigy =0
 		enabled = 0
-		af_mode = 0
+		af_mode = 0 // default
+		digiscan_param_ID = 2 // default, 'capture'
 
 
 	}
@@ -62,6 +62,11 @@ class IROI: object
 	void setAFMode(object self, number mode1)
 	{
 		af_mode = mode1
+	}
+
+	void setDigiscanParamID(object self, number mode1)
+	{
+		digiscan_param_ID = mode1
 	}
 
 	void setCoordName(object self, string name1)
@@ -163,7 +168,10 @@ class IROI: object
 		return af_mode
 	}
 
-	
+	number getDigiscanParamID(object self)
+	{
+		return digiscan_param_ID
+	}	
 
 	void print(object self)
 	{
@@ -182,6 +190,7 @@ class IROI: object
 		tg.addTag("coordName",coordName)
 		tg.addTag("enabled",enabled)
 		tg.addTag("af_mode",af_mode)
+		tg.addTag("digiscan_param_ID",digiscan_param_ID)
 		tg.addTagAsFloat("focus", focus)
 		tg.addTagAsFloat("brightness", brightness)
 		tg.addTagAsFloat("contrast", contrast)
@@ -201,9 +210,13 @@ object ROIFactory(number type, string name1)
 
 	if (type == 0)
 	{
+		// default ROI, intended to be used for legacy mode
+		// assumes coord to the the same name
 		object aROI = alloc(IROI)
 		aROI.setName(name1)
-		aROI.setEnabled(1)
+		aROI.setCoordName(name1) // coord has same name as ROI
+		aROI.setEnabled(1) // enable by default
+		aROI.setDigiscanParamID(2) // default, 'capture' (2)
 		return aROI
 	}
 
@@ -238,6 +251,7 @@ class ROIEnables: object
 
 	number getAnEnable(object self, string name1)
 	{
+		// *** private ***
 		string tagname = "IPrep:ROIEnables:"+name1
 		number returnval
 		GetPersistentNumberNote( tagname, returnval )
@@ -469,6 +483,9 @@ class ROIManager: object
 		number af_mode
 		subtag.TagGroupGetTagAsNumber("af_mode",af_mode)
 
+		number digiscan_param_ID
+		subtag.TagGroupGetTagAsNumber("digiscan_param_ID",digiscan_param_ID)
+
 		number focus
 		subtag.TagGroupGetTagAsFloat("focus",focus)
 
@@ -499,6 +516,7 @@ class ROIManager: object
 		tempROI.setCoordName(coordName)
 		tempROI.setEnabled(enabled)
 		tempROI.setAFMode(af_mode)
+		tempROI.setDigiscanParamID(digiscan_param_ID)
 		tempROI.setFocus(focus)
 		tempROI.setBrightness(brightness)
 		tempROI.setContrast(contrast)
@@ -511,14 +529,17 @@ class ROIManager: object
 		return tempROI
 	}
 
-	object getROIAsROI(object self, string name)
+	number getROIAsObject(object self, string name, object &obj)
 	{
 		// returns tag with given name from persistent list and create ROI
 		taggroup subtag
 		if (self.getROIAsTag(name,subtag))
-			return self.convertTagToROI(subtag)
+		{	
+			obj =  self.convertTagToROI(subtag)
+			return 1
+		}
 		else
-			return NULL
+			return 0
 
 
 	}
@@ -583,6 +604,15 @@ myROI2.print()
 returnROIManager().addROI(myROI1)
 returnROIManager().addROI(myROI2)
 returnROIManager().printAll()
+
+// getting coord by name, old, no longer used
+//object myROI3 = returnROIManager().getROIAsObject("test1")
+//myROI3.print()
+
+// getting coord by name, new
+object myROI 
+returnROIManager().getROIAsObject("test1", myROI)
+myROI.print()
 
 result("brightness enabled: "+returnROIEnables().brightness()+"\n")
 result("contrast enabled: "+returnROIEnables().contrast()+"\n")
