@@ -3,6 +3,9 @@
 	[
 		{
 			"path": "iPrep gtk scripts"
+		},
+		{
+			"path": "iPrep testing scripts"
 		}
 	]
 }

@@ -38,8 +38,9 @@ else
 string package = "IPrep"
 
 InstallFile( PathConcatenate( gPath, "statePersistance.s" ), package, 3 )
-InstallFile( PathConcatenate( gPath, "multi_roi.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "iprep_general.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "multi_roi.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "iprep_init_helpers.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "hardwareFactory.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "iprep_3Dvolume.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "progressWindow.s" ), package, 3 )

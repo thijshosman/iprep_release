@@ -177,10 +177,13 @@ void WorkaroundQuantaMagBug( void )
 
 
 
-void AcquireDigiscanImage(number paramID, image &img )
+void AcquireDigiscanImage(image &img )
 // JH version
 // #TODO: migrate to digiscan class
 {
+	// acquire digiscan image with 'capture' settings. 
+	Number paramID = 2	// capture ID
+
 	number width, height,pixeltime,linesync,rotation
 	width = DSGetWidth( paramID )
 	height = DSGetHeight( paramID)
@@ -199,7 +202,7 @@ void AcquireDigiscanImage(number paramID, image &img )
 
 	// Create temp parameter array
 	number paramID2 = DSCreateParameters( width, height, rotation, pixelTime, lineSync) 
-	result("paramID="+paramID2+"\n")
+	//result("paramID="+paramID2+"\n")
 	// if paramID is used (Capture) then an extra copy of the image is made by GMS3 after acquire. 
 	// Doesnt happen if new parameter set is made
 
@@ -215,13 +218,6 @@ void AcquireDigiscanImage(number paramID, image &img )
 	DSDeleteParameters( paramID2 )
 }
 
-void AcquireDigiscanImage( image &img )
-{
-	// acquire digiscan image with capture settings
-	Number paramID = 2	// capture ID
-	AcquireDigiscanImage(paramID, img )
-	
-}
 
 void acquire_PECS_image( image &img )
 // Use this routine to acquire a PECS image in any PECS stage position.
@@ -731,9 +727,11 @@ Number IPrep_Setup_Imaging()
 		// set focus
 		number imagingWD = myWorkflow.returnSEM().measureWD()
 		myDefaultROI.setFocus(imagingWD)
+		print("Setup Imaging: Working Distance="+imagingWD)
 
 		// update StoredImaging position with current position
 		myWorkflow.returnSEM().saveCurrentAsStoredImaging()
+		print("Setup Imaging: StoredImaging Coord set")
 
 		// blank the beam
 		myWorkflow.returnSEM().blankOn()
@@ -741,7 +739,7 @@ Number IPrep_Setup_Imaging()
 		// save the ROI to the manager
 		returnROIManager().addROI(myDefaultROI)
 
-
+		print("Setup Imaging: Done setting up imaging conditions")
 
 
 
@@ -1277,57 +1275,64 @@ number IPrep_image()
 		}
 
 		// brightness
-		if(returnROIManager().brightness())
+		if(returnROIEnables().brightness())
 		{
 			print("IMAGE: brightness is: "+myROI.getBrightness())
 			myROI.getBrightness()
 		}
 
 		// contrast
-		if(returnROIManager().contrast())
+		if(returnROIEnables().contrast())
 		{
 			print("IMAGE: contrast is: "+myROI.getContrast())
 			myROI.getContrast()
 		}
 
 		// mag
-		if(returnROIManager().mag())
+		if(returnROIEnables().mag())
 		{
 			print("IMAGE: magnification is: "+myROI.getMag())
 			myROI.getMag()
 		}
 
 		// voltage
-		if(returnROIManager().voltage())
+		if(returnROIEnables().voltage())
 		{
 			print("IMAGE: voltage is: "+myROI.getVoltage())
 			myROI.getVoltage()
 		}
 
 		// ss
-		if(returnROIManager().ss())
+		if(returnROIEnables().ss())
 		{
 			print("IMAGE: spot size is: "+myROI.getss())
 			myROI.getss()
 		}	
 
 		// stigx
-		if(returnROIManager().stigx())
+		if(returnROIEnables().stigx())
 		{
 			print("IMAGE: stigmation in X is: "+myROI.getStigx())
 			myROI.getStigx()
 		}
 
 		// stigy
-		if(returnROIManager().stigy())
+		if(returnROIEnables().stigy())
 		{
 			print("IMAGE: stigmation in Y is: "+myROI.getStigy())
 			myROI.getStigy()
 		}
 
-		// Acquire Digiscan image, use digiscan parameter ID saved in settings
+		// Acquire Digiscan image, use digiscan parameters saved in ROI
+		
+		taggroup dsp = myROI.getDigiscanParam()
+
 		image temp_slice_im
-		AcquireDigiscanImage(myROI.getDigiscanParamID(), temp_slice_im )
+		myWorkflow.returnDigiscan().config(dsp)
+		myWorkflow.returnDigiscan().acquire(temp_slice_im)
+
+
+		//AcquireDigiscanImage(temp_slice_im )
 		
 		// Verify SEM is functioning properly - pause acquisition otherwise (might be better to do before AFS with a test scan, easier here)
 		// if tag exists
@@ -1374,6 +1379,8 @@ number IPrep_image()
 
 		myPW.updateB("imaging done")
 		print("imaging done")
+
+		returncode = 1
 
 	}
 	catch
@@ -1684,6 +1691,9 @@ class IPrep_mainloop:thread
 	{
 		// look at the response value and determine what the i value needs to do
 		// check for pause and stop flags
+		// 1: step succeeded, continue to next step
+		// 0: irrecoverable error or stop/pause pressed, stop loop
+		// -1: repeat previous step
 
 		if (returnval==1)
 		{	
@@ -1736,17 +1746,36 @@ class IPrep_mainloop:thread
 			if (i==0) // imaging, repeat if function returns 0
 			{
 				self.print("loop: i = 0, imaging")
-				number returnval = IPrep_image()
-				if (!self.process_response(returnval, 0)) // dont repeat for now
-					break
+				number returnval = 0
 
+				if(GetTagValue("IPrep:WorkflowElements:imaging"))
+				{
+					returnval = IPrep_image()
+				}
+				else // if step not enabled, succeed and go to next step
+				{
+					self.print("loop: skipping this step")
+					returnval = 1
+				}
+
+				if (!self.process_response(returnval, 0)) // dont repeat for now
+					break	
 
 			} 
 			else if (i==1) // ebsd imaging, repeat if function returns 0
 			{
 				self.print("loop: i = 1, ebsd imaging")
-				number returnval = 1//IPrep_acquire_ebsd()
-				// #todo
+				number returnval = 0
+
+				if(GetTagValue("IPrep:WorkflowElements:ebsd"))
+				{
+					returnval = IPrep_acquire_ebsd()
+				}
+				else // if step not enabled, succeed and go to next step
+				{
+					self.print("loop: skipping this step")
+					returnval = 1
+				}
 
 				if (!self.process_response(returnval, 0)) // dont repeat for now
 					break
@@ -1772,7 +1801,18 @@ class IPrep_mainloop:thread
 			else if (i==4) // image in pecs before milling, repeat if function returns 0
 			{
 				self.print("loop: i = 4, imaging before milling")
-				number returnval = IPrep_Pecs_Image_beforemilling()
+				number returnval = 0
+
+				if(GetTagValue("IPrep:WorkflowElements:pecsImageBefore"))
+				{
+					returnval = IPrep_Pecs_Image_beforemilling()
+				}
+				else // if step not enabled, succeed and go to next step
+				{
+					self.print("loop: skipping this step")
+					returnval = 1
+				}
+				
 				if (!self.process_response(returnval, 0)) // dont repeat for now
 					break
 
@@ -1788,7 +1828,18 @@ class IPrep_mainloop:thread
 			else if (i==6) // image in pecs after milling, repeat if function returns 0
 			{
 				self.print("loop: i = 6, imaging after milling")
-				number returnval = IPrep_Pecs_Image_aftermilling()
+				number returnval = 0
+
+				if(GetTagValue("IPrep:WorkflowElements:pecsImageAfter"))
+				{
+					returnval = IPrep_Pecs_Image_aftermilling()
+				}
+				else // if step not enabled, succeed and go to next step
+				{
+					self.print("loop: skipping this step")
+					returnval = 1
+				}				
+
 				if (!self.process_response(returnval, 0)) // dont repeat for now
 					break
 

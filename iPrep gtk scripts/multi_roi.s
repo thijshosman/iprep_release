@@ -15,7 +15,7 @@ class IROI: object
 	number stigx // stig x value used
 	number stigy // stig y value used
 
-	number digiscan_param_ID
+	taggroup digiscan_param // complete set of digiscan parameter array
 	number af_mode // autofocus mode used. 0 = off, 1 = on every slice, 2 = on for first slice, then off
 
 	string getName(object self)
@@ -54,7 +54,7 @@ class IROI: object
 		stigy =0
 		enabled = 0
 		af_mode = 0 // default
-		digiscan_param_ID = 2 // default, 'capture'
+		digiscan_param =  NewTagGroup()
 
 
 	}
@@ -64,9 +64,9 @@ class IROI: object
 		af_mode = mode1
 	}
 
-	void setDigiscanParamID(object self, number mode1)
+	void setDigiscanParam(object self, taggroup tg)
 	{
-		digiscan_param_ID = mode1
+		digiscan_param = tg
 	}
 
 	void setCoordName(object self, string name1)
@@ -168,9 +168,9 @@ class IROI: object
 		return af_mode
 	}
 
-	number getDigiscanParamID(object self)
+	taggroup getDigiscanParam(object self)
 	{
-		return digiscan_param_ID
+		return digiscan_param
 	}	
 
 	void print(object self)
@@ -190,7 +190,7 @@ class IROI: object
 		tg.addTag("coordName",coordName)
 		tg.addTag("enabled",enabled)
 		tg.addTag("af_mode",af_mode)
-		tg.addTag("digiscan_param_ID",digiscan_param_ID)
+		
 		tg.addTagAsFloat("focus", focus)
 		tg.addTagAsFloat("brightness", brightness)
 		tg.addTagAsFloat("contrast", contrast)
@@ -199,6 +199,7 @@ class IROI: object
 		tg.addTagAsFloat("ss", ss)
 		tg.addTagAsFloat("stigx", stigx)
 		tg.addTagAsFloat("stigy", stigy)
+		tg.TagGroupSetTagAsTagGroup("digiscan_param",digiscan_param)
 	
 		return tg
 	}
@@ -216,7 +217,8 @@ object ROIFactory(number type, string name1)
 		aROI.setName(name1)
 		aROI.setCoordName(name1) // coord has same name as ROI
 		aROI.setEnabled(1) // enable by default
-		aROI.setDigiscanParamID(2) // default, 'capture' (2)
+		aROI.setFocus(9.7) // default focus
+		aROI.setDigiscanParam(GetTagGroup("Private:DigiScan:Faux:Setup:Record")) // default, 'capture' (2)
 		return aROI
 	}
 
@@ -456,15 +458,33 @@ class ROIManager: object
 
 	}
 
-	void delROI(object self, string name1)
+	number delROI(object self, string namestring)
 	{
-		taggroup tg1
-		if (self.getROIAsTag(name1,tg1) && name1 != "")
-		{	
-			tg1.TagGroupDeleteAllTags()
-			self.print("deleted ROI: "+name1)
-			//tg1.TagGroupOpenBrowserWindow( 0 )
+		taggroup tall = self.getROIList()
+		number count = tall.TagGroupCountTags( ) 
+		number i
+		
+		if(namestring == "")
+			return 0 // no empty namestring allowed
+
+		taggroup subtag
+		for (i=0; i<count; i++)
+		{
+			// index the list and get single tag
+			tall.TagGroupGetIndexedTagAsTagGroup(i,subtag)
+			string name1
+			subtag.TagGroupGetTagAsString("name", name1)
+
+			if (name1 == namestring)
+			{			
+				// found, delete the tag with this index
+				//subtag.taggroupopenbrowserwindow(0)
+				tall.TagGroupDeleteTagWithIndex(i)
+				self.print("deleted ROI: "+name1)
+				return 1
+			}
 		}
+		return 0 // not found
 	}
 
 	object convertTagToROI(object self, taggroup subtag)
@@ -483,8 +503,8 @@ class ROIManager: object
 		number af_mode
 		subtag.TagGroupGetTagAsNumber("af_mode",af_mode)
 
-		number digiscan_param_ID
-		subtag.TagGroupGetTagAsNumber("digiscan_param_ID",digiscan_param_ID)
+		taggroup digiscan_param
+		subtag.TagGroupGetTagAsTaggroup("digiscan_param",digiscan_param)
 
 		number focus
 		subtag.TagGroupGetTagAsFloat("focus",focus)
@@ -516,7 +536,7 @@ class ROIManager: object
 		tempROI.setCoordName(coordName)
 		tempROI.setEnabled(enabled)
 		tempROI.setAFMode(af_mode)
-		tempROI.setDigiscanParamID(digiscan_param_ID)
+		tempROI.setDigiscanParam(digiscan_param)
 		tempROI.setFocus(focus)
 		tempROI.setBrightness(brightness)
 		tempROI.setContrast(contrast)

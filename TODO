@@ -80,36 +80,45 @@ Maintenance tasks:
 
 After install:
 Features:
--add FWD decoupling after EBSD run (since OI might change it)
--lock out SEM ui (rotation/tilt/x/y/z) - Mingkai
--dock swap/install:
+-autofocus wrapper (range etc) as in example JH
+-add complete DS parameterset to multi-roi object
+-(workflow)add FWD decoupling after EBSD run (since OI might change it)
+-(workflow)lock out SEM ui (rotation/tilt/x/y/z) - Mingkai
+-(workflow)dock swap/install:
 	-store rotation value in tag
 	v-make sure SEM is homed/will home after swap to ensure no inconsistency problems when changing docks
 	v-warn the user to use correct carrier
--IPrep_check: check rotation value against stored value on dock install
--add pogo pin check to workflow items. 
+-(main/workflow)IPrep_check: check rotation value against stored value on dock install
+-(workflow)add pogo pin check to workflow items. 
 	-use dialog with timeout to ensure user has option to override
 	-?how do we have a ui okcanceldialog with tiemout?
 	-make check optional by setting samplecheck flag to 1
 -have current action as a query-able item in mediator so that user can see what the system is doing. this will be queried by ui
 -turn protected flag on or off in ui
 -add ebsd step to workflow (first manual)
--make workflow items optional
-	-items in myloop are on/off depending on what the mediator/tag says
--EBSD dock: define 'no go' zones, taking further extend of EBSD detector in mind. these are a combination of y and z in microscope. 
-
-
-features:
--IPrep_Setup_Imaging() needs to selectively enable things that happen every slice before imaging based on roi enabler. this needs to be handled by multi-roi as well, so maybe save as part of a coord object? or separate object, since that leaves coord intact and scales to multi-roi easily. this 'roi_object' would store: 
-	-add digiscan_parameter
-	-add show stack option
--update iprep_image() single roi to use multi-roi framework
--re-enable 3D volume history stack
--on iprep_startrun: check that dock installed is correct (by looking at logic readout of encoder inputs)
--UPS check once every cycle
+-(main/workflow)make workflow items optional
+	-items in myloop are on/off depending on what the/tag says
+-(SEM/safety) EBSD dock: define 'no go' zones, taking further extend of EBSD detector in mind. these are a combination of y and z in microscope. 
+-(ui) have mediator (or now mediator) display states of devices. list(john):
+	-linear stage (parker) location
+	-gate valve state
+	-gripper
+	-which dock installed (mode)
+	-dock state (clamped or unclamped)
+	-dock position (clear/pickup_dropoff/reference)
+-(devices/workflow)have device-specific error state as part of device class
+	-save in tag
+-(main/workflow)finish iprep_recover() by looking at specific error states in devices and global state
+-(workflow) repeat certain steps a number of times before failing 
+-(imaging) re-enable 3D volume history stack
+	-add show stack option to multi-roi
+-(workflow) on iprep_startrun: check that dock installed is correct (by looking at logic readout of encoder inputs)
+-(check) UPS check once every cycle
 	-make late binding method with executescriptstring method
 
 done:
+v-update iprep_image() single roi to use multi-roi framework
+v-IPrep_Setup_Imaging() needs to selectively enable things that happen at the start of iprep_image() based on roi enabler.  or separate object, since that leaves coord intact and scales to multi-roi easily. this 'roi_object' would store: 
 v-use number of slices as stop condition of workflow loop
 v-re-enable check for average pixel value after acquisition
 v-store vector of where scribe mark should be and compare to old value and adjust transfer positions with this vector

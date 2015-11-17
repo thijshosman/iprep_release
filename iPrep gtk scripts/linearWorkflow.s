@@ -216,7 +216,6 @@ class workflow: object
 
 		// init Digiscan
 		myDigiscan = createDigiscan(sim_digiscan)
-		myDigiscan.init()
 
 		// init EBSD camera
 		myEBSD = createEBSDHandshake(sim_ebsd)
@@ -1019,6 +1018,7 @@ if (XYZZY)
 	void postEBSD(object self)
 	{
 		mySEM.blankOn()
+		// decouple FWD (in case oxford instruments coupled it)
 		self.print("postebsd done")
 	}
 

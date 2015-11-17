@@ -1,6 +1,46 @@
 
+void setWorkflowElementTags()
+{
+	TagGroup PT = GetPersistentTagGroup()
+
+	// workflow elements
+	TagGroup tg = NewTagGroup()
+	tg.AddTag("imaging",1)
+	tg.AddTag("ebsd",1)
+	tg.AddTag("pecsImageBefore",1)
+	tg.AddTag("pecsImageAfter",1)
+	PT.AddTagGroup(tg,"IPrep","WorkflowElements")
+
+}
+
+void setEnables()
+{
+	TagGroup PT = GetPersistentTagGroup()
+
+	// workflow elements
+	TagGroup tg = NewTagGroup()
+	tg.AddTag("brightness",0)
+	tg.AddTag("contrast",0)
+	tg.AddTag("mag",0)
+	tg.AddTag("voltage",0)
+	tg.AddTag("ss",0)
+	tg.AddTag("stigx",0)
+	tg.AddTag("stigy",0)
+	PT.AddTagGroup(tg,"IPrep","ROIEnables")
+
+}
+
+
+void setDefaultROI()
+{
+	// create an ROI with the name "StoredImaging" that is used as the default ROI in legacy mode
+	object myROI1 = ROIFactory(0,"StoredImaging")
+	myROI1.print()
+}
+
 void setSimulationTags()
 {
+	// sets tags to enable/disable simulating individual hardware
 	TagGroup PT = GetPersistentTagGroup()
 
 	// simulation
