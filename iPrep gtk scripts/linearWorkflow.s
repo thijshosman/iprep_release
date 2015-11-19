@@ -153,11 +153,6 @@ class workflow: object
 			else 
 				mySEMdock = createDock(2)
 
-			// get reference and scribe_pos for values defined for this dock
-	
-	
-
-
 		} 
 		else if (mode == "ebsd")
 		{
@@ -167,28 +162,14 @@ class workflow: object
 			else 
 				mySEMdock = createDock(3)
 
-			// get reference and scribe_pos for values defined for this dock
-
-
-
-			
-			
-
 		}	
 		else
 		{
 			throw("system mode (planar or ebsd) not set!")
 		}
 
-
-
 		// init SEM Dock
 		mySEMdock.init()
-
-
-
-
-
 
 		// init parker
 		myTransfer = createTransfer(sim_transfer)
@@ -296,22 +277,31 @@ class workflow: object
 		mode = getSystemMode()
 		self.print("mode = "+mode)
 		
+		number sim_dock_simulate =  GetTagValue("IPrep:simulation:dock")
+
 		// create two coordinates that we are going to set as the active coords for calibration
 		object reference
 		object scribe_pos
-		
+
 		if (mode == "planar")
 		{
 
 			reference = returnSEMCoordManager().getCoordAsCoord("reference_planar")
 			scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_planar")
-			mySEMdock = createDock(2)
+			if (sim_dock_simulate)
+				mySEMdock = createDock(1)
+			else 
+				mySEMdock = createDock(2)
 		} 
 		else if (mode == "ebsd")
 		{
 			reference = returnSEMCoordManager().getCoordAsCoord("reference_ebsd")
 			scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_ebsd")		
-			mySEMdock = createDock(3)
+			if (sim_dock_simulate)
+				mySEMdock = createDock(1)
+			else 
+				mySEMdock = createDock(3)
+
 
 		}
 
@@ -327,32 +317,6 @@ class workflow: object
 		mySEMdock.calibrateCoords()
 
 	}
-
-	void makeParkerAdjustments(object self)
-	{
-		// adjust all the parker tags with the delta tags
-		// also, determine if EBSD or Planar mode set and make adjustments to pickup_sem and dropoff_sem accordingly
-		// #todo
-	}
-
-	void createDefaultTransferPositionTags(object self)
-	{
-		// save the absolute transfer positions in tags
-		// intended to be run only once
-		// the setDefaultPositions() method only adds/subtracts deltas
-
-		taggroup tg = GetPersistentTagGroup()
-		TagGroupSetTagAsNumber(tg,"IPrep:private:transfer:"+"outofway",0)
-
-
-
-
-
-	}
-
-
-
-
 
 	// *** methods for returning subclasses (used for testing)
 	
@@ -380,12 +344,10 @@ class workflow: object
 	{
 		return myPecsCamera
 	}
-
 	object returnDigiscan(object self)
 	{
 		return myDigiscan
 	}
-
 	object returnEBSD(object self)
 	{
 		return myEBSD
@@ -979,29 +941,15 @@ class workflow: object
 	void preImaging(object self)
 	{
 		// prepares system for taking of image, like setting HV and WD settings and unblanking beam
-		
-		// we want to keep HV on during the whole experiment, but we have enabled/disabled it during transfers for testing
-		//mySEM.HVOn()
-		//sleep(1)
+
 		mySEM.blankOff()
 
-if (XYZZY)
-{
-
-		// set WD and kV to correct value, as determined by configuration
-		// NB: needs to be in this order, otherwise setting kV will reset WD
-		mySEM.setkVForImaging()
-		mySEM.setWDForImaging()
-}
 		self.print("preimaging done")
 	}
 	
 	void postImaging(object self)
 	{
 		mySEM.blankOn()
-
-		// for testing purposes only, we want to leave HV on
-		// mySEM.HVOff()
 		
 		// does some cleaning up after imaging, like blanking beam 
 		self.print("postimaging done")
@@ -1012,6 +960,8 @@ if (XYZZY)
 		// send to SEM whatever needs to be sent to start EBSD acquisition
 		// then tell ebsd handshaker to start
 		mySEM.blankOff()
+
+		self.print("preEBSD done")
 		
 	}
 
@@ -1019,7 +969,7 @@ if (XYZZY)
 	{
 		mySEM.blankOn()
 		// decouple FWD (in case oxford instruments coupled it)
-		self.print("postebsd done")
+		self.print("postEBSD done")
 	}
 
 	// *** additional testing methods ***
@@ -1252,7 +1202,7 @@ class workflowStateMachine: object
 
 			myWorkflow.preimaging()
 
-			// imaging itself is now done one level up, in iprep_main
+			// imaging itself is done one level up, in iprep_main
 
 		}
 		else

@@ -92,7 +92,7 @@ class dock_simulator : object
 
 		// changed to m27, I27 instead of 16 in order to overcome some stickyness
 		self.sendCommand("m30h0I27L24V10000v2500R")
-		self.print("dock initialized")
+		self.print("dock (simulator) initialized")
 	}
 	
 	void dock_simulator(object self) 
@@ -275,7 +275,7 @@ class dock_simulator : object
 		//calculate the other 3 positions (clear, nominal_imaging and StoredImaging 
 		//and save them as absolute coordinates in private data)
 		
-		self.print("calibrateCoords: using calibrations from 20150903 ")
+		self.print("calibrateCoords for simulator: using calibrations from 20150903 ")
 
 		// reference point is the point from which other coordinates are inferred
 		// the reference point for all coordinates is the pickup/dropoff point now

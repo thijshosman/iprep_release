@@ -417,15 +417,34 @@ class SEMCoordManager: object
 
 	}
 
-	void delCoord(object self, string name1)
+	number delCoord(object self, string namestring)
 	{
-		taggroup tg1
-		if (self.getCoordAsTag(name1,tg1) && name1 != "")
-		{	
-			tg1.TagGroupDeleteAllTags()
-			self.print("deleted coord: "+name1)
-			//tg1.TagGroupOpenBrowserWindow( 0 )
+		// delete a coord with name "namestring"
+		taggroup tall =self.getCoordList()
+		number count = tall.TagGroupCountTags( ) 
+		number i
+		
+		if(namestring == "")
+			return 0 // no empty namestring allowed
+
+		taggroup subtag
+		for (i=0; i<count; i++)
+		{
+			// index the list and get single tag
+			tall.TagGroupGetIndexedTagAsTagGroup(i,subtag)
+			string name1
+			subtag.TagGroupGetTagAsString("name", name1)
+
+			if (name1 == namestring)
+			{			
+				// found, delete the tag with this index
+				//subtag.taggroupopenbrowserwindow(0)
+				tall.TagGroupDeleteTagWithIndex(i)
+				self.print("deleted coord: "+name1)
+				return 1
+			}
 		}
+		return 0 // not found
 	}
 
 	object convertTagToCoord(object self, taggroup subtag)

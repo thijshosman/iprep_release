@@ -58,30 +58,17 @@ v-workflow checks that sample is no longer present in dock - after pickup - unco
 -absolute coordinates for SEM stage
 v-reseating function that sets carrier into dovetail but never leaves PECS
 -transfer position solution that differentiates between ebsd and planar
-
 v-detect if system has been homed since last powerup
-
-B:
--implement consistent and well thought out user dialog in combination of results/debug/logfile/UI menus
-	-add timestamp to print functions
--UI elements to show status
--clean up main to put stuff back in classes below
-	-remove kv/wd stuff from sem class
-	-handle imaging from main, remove from state machine and workflow
-	-handle pecs camera back in pecs class
 -transfer position tags become deltas, and deltas allow change. hardcode real positions, do not allow delta's more than a certain value.
 
 
 Maintenance tasks:
--write good unittest for coord object and coordmanager to make sure all upcoming changes work and don't break existing code
--allow semcoordmanager to delete coords
-	-how to delete an empty index in a taglist or how to find the index of a taglist (ask Robin)
+
 
 
 After install:
 Features:
 -autofocus wrapper (range etc) as in example JH
--add complete DS parameterset to multi-roi object
 -(workflow)add FWD decoupling after EBSD run (since OI might change it)
 -(workflow)lock out SEM ui (rotation/tilt/x/y/z) - Mingkai
 -(workflow)dock swap/install:
@@ -117,6 +104,9 @@ Features:
 	-make late binding method with executescriptstring method
 
 done:
+v-write good unittest for coord object and coordmanager to make sure all upcoming changes work and don't break existing code
+v-allow semcoordmanager/roicoordmanager to delete coords
+v-add complete DS parameterset to multi-roi object
 v-update iprep_image() single roi to use multi-roi framework
 v-IPrep_Setup_Imaging() needs to selectively enable things that happen at the start of iprep_image() based on roi enabler.  or separate object, since that leaves coord intact and scales to multi-roi easily. this 'roi_object' would store: 
 v-use number of slices as stop condition of workflow loop

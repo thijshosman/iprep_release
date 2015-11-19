@@ -174,11 +174,95 @@ void WorkaroundQuantaMagBug( void )
 	result( ",done.\n")
 }
 
+void IPrep_autofocus()
+{
+	// wrapper for autofocus function in DM
+	// #todo: test, just copied from JH example
 
+	string s1="Private:AFS Parameters"
+	string s2="Focus accuracy"
+	string s3="Focus limit (lower)"
+	string s4="Focus limit (upper)"
+	string s5="Focus search range"
+	number n2,n3,n4,n5
+
+	string str2 
+	number focus_range_fraction = .2
+	number focus = EMGetFocus()
+	number focus_range = .1*focus
+	number focus_res = .01*focus
+
+	str2 = s1+":"+s2
+	GetPersistentNumberNote( str2, n2 )
+	n2 = focus_res
+	if ( !GetNumber( str2, n2, n2 ) ) exit(0)
+	SetPersistentNumberNote( str2, n2 )
+
+
+	str2 = s1+":"+s3
+	GetPersistentNumberNote( str2, n3 )
+	n3 = focus - focus * focus_range_fraction
+	if ( !GetNumber( str2, n3, n3 ) ) exit(0)
+	SetPersistentNumberNote( str2, n3 )
+
+	str2 = s1+":"+s4
+	GetPersistentNumberNote( str2, n4 )
+	n4 = focus + focus * focus_range_fraction
+	if ( !GetNumber( str2, n4, n4 ) ) exit(0)
+	SetPersistentNumberNote( str2, n4 )
+
+	str2 = s1+":"+s5
+	GetPersistentNumberNote( str2, n5 )
+	n5=focus_range
+	if ( !GetNumber( str2, n5, n5 ) ) exit(0)
+	SetPersistentNumberNote( str2, n5 )
+
+	//AF_Run()
+	// /*
+	number start_focus = EMGetFocus()
+	result("\n"+datestamp()+": start WD = "+(start_focus/1000)+"\n")
+	AFS_Run()
+
+	while( AFS_IsBusy() )
+	{
+		sleep( 1 )
+		result(".")
+	}
+	result("\n")
+	number end_focus = EMGetFocus()
+	result(datestamp()+": final WD = "+(end_focus/1000)+"\n")
+	//*/
+	/*
+	{
+		number mag=EMGetMagnification()
+		number focus=EMGetFocus()
+		number i=0,df
+		image plot:=RealImage("AF test,mag="+mag+",prec="+n2,4,11,1)
+		plot.showimage()
+		plot.displayat(500,100)
+		plot=focus/1000
+		for (df=-2.5;df<=2.5;df+=.5)
+		{
+			EMSetFocus(focus+1000*df)
+			sleep(1)
+			if (shiftdown() &&optiondown() ) exit(0)
+			number start_focus = EMGetFocus()
+			result(i+":"+datestamp()+": start WD = "+(start_focus/1000)+"\n")
+			AFS_Run()
+			number end_focus = EMGetFocus()
+			result(i+":"+datestamp()+": final WD = "+(end_focus/1000)+"\n\n")
+			plot[i,0]=end_focus/1000
+			plot.updateimage()
+			i+=1
+		}
+	}
+	*/
+}
 
 
 void AcquireDigiscanImage(image &img )
 // JH version
+// #DEPRECATED
 // #TODO: migrate to digiscan class
 {
 	// acquire digiscan image with 'capture' settings. 
@@ -514,11 +598,17 @@ number IPrep_toggle_planar_ebsd(string mode)
 
 		// confirm sample in PECS
 		if (myStateMachine.getCurrentWorkflowState() != "PECS")
-			throw("sample not in PECS!")
+		{
+			print("sample not in PECS!")	
+			return returncode
+		}
 
 		// vent
 		if (!okcanceldialog("Has the dock been swapped, connected and has the dock motor axis been aligned along y axis?"))
-			throw("user aborted during vent")
+		{
+			print("user aborted")
+			return returncode
+		}
 
 		// confirm alignment in x
 			// store rotation #todo
@@ -1030,6 +1120,7 @@ Number IPrep_StopRun()
 
 Number IPrep_Image_single()
 {
+	// #DEPRECIATED, replaced by IPrep_image()
 	number returncode = 0
 
 	if (!returnDeadFlag().checkAliveAndSafe())
@@ -1259,7 +1350,7 @@ number IPrep_image()
 		if (myROI.getAFMode() == 1) //autofocus on every slice
 		{
 			print("IMAGE: autofocusing")
-			//afs_run()
+			//IPrep_autofocus()
 			number afs_sleep = 1	// seconds of delay
 			sleep( afs_sleep )
 
@@ -1404,17 +1495,42 @@ number IPrep_image()
 number IPrep_acquire_ebsd()
 {
 	print("IPrep_acquire_ebsd")
+	number returncode = 0
+	try
+	{
+		if(getSystemMode() == "ebsd")
+		{
+			// tell state machine we want to start EBSD acquisition
+			myStateMachine.start_ebsd()
 
-	//if (getSystemMode() == 'ebsd')
-	//{
-		myStateMachine.start_ebsd()
-		myStateMachine.stop_ebsd()
-	//}
-	//else
-	//	print("not in EBSD mode, skipping..")
+			// call for actual acquisition. if this returns 0, it is canceled. 1 is success
+			// right now, we are not doing anything with return value
+			myWorkflow.returnEBSD().EBSD_start()
 
+			// tell state machine we want to stop EBSD acquisition
+			myStateMachine.stop_ebsd()
 
+			returncode = 1
+		}
+		else
+		{
+			print("not in EBSD mode, skipping step..")
+			returncode = 1
+		}
+		
+	}
+	catch
+	{
+		// system caught unhandled exception
+		print("EBSD system generated exception: "+GetExceptionString())
 
+		// #TODO: an exception in ebsd acquisition is most likely safe
+		returnDeadFlag().setDeadUnSafe()
+
+		break // so that flow continues
+	}
+
+	return returncode
 
 }
 

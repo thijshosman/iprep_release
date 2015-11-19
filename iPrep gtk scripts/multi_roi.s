@@ -460,6 +460,7 @@ class ROIManager: object
 
 	number delROI(object self, string namestring)
 	{
+		// delete an ROI with name "namestring"
 		taggroup tall = self.getROIList()
 		number count = tall.TagGroupCountTags( ) 
 		number i
