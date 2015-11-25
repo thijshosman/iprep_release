@@ -6,6 +6,7 @@ class gripper:object
 	number address, timeout
 	string cmd,reply
 	object gripperPersistance
+	object myMediator
 
 
 	void log(object self, number level, string text)
@@ -111,6 +112,10 @@ class gripper:object
 		// *** public ***
 		// sends some strings to controller to initialize
 
+		// register with mediator
+		myMediator = returnMediator()
+		myMediator.registerGripper(self)
+
 		// set string 2 in controller, executed after close
 		
 		//old string, moves back, not used
@@ -135,7 +140,7 @@ class gripper:object
 		gripperPersistance.init("gripper")
 		self.restoreState()
 		
-		address = 1
+		address = 2 // change back, is 1 on Manchester system
 		timeout = 30
 
 	}
@@ -261,6 +266,13 @@ class gripper:object
 		// returns state
 		return state
 	}
+
+	string getGripperState(object self)
+	{
+		// for Mediator
+		return self.getState()
+	}
+
 
 	~gripper (object self)
 	{

@@ -1,13 +1,15 @@
 // $BACKGROUND$
 
-object aplanarSEMdock
+// creating docks, 1 = simulator, 2 = planar, 3 is ebsd
 
-aplanarSEMdock = createDock(1)
+
+// *** planar case ***
+object aplanarSEMdock
+aplanarSEMdock = createDock(2)
 aplanarSEMdock.init()
 
 
-
-aplanarSEMdock.setManualState("clamped")
+//aplanarSEMdock.setManualState("clamped")
 
 result("test: current state: "+aplanarSEMdock.getState()+"\n")
 
@@ -32,6 +34,10 @@ aplanarSEMdock.unclamp()
 result("current state: "+aplanarSEMdock.getState()+"\n")
 
 //result("sensor input: "+aplanarSEMdock.sensorToBitStr()+"\n")
+
+
+
+
 result("sample present: "+aplanarSEMdock.checkSamplePresent()+"\n")
 
 result("test done\n")

@@ -17,12 +17,7 @@ class EBSD_simulator: object
 		return 1
 	}
 
-/*
-	number EBSD_finished(object self)
-	{
-		return 1
-	}
-*/
+
 }
 
 

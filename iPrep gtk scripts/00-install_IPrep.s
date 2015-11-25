@@ -64,7 +64,7 @@ InstallFile( PathConcatenate( gPath, "gripper_simulator.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "pecs_iprep.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "pecs_simulator.s" ), package, 3 )
 
-InstallFile( PathConcatenate( gPath, "pecscamera_iprep.s" ), package, 3 )
+//InstallFile( PathConcatenate( gPath, "pecscamera_iprep.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "pecscamera_simulator.s" ), package, 3 )
 
 InstallFile( PathConcatenate( gPath, "digiscan_iprep.s" ), package, 3 )

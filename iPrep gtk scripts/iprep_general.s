@@ -318,6 +318,16 @@ class safetyMediator:object
 
 	}
 
+	string getGripperState(object self)
+	{
+		// check ithe state of the gripper
+		return gripper.getGripperState() // open or closed
+
+	}
+
+
+	// *** actions ***
+
 	void HVOff(object self)
 	{
 		// turn the high tension in the microscope off in case there is a problem

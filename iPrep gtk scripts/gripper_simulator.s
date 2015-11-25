@@ -6,6 +6,7 @@ class gripper_simulator:object
 	number address, timeout
 	string cmd,reply
 	object gripperPersistance
+	object myMediator
 
 
 	void log(object self, number level, string text)
@@ -48,6 +49,9 @@ class gripper_simulator:object
 		// *** public ***
 		// sends some strings to controller to initialize
 
+		// register with mediator
+		myMediator = returnMediator()
+		myMediator.registerGripper(self)
 
 		self.print("initialized")
 	}
@@ -122,6 +126,13 @@ class gripper_simulator:object
 		// returns state
 		return state
 	}
+
+	string getGripperState(object self)
+	{
+		// for Mediator
+		return self.getState()
+	}
+
 /*
 	~gripper (object self)
 	{

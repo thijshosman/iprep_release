@@ -392,11 +392,13 @@ void closeGV(void)
 void clamp(void)
 {
 	myWorkflow.returnSEMDock().clamp()
+	myWorkflow.returnSEMDock().lookupState(1)
 }
 
 void unclamp(void)
 {
 	myWorkflow.returnSEMDock().unclamp()
+	myWorkflow.returnSEMDock().lookupState(1)
 }
 
 void lockPecs(void)
@@ -473,6 +475,11 @@ void Set_autofocus_enable_dialog( void )
 
 
 
+number IPrep_calibrate_transfer()
+{
+	result("iprep_calibrate_transfer"+"\n")
+	myWorkflow.calibrateForMode()
+}
 
 
 

@@ -68,6 +68,16 @@ Maintenance tasks:
 
 After install:
 Features:
+A (need by second visit):
+-force the user to check scribe mark when dock is switched by setting tag
+-have current action as a query-able item in mediator so that user can see what the system is doing. this will be queried by ui
+-(SEM/safety) EBSD dock: define 'no go' zones, taking further extend of EBSD detector in mind. these are a combination of y and z in microscope. 
+	-through mediator. create 'stageLimits' class that registers with mediator that gets queried by stage
+
+
+
+
+B (nice by second visit, test during second visit in case needed)
 -autofocus wrapper (range etc) as in example JH
 -(workflow)add FWD decoupling after EBSD run (since OI might change it)
 -(workflow)lock out SEM ui (rotation/tilt/x/y/z) - Mingkai
@@ -76,16 +86,7 @@ Features:
 	v-make sure SEM is homed/will home after swap to ensure no inconsistency problems when changing docks
 	v-warn the user to use correct carrier
 -(main/workflow)IPrep_check: check rotation value against stored value on dock install
--(workflow)add pogo pin check to workflow items. 
-	-use dialog with timeout to ensure user has option to override
-	-?how do we have a ui okcanceldialog with tiemout?
-	-make check optional by setting samplecheck flag to 1
--have current action as a query-able item in mediator so that user can see what the system is doing. this will be queried by ui
--turn protected flag on or off in ui
--add ebsd step to workflow (first manual)
--(main/workflow)make workflow items optional
-	-items in myloop are on/off depending on what the/tag says
--(SEM/safety) EBSD dock: define 'no go' zones, taking further extend of EBSD detector in mind. these are a combination of y and z in microscope. 
+
 -(ui) have mediator (or now mediator) display states of devices. list(john):
 	-linear stage (parker) location
 	-gate valve state
@@ -95,15 +96,29 @@ Features:
 	-dock position (clear/pickup_dropoff/reference)
 -(devices/workflow)have device-specific error state as part of device class
 	-save in tag
--(main/workflow)finish iprep_recover() by looking at specific error states in devices and global state
--(workflow) repeat certain steps a number of times before failing 
 -(imaging) re-enable 3D volume history stack
 	-add show stack option to multi-roi
--(workflow) on iprep_startrun: check that dock installed is correct (by looking at logic readout of encoder inputs)
+
+
+
+
+C (nice to have, include in real UI)
+-(main/workflow)finish iprep_recover() by looking at specific error states in devices and global state
+-turn protected flag on or off in ui
+-(workflow) repeat certain steps a number of times before failing 
 -(check) UPS check once every cycle
 	-make late binding method with executescriptstring method
 
+
 done:
+v-(workflow) on iprep_startrun: check that dock installed is correct (by looking at logic readout of encoder inputs)
+v-pop up dialogs for exceptions during workflow
+	v-and during iprep_init()
+v-(workflow)add pogo pin check to workflow items. 
+	-only enable when dock simulation is off
+v-(main/workflow)make workflow items optional
+	-items in myloop are on/off depending on what the/tag says
+v-add ebsd step to workflow (first manual)
 v-write good unittest for coord object and coordmanager to make sure all upcoming changes work and don't break existing code
 v-allow semcoordmanager/roicoordmanager to delete coords
 v-add complete DS parameterset to multi-roi object
@@ -119,6 +134,7 @@ v-lock out pecs UI during reseating
 v-make sure that an unsafe condition turns off beam (though mediator)
 v-clear and pickup_dropoff are 5 mm from eachother. this may be too much and lead to interference of planar fork with sample. make 3 mm instaed. test with ali
 v-make different functions for transfering in workflow and as ui elements to ensure that checks are run accordingly
+
 
 
 

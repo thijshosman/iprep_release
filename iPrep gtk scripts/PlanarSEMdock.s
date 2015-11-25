@@ -59,6 +59,49 @@ class planarSEMdock : object
 		//result("\n"+errStr)
 	}
 
+	string detectMode(object self)
+	{
+		// *** private ***
+		// detects mode based on the encoder signal used as input
+		// ebsd = CH_A to ground (bit1)
+		// planar = CH_B to ground (bit2)
+		string mode = "undefined"
+
+		number encSensorState = val(self.sendCommand("?a4"))
+		string senStr = binary(encSensorState,8) // 8 is length of binary word
+
+		number bit_1 = val(chr(senStr[2]))
+		number bit_2 = val(chr(senStr[3]))
+
+		self.print("dock detection: sensor = "+senStr+", value="+encSensorState+", bit1="+bit_1+", bit2="+bit_2)
+
+		if (bit_1 == 0 && bit_2 == 1)
+		{
+			mode = "ebsd"
+		}
+		else if (bit_1 == 1 && bit_2 == 0)
+		{
+			mode = "planar"
+		}
+		else if (bit_1 == 1 && bit_2 == 1)
+		{
+			mode = "disconnected"
+			self.print("dock disconnected")
+			return mode
+			//throw("dock disconnected. sensor = "+senStr+", value="+encSensorState+", bit1="+bit_1+", bit2="+bit_2)
+		} 
+		else 
+		{
+			return mode
+			//throw("dock mode is not detected. sensor = "+senStr+", value="+encSensorState+", bit1="+bit_1+", bit2="+bit_2)
+		}
+
+		self.print(mode+" dock detected")
+		return mode
+
+	}
+
+
 
 	void lookupState(object self, number view)
 	{
@@ -96,6 +139,17 @@ class planarSEMdock : object
 	void init(object self)
 	{
 		// *** public ***
+		// detect dock
+		if (self.detectMode() != "planar")
+		{
+			throw("dock mode is not detected. mode detected: "+self.detectMode())
+		}
+		else
+		{
+			self.print("dock detection passed")
+		}
+
+
 		// set string 2 in controller, executed after close
 		self.sendCommand("s2TR")
 		// set current (2x), speed (2x), holding current, acc
@@ -115,7 +169,7 @@ class planarSEMdock : object
 		// contructor
 		SEMdockPersistance = alloc(statePersistance)
 		SEMdockPersistance.init("SEMdock")
-		address = 2 // 1 is gripper, 2 is dock on iprep. 
+		address = 1 // 1 is gripper, 2 is dock on iprep manchester. 
 		timeout = 30
 		self.lookupState(1)
 

@@ -542,11 +542,6 @@ number IPrep_recover_deadflag()
 
 }
 
-number IPrep_calibrate_transfer()
-{
-	print("iprep_calibrate_transfer")
-	myWorkflow.calibrateForMode()
-}
 
 number IPrep_init()
 {
@@ -576,7 +571,8 @@ number IPrep_init()
 	}
 	catch
 	{
-		result("exception during init"+ GetExceptionString() + "\n" )
+		print("exception during init"+ GetExceptionString())
+		okdialog("exception during init"+ GetExceptionString())
 		return 0
 	}
 }
@@ -588,7 +584,7 @@ number IPrep_toggle_planar_ebsd(string mode)
 	// mode = 'ebsd' or 'planar'
 	// called manually by user
 
-		number returncode = 0
+	number returncode = 0
 
 	try
 	{
@@ -621,6 +617,17 @@ number IPrep_toggle_planar_ebsd(string mode)
 		print("calibrating points for mode")
 		myWorkflow.calibrateForMode()
 
+		// check that new mode is consistent with readout of dock
+		if (getSystemMode() != myWorkflow.returnSEMDock().detectMode())
+		{
+			print(getSystemMode()+" dock not detected. detected dock is "+myWorkflow.returnSEMDock().detectMode())
+			return returncode
+		}
+		else
+		{
+			print(myWorkflow.returnSEMDock().detectMode()+" dock detected")
+		}
+
 		//home sem stage to new clear
 		print("homing to new clear position")
 		myWorkflow.returnSEM().homeToClear()
@@ -636,16 +643,16 @@ number IPrep_toggle_planar_ebsd(string mode)
 			throw("user aborted check")
 
 		okdialog("dock test has succeeded. please pump down the system and recalibrate scribe mark")
-
+		print("done")
 	}
 	catch
 	{
 		print("mode change did not succeed: exception: "+GetExceptionString())
-		
+		okdialog("mode change did not succeed: exception: "+ GetExceptionString())
 		// set dead
 		returnDeadFlag().setDead(1, "mode", "mode change error: "+GetExceptionString())
 		// set unsafe
-		returnDeadFlag().setSafety(0, "mode change error: "+GetExceptionString())
+		//returnDeadFlag().setSafety(0, "mode change error: "+GetExceptionString())
 		return returncode
 	}
 
@@ -658,7 +665,7 @@ number IPrep_toggle_planar_ebsd(string mode)
 number IPrep_scribemarkVectorCorrection(number x_corr, number y_corr)
 {
 	// adjust nominal_imaging, stored_imaging, highGridFront, highGridBack, pickup_dropoff and clear by vector
-
+	// called by UI
 
 
 	object scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos")
@@ -1076,7 +1083,7 @@ Number IPrep_StartRun()
 		// system caught unhandled exception and is now considered dead/unsafe
 		print(GetExceptionString())
 		returnDeadFlag().setDeadUnSafe()
-
+		okdialog("something went wrong in starting run: "+GetExceptionString()+"\n"+"system now dead/unsafe")
 		break // so that flow continues
 
 	}
@@ -1419,7 +1426,8 @@ number IPrep_image()
 		taggroup dsp = myROI.getDigiscanParam()
 
 		image temp_slice_im
-		myWorkflow.returnDigiscan().config(dsp)
+		// can set digiscan parameter taggroup from this ROI to overwrite 'capture' settings
+		//myWorkflow.returnDigiscan().config(dsp)
 		myWorkflow.returnDigiscan().acquire(temp_slice_im)
 
 

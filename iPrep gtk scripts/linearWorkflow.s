@@ -16,7 +16,7 @@ class workflow: object
 	// haltflag used to interrupt workflow elements if set
 	object haltFlag
 
-	// mode, EBSD or Planar
+	// mode, ebsd or planar
 	string mode
 	
 	void log(object self, number level, string text)
@@ -30,89 +30,6 @@ class workflow: object
 		result("Workflow: "+str1+"\n")
 		self.log(2,str1)
 	}
-
-	// additional calibration/tag methods not part of workflow
-
-	void createSEMPositionTags(object self)
-	{
-		// set the default SEM coord tags and populate them with default values
-		// will later be overwritten by calibration routines in sem_iprep class
-		// this method is not intended to be used other than during setup
-		// and the only reason it exists is because it is a lot of work to manually
-		// type all these tags
-
-		object tempCoord = alloc(SEMCoord)
-		
-		//tempCoord.set(object self, string name1, number Xn, number Yn, number Zn, number dfn)
-
-		// each dock has two calibrated points
-		//	-reference, which is the manually calibrated pickup_dropoff point
-		//	-scribe_pos, which is the position of the scribe mark on the dock
-
-		// for each dock, all the imaging positions have a known vector from the scribe_pos
-		// similarly, the clear positions has a known vector from the reference point
-
-		// transfer between clear and nominal imaging is considered safe as long as it is known
-		// in which direction we move first
-
-		// EBSD dock points
-
-		tempCoord.set("reference_ebsd", 0, 0, 0, 0)
-		returnSEMCoordManager().addCoord(tempCoord)
-
-		tempCoord.set("scribe_pos_ebsd", 0, 0, 0, 0)
-		returnSEMCoordManager().addCoord(tempCoord)
-
-		// planar dock points
-
-		tempCoord.set("reference_planar", 0, 0, 0, 0)
-		returnSEMCoordManager().addCoord(tempCoord)
-
-		tempCoord.set("scribe_pos_planar", 0, 0, 0, 0)
-		returnSEMCoordManager().addCoord(tempCoord)		
-
-		// inferred points + used points
-
-		// manually calibrated "pickup_dropoff" point. used to infer "clear"
-		tempCoord.set("reference", 0, 0, 0, 0)
-		returnSEMCoordManager().addCoord(tempCoord)
-
-		// scribe, used to infer all imaging positions
-		tempCoord.set("scribe_pos", 0, 0, 0, 0)
-		returnSEMCoordManager().addCoord(tempCoord)
-
-		// positions defined on dock inferred from 
-
-		tempCoord.set("highGridFront", 0, 0, 0, 0)
-		returnSEMCoordManager().addCoord(tempCoord)
-
-		tempCoord.set("highGridBack", 0, 0, 0, 0)
-		returnSEMCoordManager().addCoord(tempCoord)
-
-		tempCoord.set("lowergrid", 0, 0, 0, 0)
-		returnSEMCoordManager().addCoord(tempCoord)	
-
-		tempCoord.set("fwdGrid", 0, 0, 0, 0)
-		returnSEMCoordManager().addCoord(tempCoord)
-		
-		// positions defined on dock
-
-		tempCoord.set("pickup_dropoff", 0, 0, 0, 0)
-		returnSEMCoordManager().addCoord(tempCoord)
-
-		tempCoord.set("clear", 0, 0, 0, 0)
-		returnSEMCoordManager().addCoord(tempCoord)
-
-		tempCoord.set("nominal_imaging", 0, 0, 0, 0)
-		returnSEMCoordManager().addCoord(tempCoord)
-
-		tempCoord.set("stored_imaging", 0, 0, 0, 0)
-		returnSEMCoordManager().addCoord(tempCoord)
-
-	}
-
-
-
 
 
 	// *** initializations ***
@@ -279,15 +196,8 @@ class workflow: object
 		
 		number sim_dock_simulate =  GetTagValue("IPrep:simulation:dock")
 
-		// create two coordinates that we are going to set as the active coords for calibration
-		object reference
-		object scribe_pos
-
 		if (mode == "planar")
 		{
-
-			reference = returnSEMCoordManager().getCoordAsCoord("reference_planar")
-			scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_planar")
 			if (sim_dock_simulate)
 				mySEMdock = createDock(1)
 			else 
@@ -295,8 +205,6 @@ class workflow: object
 		} 
 		else if (mode == "ebsd")
 		{
-			reference = returnSEMCoordManager().getCoordAsCoord("reference_ebsd")
-			scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_ebsd")		
 			if (sim_dock_simulate)
 				mySEMdock = createDock(1)
 			else 
@@ -304,16 +212,11 @@ class workflow: object
 
 
 		}
+		
+		// init SEM Dock
+		mySEMdock.init()
 
-		// update reference and scribe_pos to the right values
-		self.print("new coords: ")
-		scribe_pos.print()
-		reference.print()
-		returnSEMCoordManager().addCoord(scribe_pos)
-		returnSEMCoordManager().addCoord(reference)
-		
-		// now calibrate SEM dock
-		
+		// now calibrate SEM dock, which sets reference
 		mySEMdock.calibrateCoords()
 
 	}
@@ -691,13 +594,16 @@ class workflow: object
 		// move SEM stage to clear point so that dock is out of the way
 		mySEM.goToClear()
 
-/*		// check that sample is no longer present in dock
-		if (mySEMdock.checkSamplePresent())
+		if (GetTagValue("IPrep:simulation:dock") == 0)
 		{
-			self.print("sample still detected in dock after pickup")
-			throw("sample still detected in dock after pickup")
+			// check that sample is no longer present in dock, if simulation of dock is off
+			if (mySEMdock.checkSamplePresent())
+			{
+				self.print("sample still detected in dock after pickup")
+				throw("sample still detected in dock after pickup")
+			}
 		}
-*/
+
 		// slide sample into dovetail
 		myTransfer.move("dropoff_pecs")
 
@@ -806,13 +712,16 @@ class workflow: object
 		// move SEM dock down to clamp
 		mySEMdock.clamp()
 
-		// check that sample is present
-/*		if (!mySEMdock.checkSamplePresent())
+		if (GetTagValue("IPrep:simulation:dock") == 0)
 		{
-			self.print("sample not detected in dock after dropoff")
-			throw("sample not detected in dock after dropoff")
+			// check that sample is present
+			if (!mySEMdock.checkSamplePresent())
+			{
+				self.print("sample not detected in dock after dropoff")
+				throw("sample not detected in dock after dropoff")
+			}
 		}
-*/
+
 		// move SEM stage to nominal imaging plane
 		mySEM.goToNominalImaging()
 

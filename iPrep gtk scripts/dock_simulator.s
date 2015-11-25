@@ -60,6 +60,10 @@ class dock_simulator : object
 		//result("\n"+errStr)
 	}
 
+	string detectMode(object self)
+	{
+		return getSystemMode()
+	}
 
 	void lookupState(object self, number view)
 	{
