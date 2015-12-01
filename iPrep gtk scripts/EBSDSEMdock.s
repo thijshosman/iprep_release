@@ -168,7 +168,7 @@ class EBSDSEMdock : object
 		// contructor
 		SEMdockPersistance = alloc(statePersistance)
 		SEMdockPersistance.init("SEMdock")
-		address = 1 // 1 is gripper, 2 is dock on iprep manchester. 
+		address = 2 // 1 is gripper, 2 is dock on iprep manchester. 
 		timeout = 30
 		self.lookupState(1)
 

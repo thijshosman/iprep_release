@@ -140,7 +140,7 @@ class gripper:object
 		gripperPersistance.init("gripper")
 		self.restoreState()
 		
-		address = 2 // change back, is 1 on Manchester system
+		address = 1 // change back, is 1 on Manchester system
 		timeout = 30
 
 	}

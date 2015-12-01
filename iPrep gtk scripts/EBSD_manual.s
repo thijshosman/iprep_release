@@ -4,19 +4,39 @@ class EBSD_manual: object
 {
 	// give control to the EBSD system and hand it back over to the workflow when done
 
+	number busy
+
+	void log(object self, number level, string text)
+	{
+		// log events in log files
+		LogEvent("EBSD", level, text)
+	}
+
+	void print(object self, string str1)
+	{
+		result("EBSD: "+str1+"\n")
+		self.log(2,str1)
+	}
+
 	void init(object self)
 	{
-		//
+		self.print("Manual EBSD Acquisition initialized")
 	}
 
-	number EBSD_start(object self)
+	void EBSD_start(object self)
 	{
-		if (okcanceldialog("start the EBSD acquisition. press OK when done"))
-			return 1 // success, give control back to workflow
-		else
-			return 0 // indicates to the workflow that something went wrong with EBSD
+		busy = 1
+		okdialog("start the EBSD acquisition. press OK when done")
+		busy = 0
+		return // success, give control back to workflow
+
 	}
 
+	number isBusy(object self)
+	{
+		return busy
+
+	}
 
 }
 

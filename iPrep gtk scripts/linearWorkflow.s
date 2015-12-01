@@ -3,6 +3,9 @@ number XYZZY = 0
 class workflow: object
 {
 
+	// timer numbers
+	number tick, tock
+
 	// hardware classes
 	object myGripper
 	object mySEMdock
@@ -117,6 +120,7 @@ class workflow: object
 
 		// init EBSD camera
 		myEBSD = createEBSDHandshake(sim_ebsd)
+		myEBSD.init()
 		// type 1 is simulator, 2 is manual, 3 is OI interface
 
 
@@ -770,9 +774,13 @@ class workflow: object
 		// back off 1 mm to relax tension on springs
 		myTransfer.move("dropoff_pecs_backoff")
 
+		continueCheck()
+
 		// open gripper arms
 		myGripper.open()
 	
+		continueCheck()
+
 		// move gripper back so that arms can close
 		myTransfer.move("open_pecs")
 		
@@ -811,8 +819,9 @@ class workflow: object
 
 		self.print("hold Option + Shift to skip remainder of milling milling")
 
-		number tick = GetOSTickCount()		
-		number tock
+		tick = GetOSTickCount()		
+		
+		// #todo: get timeout for EBSD from tag
 		
 		while (myPecs.getMillingStatus()!=0)
 		{
@@ -864,13 +873,44 @@ class workflow: object
 		self.print("postimaging done")
 	}
 
-	void executeEBSD(object self)
+	void executeEBSD(object self, number timeout)
 	{
 		// send to SEM whatever needs to be sent to start EBSD acquisition
 		// then tell ebsd handshaker to start
 		mySEM.blankOff()
 
-		self.print("preEBSD done")
+		tick = GetOSTickCount()		
+
+		myEBSD.EBSD_start()
+
+		// #todo: get timeout for EBSD from tag
+
+		self.print("hold Option + Shift to skip EBSD acquisition")
+		
+		
+		while (myEBSD.isBusy()!=0)
+		{
+			tock = GetOSTickCount()
+			if ((tock-tick)/1000 > timeout)
+			{
+				self.print("EBSD timeout passed")
+				
+				break	
+			}
+			
+			if ((optiondown() && shiftdown()))
+			{
+				self.print("aborted")
+
+				break
+			}
+
+			sleep(1)
+			
+		}
+		self.print("elapsed time in EBSD: "+(tock-tick)/1000+" s")	
+
+		self.print("EBSD done")
 		
 	}
 
@@ -917,8 +957,8 @@ class workflowStateMachine: object
 	string workflowState	
 	object myWorkflow
 
-	number imageTick
-	number imageTock
+	number Tick
+	number Tock
 
 	// flag set when system is in weird state
 	object deadFlag
@@ -987,8 +1027,8 @@ class workflowStateMachine: object
 		// set state from tag
 		workflowState = workflowStatePersistance.getState()
 
-		// reset imageTock 
-		imageTock=0
+		// reset Tock 
+		Tock=0
 
 	}
 
@@ -1104,7 +1144,7 @@ class workflowStateMachine: object
 		// *** public ***
 		// start imaging
 		
-		imageTick = GetOSTickCount()
+		Tick = GetOSTickCount()
 
 		if (workflowState == "SEM")
 		{	
@@ -1127,27 +1167,24 @@ class workflowStateMachine: object
 		{	
 			myWorkflow.postimaging()
 			lastCompletedStep.setState("IMAGE")
-			imageTock = GetOSTickCount()
-			if(imageTock > 0)
-				self.print("elapsed time in imaging: "+(imageTock-imageTick)/1000+" s")
+			Tock = GetOSTickCount()
+			if(Tock > 0)
+				self.print("elapsed time in imaging: "+(Tock-Tick)/1000+" s")
 		}
 		else
 			throw("wrong state: commanded to stop imaging step when sample is not in SEM")
 	}
 
-	void start_ebsd(object self)
+	void start_ebsd(object self, number timeout)
 	{
 		// *** public ***
 		// start acquiring EBSD data
 		
-		imageTick = GetOSTickCount()
 
 		if (workflowState == "SEM")
 		{	
 
-			myWorkflow.executeEBSD()
-
-			// allow user to cancel
+			myWorkflow.executeEBSD(timeout)
 
 		}
 		else
@@ -1164,9 +1201,6 @@ class workflowStateMachine: object
 			myWorkflow.postEBSD()
 
 			lastCompletedStep.setState("EBSD")
-			imageTock = GetOSTickCount()
-			if(imageTock > 0)
-				self.print("elapsed time in EBSD acquisition: "+(imageTock-imageTick)/1000+" s")
 		}
 		else
 			throw("wrong state: commanded to stop EBSD acquisition step when sample is not in SEM")

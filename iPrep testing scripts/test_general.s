@@ -29,6 +29,8 @@ try
 	//IPrep_cleanup()
 	
 	
+	// *** EBSD ***
+	//IPrep_acquire_ebsd()
 	
 	
 	
@@ -42,6 +44,8 @@ try
 	//myWorkflow.returnGripper().setManualState("closed")
 	//myWorkflow.returnGripper().open()		
 	//myWorkflow.returnGripper().close()
+
+
 /*
 number i
 

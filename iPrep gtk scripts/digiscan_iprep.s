@@ -36,16 +36,9 @@ class digiscan_iprep : object
 
 	}
 
-	void config(object self, taggroup DSParam)
+	void config(object self)
 	{
 		// paramID is the id of the configuration used to acquire. 
-		
-		
-		// Copy all tags in the TagGroup 'sTG' into the TagGroup 'gTG' 
-		taggroup subtag
-		GetPersistentTagGroup().TagGroupGetTagAsTagGroup("Private:DigiScan:Faux:Setup:Record", subtag )
-		subtag.TagGroupReplaceTagsWithCopy( DSParam )
-
 		
 		paramID = 2	// capture ID
 		width = DSGetWidth( paramID )
@@ -65,6 +58,22 @@ class digiscan_iprep : object
 		self.print("digiscan configured, height = "+height+", width = "+width+", dwell time = "+pixelTime)
 		configured = 1
 	}
+
+	void config(object self, taggroup DSParam)
+	{
+		
+		// Copy all tags in the TagGroup 'sTG' into the TagGroup 'gTG' 
+		taggroup subtag
+		GetPersistentTagGroup().TagGroupGetTagAsTagGroup("Private:DigiScan:Faux:Setup:Record", subtag )
+		subtag.TagGroupReplaceTagsWithCopy( DSParam )
+		// #TODO: this is not the correct digiscan tag
+		
+		self.config()
+		
+	}
+
+
+
 
 	void acquire(object self, image &img)
 	{

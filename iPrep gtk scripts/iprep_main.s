@@ -831,7 +831,7 @@ Number IPrep_Setup_Imaging()
 		print("Setup Imaging: StoredImaging Coord set")
 
 		// blank the beam
-		myWorkflow.returnSEM().blankOn()
+		//myWorkflow.returnSEM().blankOn()
 
 		// save the ROI to the manager
 		returnROIManager().addROI(myDefaultROI)
@@ -1426,8 +1426,13 @@ number IPrep_image()
 		taggroup dsp = myROI.getDigiscanParam()
 
 		image temp_slice_im
+		
+		// digiscan
 		// can set digiscan parameter taggroup from this ROI to overwrite 'capture' settings
 		//myWorkflow.returnDigiscan().config(dsp)
+		// or use digiscan parameters as setup in the normal 'capture' at this moment
+		myWorkflow.returnDigiscan().config()
+
 		myWorkflow.returnDigiscan().acquire(temp_slice_im)
 
 
@@ -1509,11 +1514,7 @@ number IPrep_acquire_ebsd()
 		if(getSystemMode() == "ebsd")
 		{
 			// tell state machine we want to start EBSD acquisition
-			myStateMachine.start_ebsd()
-
-			// call for actual acquisition. if this returns 0, it is canceled. 1 is success
-			// right now, we are not doing anything with return value
-			myWorkflow.returnEBSD().EBSD_start()
+			myStateMachine.start_ebsd(8000) // timeout of 8000
 
 			// tell state machine we want to stop EBSD acquisition
 			myStateMachine.stop_ebsd()

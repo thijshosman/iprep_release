@@ -503,6 +503,7 @@ void iprep_InstallMenuItems( void )
 	// workflow	
 	AddScriptToMenu( "Set_starting_slice_number()", "Set starting slice number...", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
 	AddScriptToMenu( "iprep_setup_imaging()", "use current settings for imaging", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
+	AddScriptToMenu( "IPrep_acquire_ebsd()", "acquire EBSD data", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
 
 	// SEM
 	AddScriptToMenu( "homeSEMStageToClear()", "home SEM stage to clear", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)

@@ -36,6 +36,8 @@ void setDefaultROI()
 	// create an ROI with the name "StoredImaging" that is used as the default ROI in legacy mode
 	object myROI1 = ROIFactory(0,"StoredImaging")
 	myROI1.print()
+	returnROIManager().addROI(myROI1)
+	return
 }
 
 void setSimulationTags()
@@ -96,7 +98,7 @@ taggroup setFlagTags()
 
 	TagGroup persist = GetPersistentTagGroup()
 
-	persist.AddTagGroup(PT,"IPrep",)
+	persist.AddTagGroup(PT,"IPrep")
 
 
 }
@@ -184,14 +186,13 @@ void createSEMPositionTags(object self)
 
 	}
 
-taggroup createSimulationTags
-
-TagGroup tg = NewTagGroup()
-
-
-
-tg = getpersistanttaggroup()
+//taggroup createSimulationTags
+//TagGroup tg = NewTagGroup()
+//tg = getpersistanttaggroup()
 
 
 
+//setEnables()
+//setWorkflowElementTags()
+setDefaultROI()
 
