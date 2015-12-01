@@ -1675,10 +1675,9 @@ Number IPrep_End_Imaging()
 {
 	// executed after final transfer
 
-	// then turn beam off etc
 	print("IPrep_End_Imaging")
 
-	IPrep_cleanup()
+	//IPrep_cleanup()
 
 	return 1;
 }
@@ -1857,12 +1856,20 @@ class IPrep_mainloop:thread
 		return 1
 	}
 
+	void stop(object self)
+	{
+		// stop the mainloop thread
+		self.print("stop signal sent")
+		loop_running = 0
+	}
+
 	void runthread(object self)
 	{
 
-		while (1)
+		loop_running = 1
+		while (loop_running)
 		{
-			loop_running = 1
+			
 		
 			// get i and start loop at this step
 			number i = self.geti()
@@ -1884,7 +1891,7 @@ class IPrep_mainloop:thread
 				}
 
 				if (!self.process_response(returnval, 0)) // dont repeat for now
-					break	
+					self.stop()	
 
 			} 
 			else if (i==1) // ebsd imaging, repeat if function returns 0
@@ -1903,7 +1910,7 @@ class IPrep_mainloop:thread
 				}
 
 				if (!self.process_response(returnval, 0)) // dont repeat for now
-					break
+					self.stop()	
 
 			}		
 			else if (i==2) // increment the slice number
@@ -1912,7 +1919,7 @@ class IPrep_mainloop:thread
 				number returnval = IPrep_IncrementSliceNumber()
 
 				if (!self.process_response(returnval, 0)) // dont repeat for now
-					break
+					self.stop()	
 
 			}
 			else if (i==3) // move to pecs, do not repeat
@@ -1920,7 +1927,7 @@ class IPrep_mainloop:thread
 				self.print("loop: i = 3, move to pecs")
 				number returnval = IPrep_MoveToPECS_workflow()
 				if (!self.process_response(returnval, 0)) // dont repeat for now
-					break
+					self.stop()	
 
 			}
 			else if (i==4) // image in pecs before milling, repeat if function returns 0
@@ -1939,7 +1946,7 @@ class IPrep_mainloop:thread
 				}
 				
 				if (!self.process_response(returnval, 0)) // dont repeat for now
-					break
+					self.stop()	
 
 			}
 			else if (i==5) // mill, do not repeat
@@ -1947,7 +1954,7 @@ class IPrep_mainloop:thread
 				self.print("loop: i = 5, milling")
 				number returnval = IPrep_mill()
 				if (!self.process_response(returnval, 0)) // dont repeat for now
-					break
+					self.stop()	
 
 			}
 			else if (i==6) // image in pecs after milling, repeat if function returns 0
@@ -1966,7 +1973,7 @@ class IPrep_mainloop:thread
 				}				
 
 				if (!self.process_response(returnval, 0)) // dont repeat for now
-					break
+					self.stop()	
 
 			}
 			else if (i==7) // move to sem
@@ -1974,7 +1981,7 @@ class IPrep_mainloop:thread
 				self.print("loop: i = 7, move to sem")
 				number returnval = IPrep_MoveToSEM_workflow()
 				if (!self.process_response(returnval, 0)) // dont repeat for now
-					break
+					self.stop()	
 
 
 			}
@@ -1984,7 +1991,7 @@ class IPrep_mainloop:thread
 				self.print("loop: check")
 				number returnval = IPrep_check()
 				if (!self.process_response(returnval, 0)) // dont repeat for now
-					break				
+					self.stop()					
 			}
 
 			sleep(1)
