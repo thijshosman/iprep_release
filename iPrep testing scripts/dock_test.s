@@ -11,33 +11,48 @@ aplanarSEMdock.init()
 
 //aplanarSEMdock.setManualState("clamped")
 
-result("test: current state: "+aplanarSEMdock.getState()+"\n")
 
-aplanarSEMdock.lookupState(1)
+void clamp_and_unclamp()
+{
 
-aplanarSEMdock.clamp()
+	result("test: current state: "+aplanarSEMdock.getState()+"\n")
 
+	aplanarSEMdock.lookupState(1)
 
-result("test: current state: "+aplanarSEMdock.getState()+"\n")
-
-aplanarSEMdock.clamp()
-
-
-result("current state: "+aplanarSEMdock.getState()+"\n")
-
-aplanarSEMdock.unclamp()
-
-result("current state: "+aplanarSEMdock.getState()+"\n")
-
-aplanarSEMdock.unclamp()
-
-result("current state: "+aplanarSEMdock.getState()+"\n")
-
-//result("sensor input: "+aplanarSEMdock.sensorToBitStr()+"\n")
+	aplanarSEMdock.clamp()
 
 
+	result("test: current state: "+aplanarSEMdock.getState()+"\n")
+
+	aplanarSEMdock.clamp()
 
 
-result("sample present: "+aplanarSEMdock.checkSamplePresent()+"\n")
+	result("current state: "+aplanarSEMdock.getState()+"\n")
+
+	aplanarSEMdock.unclamp()
+
+	result("current state: "+aplanarSEMdock.getState()+"\n")
+
+	aplanarSEMdock.unclamp()
+
+	result("current state: "+aplanarSEMdock.getState()+"\n")
+
+	//result("sensor input: "+aplanarSEMdock.sensorToBitStr()+"\n")
+
+
+
+
+	result("sample present: "+aplanarSEMdock.checkSamplePresent()+"\n")
+}
+
+void unclamp_clamp()
+{
+	aplanarSEMdock.unclamp()
+	sleep(4)
+	aplanarSEMdock.clamp()
+}
+
+unclamp_clamp()
+
 
 result("test done\n")

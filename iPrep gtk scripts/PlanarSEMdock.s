@@ -157,8 +157,8 @@ class planarSEMdock : object
 		// changed to m27, I27 instead of 16 in order to overcome some stickyness
 		//self.sendCommand("m30h0I27L24V10000v2500R")
 		
-		// thijs update 10/02/2015 when testing ebsd dock
-		self.sendCommand("m30h0l27L10000V10000R")
+		// thijs update 11/26/2015 after spring increased force
+		self.sendCommand("m30h0l27L10000V4000R")
 
 		self.sendCommand("T")
 		self.print("dock initialized (planar)")

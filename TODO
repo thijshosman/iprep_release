@@ -69,12 +69,24 @@ Maintenance tasks:
 After install:
 Features:
 A (need by second visit):
+-check dock presence (make part of mediator):
+	-before workflow starts
+	-on resume
 -force the user to check scribe mark when dock is switched by setting tag
 -have current action as a query-able item in mediator so that user can see what the system is doing. this will be queried by ui
 -(SEM/safety) EBSD dock: define 'no go' zones, taking further extend of EBSD detector in mind. these are a combination of y and z in microscope. 
 	-through mediator. create 'stageLimits' class that registers with mediator that gets queried by stage
-
-
+-UI floating window dialogs
+	-(ui) have mediator (or now mediator) display states of devices. list(john):
+		-linear stage (parker) location
+		-gate valve state
+		-gripper
+		-which dock installed (mode)
+		-dock state (clamped or unclamped)
+		-dock/sem stage position (clear/pickup_dropoff/reference)
+	-(ui) enable/disable workflow elements by setting tags
+-(devices/workflow)have device-specific error state as part of device class
+	-when a device throws an exception, this gets saved. class has error bool (1 if error) and error msg. state device dialog displays error
 
 
 B (nice by second visit, test during second visit in case needed)
@@ -86,15 +98,6 @@ B (nice by second visit, test during second visit in case needed)
 	v-make sure SEM is homed/will home after swap to ensure no inconsistency problems when changing docks
 	v-warn the user to use correct carrier
 -(main/workflow)IPrep_check: check rotation value against stored value on dock install
-
--(ui) have mediator (or now mediator) display states of devices. list(john):
-	-linear stage (parker) location
-	-gate valve state
-	-gripper
-	-which dock installed (mode)
-	-dock state (clamped or unclamped)
-	-dock position (clear/pickup_dropoff/reference)
--(devices/workflow)have device-specific error state as part of device class
 	-save in tag
 -(imaging) re-enable 3D volume history stack
 	-add show stack option to multi-roi

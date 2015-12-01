@@ -19,7 +19,7 @@ try
 	//myWorkflow.returnSEMDock().lookupState(1)
 	//result("sample present: "+myWorkflow.returnSEMDock().checkSamplePresent()+"\n")
 	// test dock clamping/unclamping
-	//result(myWorkflow.returnSEMDock().detectMode()+"\n")
+	result(myWorkflow.returnSEMDock().detectMode()+"\n")
 
 	
 }
