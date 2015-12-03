@@ -8,7 +8,8 @@ class dock_simulator : object
 	string cmd,reply
 	object SEMdockPersistance
 	object sampleDockSamplePresence
-	
+
+	object myMediator	
 
 	void log(object self, number level, string text)
 	{
@@ -93,6 +94,10 @@ class dock_simulator : object
 		// set string 2 in controller, executed after close
 		self.sendCommand("s2T")
 		// set current (2x), speed (2x), holding current, acc
+
+		// register with mediator
+		myMediator = returnMediator()
+		myMediator.registerDock(self)
 
 		// changed to m27, I27 instead of 16 in order to overcome some stickyness
 		self.sendCommand("m30h0I27L24V10000v2500R")
