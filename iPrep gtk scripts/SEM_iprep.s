@@ -969,6 +969,18 @@ if (XYZZY)		self.setWDForImaging()
 		return FEIQuanta_GetVacuumPressure()/1000
 	}
 
+	number uncoupleFWD(object self)
+	{
+		// set Z to use uncoupled coordinates
+		FEIQuanta_SetZFWDCoupling(0)
+	}
+
+	number coupleFWD(object self)
+	{
+		// set Z to use coupled coordinates
+		FEIQuanta_SetZFWDCoupling(1)
+	}
+
 	number checkFWDCoupling(object self, number active)
 	{
 		// check if FWD is coupled correctly

@@ -30,6 +30,8 @@ interface I_IPrep_mainloop
 // main loop
 object myLoop = alloc(IPrep_mainloop)
 
+object my3DvolumeSEM
+
 /*
 // 3d volumes
 object my3DvolumeSEM
@@ -838,7 +840,21 @@ Number IPrep_Setup_Imaging()
 
 		print("Setup Imaging: Done setting up imaging conditions")
 
-
+		// 3D volume stuff, number of slices in 3D block
+		// make the displayed 3D stack of digiscan images the size of what the "capture" setting is
+		// quietly ignore exceptions
+		try
+		{
+			number slices = 10
+			my3DvolumeSEM = alloc(IPrep_3Dvolume)
+			my3DvolumeSEM.initSEM_3D(slices, DSGetWidth(2), DSGetHeight(2))
+			my3DvolumeSEM.show()
+		}
+		catch
+		{
+			print("ignoring 3D volume stack")
+			break
+		}
 
 		/* // legacy
 
@@ -1330,10 +1346,6 @@ number IPrep_image()
 	try
 	{
 
-		// call old function
-		//IPrep_Image_single()
-
-
 		// tell the state machine it is time to image
 		myStateMachine.start_image()
 
@@ -1366,7 +1378,7 @@ number IPrep_image()
 			number change = current_focus - saved_focus
 			print("IMAGE: Autofocus changed focus value by "+change+" mm")
 		}
-		else // no autofocus, use stored value
+		else if (myROI.getAFMode() == 2) // no autofocus, use stored value
 		{
 			print("IMAGE: focus is: "+myROI.getFocus())
 			myWorkflow.returnSEM().setDesiredWD(myROI.getFocus()) // automatically sets it after storing it in object
@@ -1456,7 +1468,8 @@ number IPrep_image()
 				if ( !ContinueCancelDialog( str + str2 +str3 ) )
 				{
 						str = ": Acquisition terminated by user" 
-						print("IMAGE: "+str)		
+						print("IMAGE: "+str)	
+						return returncode	
 				}
 			}
 			else
@@ -1474,6 +1487,19 @@ number IPrep_image()
 		ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
 		imdoc.ImageDocumentClose(0)
 			
+		// add image to 3D volume and update 
+		// quietly ignore if stack is not initialized
+		try
+		{
+			my3DvolumeSEM.addSlice(temp_slice_im)
+			my3DvolumeSEM.show()
+		}
+		catch
+		{
+			print("ignoring 3D volume stack")
+			break
+		}
+
 		// Update GMS status bar - SEM imaging done
 		myPW.updateB("SEM imaging completed")
 		print("IMAGE: SEM mag 2 = "+EMGetMagnification())
@@ -1761,6 +1787,8 @@ class IPrep_mainloop:thread
 	// main iprep loop
 
 	number loop_running
+	object aStepTimer
+	object aGlobalTimer
 	
 	number p // number of steps per cycle
 
@@ -1784,12 +1812,19 @@ class IPrep_mainloop:thread
 		loop_running = 0
 		iPersist = alloc(statePersistanceNumeric)
 		iPersist.init("step")
+		aStepTimer = alloc(timer)
+		aGlobalTimer = alloc(timer)
 	}
 
 	object init(object self, number p1)
 	{
 		p = p1 // set number of steps per cycle
 		self.print("initialized, number of steps per cycle = "+p1+", current step = "+iPersist.getNumber())
+
+		// init timers to display
+		aStepTimer.init(1)
+		aGlobalTimer.init(1)
+
 		return self
 	}
 
@@ -1877,6 +1912,10 @@ class IPrep_mainloop:thread
 
 			if (i==0) // imaging, repeat if function returns 0
 			{
+				aGlobalTimer.tick("slice: "+IPrep_sliceNumber())
+
+				aStepTimer.tick("imaging")
+
 				self.print("loop: i = 0, imaging")
 				number returnval = 0
 
@@ -1896,6 +1935,9 @@ class IPrep_mainloop:thread
 			} 
 			else if (i==1) // ebsd imaging, repeat if function returns 0
 			{
+				
+				aStepTimer.tick("EBSD")
+
 				self.print("loop: i = 1, ebsd imaging")
 				number returnval = 0
 
@@ -1915,6 +1957,8 @@ class IPrep_mainloop:thread
 			}		
 			else if (i==2) // increment the slice number
 			{
+				aStepTimer.tick("slice number incrementation")
+
 				self.print("loop: i = 2, incrementing slice number")
 				number returnval = IPrep_IncrementSliceNumber()
 
@@ -1924,6 +1968,8 @@ class IPrep_mainloop:thread
 			}
 			else if (i==3) // move to pecs, do not repeat
 			{
+				aStepTimer.tick("move to pecs")
+
 				self.print("loop: i = 3, move to pecs")
 				number returnval = IPrep_MoveToPECS_workflow()
 				if (!self.process_response(returnval, 0)) // dont repeat for now
@@ -1932,6 +1978,8 @@ class IPrep_mainloop:thread
 			}
 			else if (i==4) // image in pecs before milling, repeat if function returns 0
 			{
+				aStepTimer.tick("image in PECS before milling")
+
 				self.print("loop: i = 4, imaging before milling")
 				number returnval = 0
 
@@ -1951,6 +1999,8 @@ class IPrep_mainloop:thread
 			}
 			else if (i==5) // mill, do not repeat
 			{
+				aStepTimer.tick("mill")
+
 				self.print("loop: i = 5, milling")
 				number returnval = IPrep_mill()
 				if (!self.process_response(returnval, 0)) // dont repeat for now
@@ -1959,6 +2009,8 @@ class IPrep_mainloop:thread
 			}
 			else if (i==6) // image in pecs after milling, repeat if function returns 0
 			{
+				aStepTimer.tick("image in PECS after milling")
+
 				self.print("loop: i = 6, imaging after milling")
 				number returnval = 0
 
@@ -1978,6 +2030,8 @@ class IPrep_mainloop:thread
 			}
 			else if (i==7) // move to sem
 			{
+				aStepTimer.tick("move to sem")
+
 				self.print("loop: i = 7, move to sem")
 				number returnval = IPrep_MoveToSEM_workflow()
 				if (!self.process_response(returnval, 0)) // dont repeat for now
@@ -1987,7 +2041,9 @@ class IPrep_mainloop:thread
 			}
 			else if (i==8) // do a check of pressure/tmp speed/end conditions
 			{
-				
+				aStepTimer.tick("safety and end condition checking")
+
+				aGlobalTimer.tock()
 				self.print("loop: check")
 				number returnval = IPrep_check()
 				if (!self.process_response(returnval, 0)) // dont repeat for now
@@ -1995,7 +2051,7 @@ class IPrep_mainloop:thread
 			}
 
 			sleep(1)
-
+			aStepTimer.tock()
 
 		}
 

@@ -538,7 +538,35 @@ object returnStopVar()
 	return myStopVar
 }
 
+class timer: object
+{
+	// simple timer to measure overhead
 
+	number tick_val
+	number outp
+	string namestring
+
+	void init(object self, number disp)
+	{
+		// determine if this needs to print out on tock
+		outp = disp
+	}
+
+	void tick(object self, string name1)
+	{
+		// start timer
+		namestring = name1
+		tick_val = GetOSTickCount()
+	}
+
+	void tock(object self)
+	{
+		// stop timer and print
+		if (outp)
+			debug("TIMER: elapsed time in "+namestring+": "+(GetOSTickCount()-tick_val)/1000+" s\n")	
+	}
+
+}
 
 
 // testing

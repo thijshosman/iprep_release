@@ -68,7 +68,7 @@ class workflow: object
 		if (mode == "planar")
 		{
 			// planar mode selected
-			if (sim_dock)
+			if (sim_dock == 1)
 				mySEMdock = createDock(1)
 			else 
 				mySEMdock = createDock(2)
@@ -77,7 +77,7 @@ class workflow: object
 		else if (mode == "ebsd")
 		{
 			// ebsd mode selected
-			if (sim_dock)
+			if (sim_dock == 1)
 				mySEMdock = createDock(1)
 			else 
 				mySEMdock = createDock(3)
@@ -167,8 +167,8 @@ class workflow: object
 		myTransfer.setPositionTag("open_pecs",27) // location where arms can open in PECS  // #20150819: was 29, #20150903: was 28
 		myTransfer.setPositionTag("pickup_pecs",48) // location where open arms can be used to pickup sample // #20150827: was 48.5, #20150903: was 49.5
 		myTransfer.setPositionTag("beforeGV",100) // location where open arms can be used to pickup sample
-		myTransfer.setPositionTag("dropoff_sem",510) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
-		myTransfer.setPositionTag("pickup_sem",510) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
+		myTransfer.setPositionTag("dropoff_sem",513) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
+		myTransfer.setPositionTag("pickup_sem",513) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
 		myTransfer.setPositionTag("backoff_sem",430) // location where gripper arms can safely open/close in SEM chamber
 		myTransfer.setPositionTag("dropoff_pecs",46.50) // location where sample gets dropped off in PECS // #20150827: was 45.5
 		myTransfer.setPositionTag("dropoff_pecs_backoff",47.50) // location where sample gets dropped off in PECS // #20150827: was 46.5
@@ -598,7 +598,7 @@ class workflow: object
 		// move SEM stage to clear point so that dock is out of the way
 		mySEM.goToClear()
 
-		if (GetTagValue("IPrep:simulation:dock") == 0)
+		if (GetTagValue("IPrep:simulation:samplechecker") == 1)
 		{
 			// check that sample is no longer present in dock, if simulation of dock is off
 			if (mySEMdock.checkSamplePresent())
@@ -716,7 +716,7 @@ class workflow: object
 		// move SEM dock down to clamp
 		mySEMdock.clamp()
 
-		if (GetTagValue("IPrep:simulation:dock") == 0)
+		if (GetTagValue("IPrep:simulation:samplechecker") == 1)
 		{
 			// check that sample is present
 			if (!mySEMdock.checkSamplePresent())
@@ -860,14 +860,14 @@ class workflow: object
 	{
 		// prepares system for taking of image, like setting HV and WD settings and unblanking beam
 
-		mySEM.blankOff()
+		//mySEM.blankOff()
 
 		self.print("preimaging done")
 	}
 	
 	void postImaging(object self)
 	{
-		mySEM.blankOn()
+		//mySEM.blankOn()
 		
 		// does some cleaning up after imaging, like blanking beam 
 		self.print("postimaging done")
@@ -877,7 +877,7 @@ class workflow: object
 	{
 		// send to SEM whatever needs to be sent to start EBSD acquisition
 		// then tell ebsd handshaker to start
-		mySEM.blankOff()
+		//mySEM.blankOff()
 
 		tick = GetOSTickCount()		
 
@@ -916,8 +916,10 @@ class workflow: object
 
 	void postEBSD(object self)
 	{
-		mySEM.blankOn()
+		//mySEM.blankOn()
 		// decouple FWD (in case oxford instruments coupled it)
+		mySEM.uncoupleFWD()
+
 		self.print("postEBSD done")
 	}
 

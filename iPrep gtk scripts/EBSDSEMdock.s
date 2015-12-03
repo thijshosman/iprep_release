@@ -333,7 +333,7 @@ class EBSDSEMdock : object
 		//calculate the other 3 positions (clear, nominal_imaging and StoredImaging 
 		//and save them as absolute coordinates in private data)
 		
-		self.print("calibrateCoords: using calibrations from 20151028 (manchester nova ebsd dock) ")
+		self.print("calibrateCoords: using calibrations from 20151201 (manchester nova ebsd dock) ")
 
 		// reference point is the point from which other coordinates are inferred
 		// the reference pointf or all coordinates is the pickup/dropoff point now
@@ -356,9 +356,9 @@ class EBSDSEMdock : object
 		clear.print()
 
 		// nominal imaging is approximate middle of sample #todo
-		nominal_imaging.set( scribe_pos.getX()-17.5526, scribe_pos.getY()-2.6368, scribe_pos.getZ(), 0 )
-		// set by thijs after alignment, absolute for now 10/28/2015
-		//nominal_imaging.set( -39.1327, -1.4971, 10, 0 )
+		//nominal_imaging.set( scribe_pos.getX()-17.5526, scribe_pos.getY()-2.6368, scribe_pos.getZ(), 0 )
+		// set by thijs after alignment, absolute for now 20151201
+		nominal_imaging.set( -38.3352, -0.2050, 5.5, 0 )
 		self.print("nominal_imaging set: ")
 		nominal_imaging.print()
 
@@ -368,16 +368,16 @@ class EBSDSEMdock : object
 		StoredImaging.print()
 
 		// grid on post at back position (serves as sanity check) #todo
-		highGridBack.set( scribe_pos.getX()-2.409, scribe_pos.getY()-0.2779, scribe_pos.getZ(), 0 )
-		// set by thijs after alignment, absolute for now 10/28/2015
-		//highGridBack.set( -23.9891, 0.8618, 10, 0 )
+		//highGridBack.set( scribe_pos.getX()-2.409, scribe_pos.getY()-0.2779, scribe_pos.getZ(), 0 )
+		// set by thijs after alignment, absolute for now 20151201
+		highGridBack.set( -23.5316, 1.1661, 5.5, 0 )
 		self.print("highGridBack set: ")
 		highGridBack.print()
 
 		// grid on post in front position (serves as sanity check) #todo
-		highGridFront.set( scribe_pos.getX()-32.4044, scribe_pos.getY()+0.042, scribe_pos.getZ(), 0 )
-		// set by thijs after alignment, absolute for now 10/28/2015
-		//highGridFront.set( -53.9845, 1.1817, 10, 0 )
+		//highGridFront.set( scribe_pos.getX()-32.4044, scribe_pos.getY()+0.042, scribe_pos.getZ(), 0 )
+		// set by thijs after alignment, absolute for now 20151201
+		highGridFront.set( -53.5331, 1.1319, 5.5, 0 )
 		self.print("highGridFront set: ")
 		highGridFront.print()
 

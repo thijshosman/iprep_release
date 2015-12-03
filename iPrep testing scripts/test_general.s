@@ -35,6 +35,8 @@ try
 	
 	
 	
+	
+	
 	// *** gate valve ***
 	//myWorkflow.returnPecs().openGVandCheck()
 	//myWorkflow.returnPecs().closeGVandCheck()
@@ -161,11 +163,26 @@ for (i=0;i<50;i++)
 	
 	
 	// *** imaging ***
-	//number alignParamID1 = DSCreateParameters( 512, 512, 0, 16, 0 )
-	//image temp_slice_im2
-	//myWorkflow.returnDigiscan().config(alignParamID1)
-	//myWorkflow.returnDigiscan().acquire(temp_slice_im2)
-	//showimage(temp_slice_im2)
+//	myStateMachine.start_image()
+/*	object myROI 
+		string name1 = "StoredImaging"
+		if (!returnROIManager().getROIAsObject(name1, myROI))
+		{
+			print("IMAGE: tag does not exist!")
+			
+		}
+*/
+		// Update GMS status bar - SEM imaging started
+
+	//myWorkflow.returnSEM().goToImagingPosition(myROI.getName())
+	
+
+//	image temp_slice_im2
+//	myWorkflow.returnDigiscan().config()
+//	myWorkflow.returnDigiscan().acquire(temp_slice_im2)
+//	showimage(temp_slice_im2)
+//	myStateMachine.stop_image()  
+	
 	
 	// *** alignment of SEM dropoff/pickup point for parker and sem stage ***
 	
