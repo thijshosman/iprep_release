@@ -44,6 +44,96 @@ void AddTagGroup(taggroup tg, taggroup child, string path)
 
 }
 
+number GetTagValue(string tagpath)
+{
+	// check if tagpath exists, and if it does, retrieve the value and return it
+	number returnvalue
+	taggroup subtag = GetPersistentTagGroup()
+	if (TagGroupDoesTagExist(subtag,tagpath)) 
+		TagGroupGetTagAsNumber(subtag,tagpath,returnvalue)
+	else
+		throw(tagpath+" does not exist!")
+
+	return returnvalue
+}
+
+string GetTagString(string tagpath)
+{
+	// check if tagpath exists, and if it does, retrieve the value and return it
+	string returnstring
+	taggroup subtag = GetPersistentTagGroup()
+	if (TagGroupDoesTagExist(subtag,tagpath)) 
+		TagGroupGetTagAsString(subtag,tagpath,returnstring)
+	else
+		throw(tagpath+" does not exist!")
+
+	return returnstring
+}
+
+taggroup GetTagGroup(string tagpath)
+{
+
+	TagGroup tg = GetPersistentTagGroup() 
+	TagGroup subtag
+	if (tg.TagGroupDoesTagExist(tagpath))
+	{	
+		tg.TagGroupGetTagAsTagGroup( tagpath, subtag )
+		return subtag
+	}
+	else
+	{
+		throw(tagpath+" does not exist!")
+	}
+
+}
+
+//subtag.taggroupopenbrowserwindow(0)
+
+class persistentTag: object
+{
+	// class that can be used to save and load a tag number or string
+
+	taggroup tagpath
+
+	void persistentTag(object self)
+	{
+		// constructor
+	}
+
+	void set(object self, string str1)
+	{
+		// save tag in path
+		AddTag(GetPersistentTagGroup(), tagpath, str1 )
+		ApplicationSavePreferences()
+	}
+
+	void set(object self, number val1)
+	{
+		// save tag in path
+		AddTag(GetPersistentTagGroup(), tagpath, val1 )
+		ApplicationSavePreferences()
+	}
+
+	string get(object self)
+	{
+		// return value as string
+		return GetTagString(tagpath)
+	}
+
+	void init(object self, string tagpath1)
+	{
+		// set the tagpath
+		tagpath = tagpath1
+		taggroup tg = GetPersistentTagGroup()
+		if ( !tg.TagGroupDoesTagExist(tagpath) )
+			self.set("default_initialized")
+		ApplicationSavePreferences()
+
+		
+	}
+
+
+}
 
 class statePersistance:object
 {

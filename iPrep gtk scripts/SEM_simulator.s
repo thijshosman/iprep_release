@@ -998,6 +998,17 @@ if (XYZZY)		self.setWDForImaging()
 		return state
 	}
 
+	number uncoupleFWD(object self)
+	{
+		// set Z to use uncoupled coordinates
+	}
+
+	number coupleFWD(object self)
+	{
+		// set Z to use coupled coordinates
+	}
+
+
 	number checkFWDCoupling(object self, number active)
 	{
 		// check if FWD is coupled correctly

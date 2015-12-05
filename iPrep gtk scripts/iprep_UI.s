@@ -133,6 +133,17 @@ void Goto_highgridback( void )
 
 }
 
+void Goto_clear()
+{
+	string s1 = "Move to clear position from imaging position by moving Z last?"
+	if (OKCancelDialog(s1))
+	{
+		myWorkflow.returnSEM().goToClear()
+		//WorkaroundQuantaMagBug()
+	}
+}
+
+
 void Goto_highgridfront( void )
 {
 	string s1 = "Move to grid on post closest to front of chamber?"
@@ -323,7 +334,7 @@ void IPrep_setScribeROI(void)
 			result("not succeeded, user did not accept change\n")	
 			return
 		}
-
+		result("scribe mark correction done\n")
 	}
 	catch
 	{
@@ -411,6 +422,15 @@ void unlockPecs(void)
 	myWorkflow.returnPECS().unlock()
 }
 
+void gripperOpen(void)
+{
+	myWorkflow.returnGripper().open()		
+}
+
+void gripperClose(void)
+{
+	myWorkflow.returnGripper().close()
+}
 
 void setAliveSafe(void)
 {
@@ -503,7 +523,8 @@ void iprep_InstallMenuItems( void )
 	// workflow	
 	AddScriptToMenu( "Set_starting_slice_number()", "Set starting slice number...", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
 	AddScriptToMenu( "iprep_setup_imaging()", "use current settings for imaging", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
-	AddScriptToMenu( "IPrep_acquire_ebsd()", "acquire EBSD data", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
+	AddScriptToMenu( "IPrep_acquire_ebsd()", "Run EBSD step", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
+	AddScriptToMenu( "IPrep_image()", "Run Image step", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
 
 	// SEM
 	AddScriptToMenu( "homeSEMStageToClear()", "home SEM stage to clear", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
@@ -527,7 +548,8 @@ void iprep_InstallMenuItems( void )
 	AddScriptToMenu( "Set_autofocus_enable_dialog()", "Set autofocus state...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	
 	AddScriptToMenu( "beep()", "------", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
-	
+
+	AddScriptToMenu( "Goto_clear()", "Goto clear and move in z last...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "Goto_scribe_mark()", "Goto scribe mark...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "Goto_nominal_imaging()", "Goto nominal imaging position...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "Goto_highgridback()", "Goto grid on back post...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
@@ -542,6 +564,8 @@ void iprep_InstallMenuItems( void )
 	AddScriptToMenu( "pecs_lower()", "lower PECS stage", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
 	AddScriptToMenu( "pecs_raise()", "raise PECS stage", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
 	AddScriptToMenu( "pecs_home()", "rotate PECS stage to home", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
+
+
 
 	// setup
 	AddScriptToMenu( "IPrep_init()", "Initialize Hardware and Workflow", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
@@ -577,6 +601,8 @@ void iprep_InstallMenuItems( void )
 	AddScriptToMenu( "lowerPECSStage()", "lower pecs stage", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
 	AddScriptToMenu( "setSEMstate()", "set workflow state to SEM", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
 	AddScriptToMenu( "setPECSstate()", "set workflow state to PECS", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
+	AddScriptToMenu( "gripperOpen()", "Open Gripper", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
+	AddScriptToMenu( "gripperClose()", "Close Gripper", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
 
 
 	AddScriptToMenu( "setAliveSafe()", "remove dead/unsafe flag", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_0 , 0)

@@ -1,51 +1,6 @@
 // $BACKGROUND$
 // general IPrep (helper) functions used in various scripts
 
-number GetTagValue(string tagpath)
-{
-	// check if tagpath exists, and if it does, retrieve the value and return it
-	number returnvalue
-	taggroup subtag = GetPersistentTagGroup()
-	if (TagGroupDoesTagExist(subtag,tagpath)) 
-		TagGroupGetTagAsNumber(subtag,tagpath,returnvalue)
-	else
-		throw(tagpath+" does not exist!")
-
-	return returnvalue
-}
-
-string GetTagString(string tagpath)
-{
-	// check if tagpath exists, and if it does, retrieve the value and return it
-	string returnstring
-	taggroup subtag = GetPersistentTagGroup()
-	if (TagGroupDoesTagExist(subtag,tagpath)) 
-		TagGroupGetTagAsString(subtag,tagpath,returnstring)
-	else
-		throw(tagpath+" does not exist!")
-
-	return returnstring
-}
-
-taggroup GetTagGroup(string tagpath)
-{
-
-	TagGroup tg = GetPersistentTagGroup() 
-	TagGroup subtag
-	if (tg.TagGroupDoesTagExist(tagpath))
-	{	
-		tg.TagGroupGetTagAsTagGroup( tagpath, subtag )
-		return subtag
-	}
-	else
-	{
-		throw(tagpath+" does not exist!")
-	}
-
-}
-
-//subtag.taggroupopenbrowserwindow(0)
-
 class deadFlagObject:object
 {
 	// sets two flags:
@@ -204,10 +159,17 @@ class safetyMediator:object
 	object sem
 	object transfer
 	object gripper
+	object dock
 
 	// the mediator is the perfect place to change the progresswindow from
 	object progresswindow
 	
+	void registerDock(object self, object obj)
+	{
+		dock = obj
+		result("mediator: dock registered\n")
+	}
+
 	void registerPecs(object self, object obj)
 	{
 		pecs = obj
@@ -325,8 +287,18 @@ class safetyMediator:object
 
 	}
 
+	string detectMode(object self)
+	{
+		// check the type of dock installed
+		string status
+		status = dock.detectMode()
+
+		return status // "ebsd", "planar", "disconnected" or "undefined"
+	}
+
 
 	// *** actions ***
+	// experimental, not used yet
 
 	void HVOff(object self)
 	{
@@ -388,7 +360,22 @@ class haltCheckObject:object
 
 }
 
+class safetyFlags: object
+{
+	// #TODO
+	// class has access to persistent tag group values
+	// protected flag
+	// scribemark_aligned flag
+	// more to come
 
+	object protected
+
+	void safetyFlags(object self)
+	{
+		persistentTag
+	}
+
+}
 
 
 number getProtectedModeFlag()
@@ -538,7 +525,35 @@ object returnStopVar()
 	return myStopVar
 }
 
+class timer: object
+{
+	// simple timer to measure overhead
 
+	number tick_val
+	number outp
+	string namestring
+
+	void init(object self, number disp)
+	{
+		// determine if this needs to print out on tock
+		outp = disp
+	}
+
+	void tick(object self, string name1)
+	{
+		// start timer
+		namestring = name1
+		tick_val = GetOSTickCount()
+	}
+
+	void tock(object self)
+	{
+		// stop timer and print
+		if (outp)
+			debug("TIMER: elapsed time in "+namestring+": "+(GetOSTickCount()-tick_val)/1000+" s\n")	
+	}
+
+}
 
 
 // testing
