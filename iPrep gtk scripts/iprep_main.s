@@ -441,7 +441,7 @@ number IPrep_consistency_check()
 		print("SEM stage state consistent")
 	}
 
-	// dock
+	// dock mode
 	// check that new mode is consistent with readout of dock
 	if (getSystemMode() != returnMediator().detectMode())
 	{
@@ -449,6 +449,12 @@ number IPrep_consistency_check()
 		returnDeadFlag().setDead(1, "DOCK", getSystemMode()+" dock not detected. detected dock is "+returnMediator().detectMode())
 		
 	}
+	else
+	{
+		print("dock mode consistent: "+returnMediator)
+	}
+
+	// dock state
 
 	// gripper
 	// #todo: what if stuck in open position? go to unsafe, since gripper problems cannot be easily fixed!

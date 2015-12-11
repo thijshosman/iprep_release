@@ -62,15 +62,15 @@ v-detect if system has been homed since last powerup
 -transfer position tags become deltas, and deltas allow change. hardcode real positions, do not allow delta's more than a certain value.
 
 
-Maintenance tasks:
-
-
 
 After install:
 Features:
-A (need by second visit):
--check dock presence (make part of mediator):
-	-during iprep_startrun()
+A (scheduled for next release):
+-
+-add dock to consistency checks
+-reseat should not be last completed step
+-error should revert to last state in workflow so that we can resume, check!
+-check argon pressure when raising pecs stage
 -force the user to check scribe mark when dock is switched by setting tag
 -have current action as a query-able item in mediator so that user can see what the system is doing. this will be queried by ui
 -(SEM/safety) EBSD dock: define 'no go' zones, taking further extend of EBSD detector in mind. these are a combination of y and z in microscope. 
@@ -86,11 +86,16 @@ A (need by second visit):
 	-(ui) enable/disable workflow elements by setting tags
 -(devices/workflow)have device-specific error state as part of device class
 	-when a device throws an exception, this gets saved. class has error bool (1 if error) and error msg. state device dialog displays error
--3Dvolumes: start one 3D volume per ROI if enabled
-	-if a subtag of roimanager does not exist, don't crap out but just ignore
-	-enable these during iprep_startrun()
+-start one 3D volume per ROI if enabled
+-save iprep tags as part of image
+-tick/tock for EBSD needs some cleaning up to use for manual EBSD
+-allow an EBSD map for every ROI, with modulo parameter that allows one map every n slices, ie: 0 = no ebsd, 1 = every slice, 2 = every other slice
+-migrate EBSD_enabled into the ROI class
+-allow live alignment with maximum by beamshift as part of roi_enables
 
-B (nice by second visit, test during second visit in case needed)
+
+
+B (nice to have, needed for second Alpha)
 -autofocus wrapper (range etc) as in example JH
 -(workflow)add FWD decoupling after EBSD run (since OI might change it)
 -(workflow)lock out SEM ui (rotation/tilt/x/y/z) - Mingkai
@@ -115,6 +120,9 @@ C (nice to have, include in real UI)
 
 
 done:
+v-3Dvolumes: re-enabled
+v-check dock presence (make part of mediator):
+	-during iprep_startrun()
 v-(workflow) on iprep_startrun: check that dock installed is correct (by looking at logic readout of encoder inputs)
 v-pop up dialogs for exceptions during workflow
 	v-and during iprep_init()
