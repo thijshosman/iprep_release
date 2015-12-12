@@ -564,7 +564,9 @@ class workflow: object
 		// between the two points as a synchronous workflow allows. 
 
 		// lockout PECS UI
+		aTimer.tick("pecs lock")
 		myPecs.lockout()
+		aTimer.tock()
 
 		// move pecs stage down
 		aTimer.tick("pecs stage down")
@@ -683,7 +685,9 @@ class workflow: object
 		aTimer.tock()
 
 		// unlock
+		aTimer.tick("pecs unlock")
 		myPecs.unlock()
+		aTimer.tock()
 
 	}
 
@@ -693,72 +697,112 @@ class workflow: object
 		// between the two points as a synchronous workflow allows. 
 
 		// lockout PECS UI
+		aTimer.tick("pecs lock")
 		myPecs.lockout()
+		aTimer.tock()
 
 		// lower pecs stage
+		aTimer.tick("pecs lower")
 		myPecs.moveStageDown()
-		
+		aTimer.tock()
+
 		// home pecs stage
+		aTimer.tick("pecs home")
 		myPecs.stageHome()
-	
+		aTimer.tock()
+
 		// go to where gripper arms can safely open
+		aTimer.tick("transfer to open_pecs")
 		myTransfer.move("open_pecs")
+		aTimer.tock()
 
 		// open gripper arms
+		aTimer.tick("gripper open")
 		myGripper.open()
+		aTimer.tock()
 
 		// move forward to where sample can be picked up
+		aTimer.tick("transfer to pickup_pecs")
 		myTransfer.move("pickup_pecs")
+		aTimer.tock()
 
 		continueCheck()
 
 		// close gripper arms
+		aTimer.tick("gripper close")
 		myGripper.close()
+		aTimer.tock()
 
 		continueCheck()
 
 		// open GV
+		aTimer.tick("gate valve open")
 		myPecs.openGVandCheck()
+		aTimer.tock()
 
 		// move sem stage to clear point
+		aTimer.tick("sem to clear")
 		mySEM.goToClear()
+		aTimer.tock()
 	
 		// move SEM dock up to allow sample to go in
+		aTimer.tick("dock unclamp")
 		mySEMdock.unclamp()
+		aTimer.tock()
 
 		// move into chamber
+		aTimer.tick("transfer to dropoff_sem")
 		myTransfer.move("dropoff_sem")
+		aTimer.tock()
 
 		continueCheck()
 
 		// SEM Stage to dropoff position
+		aTimer.tick("sem to pickup_dropoff")
 		mySEM.goToPickup_Dropoff()
+		aTimer.tock()
 
 		continueCheck()
 
 		// gripper open to release sample
+		aTimer.tick("gripper open")
 		myGripper.open()
+		aTimer.tock()
 
 		// parker back off to where arms can open/close
+		aTimer.tick("transfer to backoff_sem")
 		myTransfer.move("backoff_sem")
+		aTimer.tock()
 
 		// gripper close
+		aTimer.tick("gripper close")
 		myGripper.close()
-	
+		aTimer.tock()
+
 		// parker move back to prehome
+		aTimer.tick("transfer to prehome")
 		myTransfer.move("prehome")
+		aTimer.tock()
 
 		// parker home and turn off to prevent singing
+		aTimer.tick("transfer home")
 		myTransfer.home()
+		aTimer.tock()
 
 		// close gate valve
+		aTimer.tick("gate valve close")
 		myPecs.closeGVandCheck()
+		aTimer.tock()
 
 		// SEM stage move to clear position
+		aTimer.tick("sem to clear")
 		mySEM.goToClear()
+		aTimer.tock()
 
 		// move SEM dock down to clamp
+		aTimer.tick("dock clamp")
 		mySEMdock.clamp()
+		aTimer.tock()
 
 		if (GetTagValue("IPrep:simulation:samplechecker") == 1)
 		{
@@ -771,13 +815,19 @@ class workflow: object
 		}
 
 		// move SEM stage to nominal imaging plane
+		aTimer.tick("sem to imaging")
 		mySEM.goToNominalImaging()
+		aTimer.tock()
 
 		// turn transfer system off
+		aTimer.tick("transfer off")
 		myTransfer.turnOff()
+		aTimer.tock()
 
 		// unlock
+		aTimer.tick("pecs unlock")
 		myPecs.unlock()
+		aTimer.tock()
 
 	}
 
