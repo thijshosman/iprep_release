@@ -1,0 +1,11 @@
+
+todo for testing branch in Manchester. includes:
+-hotfixes
+-added features to test in Manchester
+
+
+features:
+v (A) timers for individual steps in transfer sequence
+v (A) dock mode check in iprep_consistency
+(A) sample present check thrrough mediator. when check fails, wait and check again, then throw exception
+(A) time delay between sem dropoff and imaging to allow dock to settle
