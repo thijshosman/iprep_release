@@ -42,12 +42,18 @@ try
 	//myWorkflow.returnPecs().closeGVandCheck()
 	
 	// *** gripper ***
+	//myWorkflow.returnGripper().init()
 	//myWorkflow.returnGripper().setManualState("open")
 	//myWorkflow.returnGripper().setManualState("closed")
 	//myWorkflow.returnGripper().open()		
 	//myWorkflow.returnGripper().close()
 
-
+	// manual gripper commands, be careful
+	//myWorkflow.returnGripper().sendCommand("Z1000000000R")
+	//myWorkflow.returnGripper().sendCommand("T")
+	//myWorkflow.returnGripper().sendCommand("D1000000R") // open
+	//myWorkflow.returnGripper().sendCommand("P100000R") // close
+	
 /*
 number i
 
@@ -62,9 +68,7 @@ for (i=0;i<50;i++)
 	
 
 	
-//myWorkflow.returnGripper().lookupState(1)
-	//sleep(5)
-	//myWorkflow.returnGripper().sendCommand("D100000R")
+
 	
 	// *** manual workflow items ***
 	//myWorkflow.insertSampleIntoPecsAndRetract()
@@ -75,11 +79,11 @@ for (i=0;i<50;i++)
 	// *** dock ***
 	//myWorkflow.returnSEMDock().setManualState("clamped")
 	//myWorkflow.returnSEMDock().setManualState("unclamped")
-	
+	//myWorkflow.returnSEMDock().detectMode()
 	//myWorkflow.returnSEMDock().unclamp()	//disengaged
 	//myWorkflow.returnSEMDock().clamp()   //engaged
 	//sleep(3)
-	//myWorkflow.returnSEMDock().lookupState(1)
+	myWorkflow.returnSEMDock().lookupState(1)
 	//result("sample present: "+myWorkflow.returnSEMDock().checkSamplePresent()+"\n")
 	// test dock clamping/unclamping
 	
@@ -121,7 +125,7 @@ for (i=0;i<50;i++)
     //myWorkflow.returnTransfer().move("test")  // test location from tags  
 	//result(MyWorkflow.returnTransfer().getCurrentPosition())
 	//result(MyWorkflow.returnTransfer().returnParkerPositions().getCurrentPosition())
-
+	//myWorkflow.returnTransfer().resetKillSwitch()
 
 
     //result(myWorkflow.returnTransfer().getCurrentPosition())
