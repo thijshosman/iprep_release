@@ -83,7 +83,7 @@ for (i=0;i<50;i++)
 	//myWorkflow.returnSEMDock().unclamp()	//disengaged
 	//myWorkflow.returnSEMDock().clamp()   //engaged
 	//sleep(3)
-	myWorkflow.returnSEMDock().lookupState(1)
+	//myWorkflow.returnSEMDock().lookupState(1)
 	//result("sample present: "+myWorkflow.returnSEMDock().checkSamplePresent()+"\n")
 	// test dock clamping/unclamping
 	
