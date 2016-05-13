@@ -150,11 +150,11 @@ class workflow: object
 		myTransfer.setPositionTag("open_pecs",27) // location where arms can open in PECS  // #20150819: was 29, #20150903: was 28
 		myTransfer.setPositionTag("pickup_pecs",48) // location where open arms can be used to pickup sample // #20150827: was 48.5, #20150903: was 49.5
 		myTransfer.setPositionTag("beforeGV",100) // location where open arms can be used to pickup sample
-		myTransfer.setPositionTag("dropoff_sem",545) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
-		myTransfer.setPositionTag("pickup_sem",545) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
+		myTransfer.setPositionTag("dropoff_sem",543) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
+		myTransfer.setPositionTag("pickup_sem",543) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
 		myTransfer.setPositionTag("backoff_sem",430) // location where gripper arms can safely open/close in SEM chamber
-		myTransfer.setPositionTag("dropoff_pecs",46.50) // location where sample gets dropped off in PECS // #20150827: was 45.5
-		myTransfer.setPositionTag("dropoff_pecs_backoff",47.50) // location where sample gets dropped off in PECS // #20150827: was 46.5
+		myTransfer.setPositionTag("dropoff_pecs",45.50) // location where sample gets dropped off in PECS // #20150827: was 45.5
+		myTransfer.setPositionTag("dropoff_pecs_backoff",46.50) // location where sample gets dropped off in PECS // #20150827: was 46.5
 	}
 
 	void setDefaultPositionsEBSD(object self)
@@ -167,11 +167,11 @@ class workflow: object
 		myTransfer.setPositionTag("open_pecs",27) // location where arms can open in PECS  // #20150819: was 29, #20150903: was 28
 		myTransfer.setPositionTag("pickup_pecs",48) // location where open arms can be used to pickup sample // #20150827: was 48.5, #20150903: was 49.5
 		myTransfer.setPositionTag("beforeGV",100) // location where open arms can be used to pickup sample
-		myTransfer.setPositionTag("dropoff_sem",513) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
-		myTransfer.setPositionTag("pickup_sem",513) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
+		myTransfer.setPositionTag("dropoff_sem",510) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
+		myTransfer.setPositionTag("pickup_sem",510) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
 		myTransfer.setPositionTag("backoff_sem",430) // location where gripper arms can safely open/close in SEM chamber
-		myTransfer.setPositionTag("dropoff_pecs",46.50) // location where sample gets dropped off in PECS // #20150827: was 45.5
-		myTransfer.setPositionTag("dropoff_pecs_backoff",47.50) // location where sample gets dropped off in PECS // #20150827: was 46.5
+		myTransfer.setPositionTag("dropoff_pecs",45.50) // location where sample gets dropped off in PECS // #20150827: was 45.5
+		myTransfer.setPositionTag("dropoff_pecs_backoff",46.50) // location where sample gets dropped off in PECS // #20150827: was 46.5
 	}
 
 	void setDefaultPositions(object self)

@@ -149,7 +149,10 @@ class gripper:object
 	{
 		// *** public ***
 		// opens gripper if closed
-		if (state == "closed")
+		// always actuate, dont look at prior state
+		//if (state == "closed")
+		self.print("opening once")
+		self.lookupState(1)
 		{
 			// run until home sensor (back) gets triggered
 			self.sendCommand("T")
@@ -174,7 +177,9 @@ class gripper:object
 			}
 
 			self.setManualState("open")
-			
+			self.lookupState(1)
+			self.print("gripper opened succesfully")
+
 			// send hard terminate
 			self.sendCommand("T")
 			self.sendCommand("T")
@@ -191,7 +196,10 @@ class gripper:object
 	{
 		// *** public ***
 		// closes gripper if open
-		if (state == "open")
+		// always actuate, dont look at prior state
+		//if (state == "open")
+		self.print("closing once")
+		self.lookupState(1)
 		{
 			// run until sensor 2 (front) is triggered in 10000 step increments, then go to string 2
 			self.sendCommand("T")
@@ -218,6 +226,7 @@ class gripper:object
 			}
 			self.sendCommand("gP20000R")
 			self.setManualState("closed")
+			self.lookupState(1)
 			self.print("gripper closed succesfully")
 
 			// send hard terminate

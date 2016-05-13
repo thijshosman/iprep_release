@@ -158,7 +158,8 @@ class planarSEMdock : object
 		//self.sendCommand("m30h0I27L24V10000v2500R")
 		
 		// thijs update 11/26/2015 after spring increased force
-		self.sendCommand("m30h0l27L10000V4000R")
+		// update 05/12/2016 becaue of sticking when umclamping
+		self.sendCommand("m35h0l27L10000V3000R")
 
 		self.sendCommand("T")
 		self.print("dock initialized (planar)")

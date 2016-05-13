@@ -32,8 +32,9 @@ try
 	// *** EBSD ***
 	//IPrep_acquire_ebsd()
 	
-	
-	
+	//*** mode change ***
+	// calibrate parker manually (since it is not done until scribe mark step)
+	//myWorkflow.calibrateForMode()
 	
 	
 	
@@ -43,6 +44,8 @@ try
 	
 	// *** gripper ***
 	//myWorkflow.returnGripper().init()
+	//myWorkflow.returnGripper().lookupstate(1)
+	
 	//myWorkflow.returnGripper().setManualState("open")
 	//myWorkflow.returnGripper().setManualState("closed")
 	//myWorkflow.returnGripper().open()		
@@ -57,12 +60,15 @@ try
 /*
 number i
 
-for (i=0;i<50;i++)
+for (i=0;i<5;i++)
 {
 
 	myWorkflow.returnGripper().open()		
 	myWorkflow.returnGripper().close()
 	result("i: "+i+"\n")
+	sleep(1)
+	if (optiondown() & shiftdown())
+		break
 }
 */
 	
@@ -96,6 +102,8 @@ for (i=0;i<50;i++)
 		sleep(3)
 		myWorkflow.returnSEMDock().clamp()   //engaged
 		result("i: "+i+"\n")
+		if (optiondown() & shiftdown())
+			break
 	}
 	*/
 	
