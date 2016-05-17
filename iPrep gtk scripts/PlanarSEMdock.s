@@ -8,6 +8,7 @@ class planarSEMdock : object
 	string cmd,reply
 	object SEMdockPersistance
 	
+	object myMediator
 
 	void log(object self, number level, string text)
 	{
@@ -149,6 +150,9 @@ class planarSEMdock : object
 			self.print("dock detection passed")
 		}
 
+		// register with mediator
+		myMediator = returnMediator()
+		myMediator.registerDock(self)
 
 		// set string 2 in controller, executed after close
 		self.sendCommand("s2TR")

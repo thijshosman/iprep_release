@@ -1,51 +1,6 @@
 // $BACKGROUND$
 // general IPrep (helper) functions used in various scripts
 
-number GetTagValue(string tagpath)
-{
-	// check if tagpath exists, and if it does, retrieve the value and return it
-	number returnvalue
-	taggroup subtag = GetPersistentTagGroup()
-	if (TagGroupDoesTagExist(subtag,tagpath)) 
-		TagGroupGetTagAsNumber(subtag,tagpath,returnvalue)
-	else
-		throw(tagpath+" does not exist!")
-
-	return returnvalue
-}
-
-string GetTagString(string tagpath)
-{
-	// check if tagpath exists, and if it does, retrieve the value and return it
-	string returnstring
-	taggroup subtag = GetPersistentTagGroup()
-	if (TagGroupDoesTagExist(subtag,tagpath)) 
-		TagGroupGetTagAsString(subtag,tagpath,returnstring)
-	else
-		throw(tagpath+" does not exist!")
-
-	return returnstring
-}
-
-taggroup GetTagGroup(string tagpath)
-{
-
-	TagGroup tg = GetPersistentTagGroup() 
-	TagGroup subtag
-	if (tg.TagGroupDoesTagExist(tagpath))
-	{	
-		tg.TagGroupGetTagAsTagGroup( tagpath, subtag )
-		return subtag
-	}
-	else
-	{
-		throw(tagpath+" does not exist!")
-	}
-
-}
-
-//subtag.taggroupopenbrowserwindow(0)
-
 class deadFlagObject:object
 {
 	// sets two flags:
@@ -204,10 +159,31 @@ class safetyMediator:object
 	object sem
 	object transfer
 	object gripper
+	object dock
 
 	// the mediator is the perfect place to change the progresswindow from
 	object progresswindow
 	
+	void log(object self, number level, string text)
+	{
+		// log events in log files
+		LogEvent("MEDIATOR", level, text)
+	}
+
+	void print(object self, string str1)
+	{
+		result("MEDIATOR: "+str1+"\n")
+		self.log(2,str1)
+
+	}
+
+
+	void registerDock(object self, object obj)
+	{
+		dock = obj
+		result("mediator: dock registered\n")
+	}
+
 	void registerPecs(object self, object obj)
 	{
 		pecs = obj
@@ -325,8 +301,65 @@ class safetyMediator:object
 
 	}
 
+	string detectMode(object self)
+	{
+		// check the type of dock installed
+		string status
+		status = dock.detectMode()
+
+		return status // "ebsd", "planar", "disconnected" or "undefined"
+	}
+
+
+	number checkSamplePresent(object self)
+	{
+		// *** private ***
+		// check sample presence on dock
+		return dock.checkSamplePresent()
+	}
+
+	number compareSamplePresent(object self, number default_state)
+	{
+		// check if sample is present on dock and compare to default_state
+		// if it equals, return, if not, check again 10 seconds later, issue a warning, then check gain, if it fails, throw exception
+		
+		number check1 =  self.checksamplePresent()
+
+		if (check1 == default_state)
+		{
+			return 1
+		}
+		else
+		{
+			if (check1 == 1 )
+				self.print("sample detected, but epected to not be there")
+			else
+				self.print("sample not detected, but epected to be there")
+
+			self.print("warning: sample check failed. repeating check after 10 seconds")
+			sleep(10)
+
+			check1 =  self.checksamplePresent()
+
+			if (check1 == default_state)
+			{
+				return 1
+			}
+			else
+			{
+				throw("sample check failed for the second time")
+			}
+		}
+
+
+	}
+
+
+
+
 
 	// *** actions ***
+	// experimental, not used yet
 
 	void HVOff(object self)
 	{
@@ -388,7 +421,22 @@ class haltCheckObject:object
 
 }
 
+class safetyFlags: object
+{
+	// #TODO
+	// class has access to persistent tag group values
+	// protected flag
+	// scribemark_aligned flag
+	// more to come
 
+	object protected
+
+	void safetyFlags(object self)
+	{
+		persistentTag
+	}
+
+}
 
 
 number getProtectedModeFlag()

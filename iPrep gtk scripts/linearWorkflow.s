@@ -628,11 +628,8 @@ class workflow: object
 		if (GetTagValue("IPrep:simulation:samplechecker") == 1)
 		{
 			// check that sample is no longer present in dock, if simulation of dock is off
-			if (mySEMdock.checkSamplePresent())
-			{
-				self.print("sample still detected in dock after pickup")
-				throw("sample still detected in dock after pickup")
-			}
+			returnMediator().compareSamplePresent(0)
+
 		}
 
 		// slide sample into dovetail
@@ -807,11 +804,7 @@ class workflow: object
 		if (GetTagValue("IPrep:simulation:samplechecker") == 1)
 		{
 			// check that sample is present
-			if (!mySEMdock.checkSamplePresent())
-			{
-				self.print("sample not detected in dock after dropoff")
-				throw("sample not detected in dock after dropoff")
-			}
+			returnMediator().compareSamplePresent(1)
 		}
 
 		// move SEM stage to nominal imaging plane
