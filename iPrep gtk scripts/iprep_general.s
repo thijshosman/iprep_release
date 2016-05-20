@@ -370,10 +370,10 @@ class safetyFlags: object
 
 	object protected
 
-	void safetyFlags(object self)
-	{
-		persistentTag
-	}
+//	void safetyFlags(object self)
+//	{
+//		persistentTag
+//	}
 
 }
 
