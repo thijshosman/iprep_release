@@ -830,7 +830,6 @@ Number IPrep_Setup_Imaging()
 
 		// set WD in class to current value
 		// TODO: this is a redundant step; the SEM class should not have this information, but in order to keep using the df/df_valid step, we use it for now
-		number imagingWD = myWorkflow.returnSEM().measureWD()
 		myWorkflow.returnSEM().setDesiredWD(imagingWD)
 		print("working distance to do imaging at: "+imagingWD)	
 
