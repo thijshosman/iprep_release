@@ -93,9 +93,9 @@ class persistentTag: object
 {
 	// class that can be used to save and load a tag number or string
 
-	taggroup tagpath
+	string tagpath
 
-	void persistentTag(object self)
+	persistentTag(object self)
 	{
 		// constructor
 	}
@@ -372,6 +372,7 @@ class SEMCoord: object
 
 	taggroup returnAsTag(object self)
 	{
+		
 		// returns this coord as tag, to be saved in taggroup
 		TagGroup tg = NewTagGroup()
 

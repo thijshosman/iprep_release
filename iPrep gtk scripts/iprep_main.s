@@ -451,7 +451,7 @@ number IPrep_consistency_check()
 	}
 	else
 	{
-		print("dock mode consistent: "+returnMediator)
+		print("dock mode consistent: "+returnMediator().detectMode())
 	}
 
 	// dock state
@@ -1083,202 +1083,6 @@ Number IPrep_StopRun()
 	return 1
 }
 
-Number IPrep_Image_single()
-{
-	// #DEPRECIATED, replaced by IPrep_image()
-	number returncode = 0
-
-	if (!returnDeadFlag().checkAliveAndSafe())
-		return returncode // to indicate error
-
-	try
-	{
-		// tell the state machine it is time to take an image
-		myStateMachine.start_image()
-
-		// Update GMS status bar - SEM imaging started
-			myPW.updateB("SEM imaging...")	
-
-		// Goto saved specimen ROI location using SEM stage
-			//object mySI = myWorkflow.returnSEM().returnStoredImaging()
-			object mySI = returnSEMCoordManager().getCoordAsCoord("StoredImaging")
-			number xx,yy,zz
-			xx=mySI.getX()
-			yy=mySI.getY()
-			zz=mySI.getZ()
-			//if (zz > 5)	// safety check, make sure tags are set -- should do proper in bounds checking
-			myWorkflow.returnSEM().goToStoredImaging()
-
-		// Set SEM focus to saved value
-			number saved_focus = EMGetFocus()/1000	// initialize to current value (in case tag is empty)
-			string tagname = "IPrep:SEM:WD:value"
-			if ( GetPersistentNumberNote( tagname, saved_focus ) )
-			{
-				EMSetFocus( saved_focus*1000 )
-//				EMWaitUntilReady()
-			}
-
-		// Workaround for Quanta SEM magnification bug (changes mag at SEM after some unknown action, but mag query gives original (now incorrect) mag) #TODO:Fix
-//			WorkaroundQuantaMagBug()
-
-		// Unblank SEM beam
-//			FEIQuanta_SetBeamBlankState(0)
-//			EMWaitUntilReady()
-//			sleep(1)	// Beam on stabilization delay, #TODO: Move to tag
-
-		// Autofocus, if enabled in tag
-		tagname = "IPrep:SEM:AF:Enable"
-		number afs_enable = 0
-		if ( GetPersistentNumberNote( tagname, afs_enable ) )
-			if ( afs_enable )
-			{
-				afs_run()		// Autofocus command - #TODO: configure properly, turn off stig checking
-				number afs_sleep = 1	// seconds of delay
-				sleep( afs_sleep )
-
-				number current_focus = myWorkflow.returnSEM().measureWD()
-				number change = current_focus - saved_focus
-				result("Autofocus changed focus value by "+change+" mm\n")
-
-			// Set "default/desired" focus to autofocus value - subsequent images will use this
-				myWorkflow.returnSEM().setDesiredWD(current_focus)
-			}
-
-			// If afs_enable tag is set to a negative value, do autofocus one time and then turn off
-			if ( afs_enable < 0 )
-			{
-				afs_enable = 0
-				SetPersistentNumberNote( tagname, afs_enable )
-			}
-
-		// Acquire Digiscan image, use "Capture" settings
-			image temp_slice_im
-			AcquireDigiscanImage( temp_slice_im )
-
-
-		
-		// Verify SEM is functioning properly - pause acquisition otherwise (might be better to do before AFS with a test scan, easier here)
-		// if tag exists
-		number pixel_threshold = 500
-		tagname = "IPrep:SEM:Emission check threshold"
-		if(GetPersistentNumberNote( tagname, pixel_threshold ))
-		{
-			number avg = average( temp_slice_im )
-
-			if ( avg < pixel_threshold )
-			{
-				// average image value is less than threshold, assume SEM emission problem, pause acq
-				string str = datestamp()+": Average image value ("+avg+") is less than emission check threshold ("+pixel_threshold+")\n"
-				print(""+ str )
-				string str2 = "\nAcquisition has been paused.\n\nCheck SEM is working properly and press <Continue> to resume acquisition, or <Cancel> to stop."
-				string str3 = "\n\nNote: Threshold can be set at global tag: IPrep:SEM:Emission check threshold"
-				if ( !ContinueCancelDialog( str + str2 +str3 ) )
-				{
-						str = datestamp()+": Acquisition terminated by user" 
-						print(str)		
-				}
-			}
-			else
-			{
-				result( datestamp()+": Average image value ("+avg+") is greater than emission check threshold ("+pixel_threshold+"). SEM emission assumed OK.\n" )	
-			}
-
-		}
-		
-
-		// Save Digiscan image
-			IPrep_saveSEMImage(temp_slice_im, "digiscan")
-
-		// Close Digiscan image
-			ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
-			imdoc.ImageDocumentClose(0)
-			
-		// Update GMS status bar - SEM imaging done
-			myPW.updateB("SEM imaging completed")
-			print(datestamp()+": SEM mag 2 = "+EMGetMagnification())
-
-		// tell the state machine taking images is done
-		myStateMachine.stop_image()
-
-		returncode = 1
-
-	}
-	catch
-	{
-		
-		// system caught unhandled exception and is now considered dead/unsafe
-		print("exception caught in iprep_image(): "+GetExceptionString())
-
-		// #TODO: an exception in iprep_imaging is most likely safe
-		returnDeadFlag().setDeadUnSafe()
-
-		break // so that flow continues
-
-	}
-
-	return returncode
-
-/* // old code thijs
-
-	print("IPrep_Image")
-
-		// initiate workflow to align, image, save data
-		print("imaging started")
-		myPW.updateB("imaging started")
-if (XYZZY)		
-{
-		// do pre-imaging, unblanking, ensuring WD and kV are correct etc
-		myStateMachine.start_image()
-		
-		// perform alignment step
-		IPrep_Align()
-
-		// *** repeat for each definition *** 
-		// one definition for now
-
-		// set parameters
-		// can configure (on per image basis): mag, height, width, dwelltime
-
-		myWorkflow.returnSEM().setDesiredWD(imagingWD)
-
-if (XYZZY)
-	{
-
-		myWorkflow.returnSEM().setMag(imageMag)
-	}
-		// set the digiscan configuration. 2 = capture as defined by UI
-		myWorkflow.returnDigiscan().config(2)
-
-		// take image with digiscan
-		// TODO: do not hardcode exposure, but use pecs specific acquisition instead
-		image temp_slice_im
-		myWorkflow.returnDigiscan().acquire(temp_slice_im)
-if (XYZZY)
-	{
-		
-		// add image to 3D volume and update 
-		my3DvolumeSEM.addSlice(temp_slice_im)
-		my3DvolumeSEM.show()
-	}
-		// save image to disk in defined subdir
-		IPrep_saveSEMImage(temp_slice_im, "digiscan")
-			
-		// *** end repeat *** 
-
-		// do post-imaging
-		myStateMachine.stop_image()  
-
-		myPW.updateB("imaging done")
-		print("imaging done")
-
-		// make sure beam gets turned off and things like that
-		myWorkflow.postImaging()
-
-
-*/
-
-}
-
 number IPrep_image()
 {
 	// supports multi ROI
@@ -1462,7 +1266,7 @@ number IPrep_image()
 		print("exception caught in iprep_image(): "+GetExceptionString())
 
 		// an exception in iprep_imaging is most likely safe
-		returnDeadFlag().setDead(1, "SEM", "exception in iprep_image: "+GetExceptionString)
+		returnDeadFlag().setDead(1, "SEM", "exception in iprep_image: "+GetExceptionString())
 
 		//returnDeadFlag().setDeadUnSafe()
 
