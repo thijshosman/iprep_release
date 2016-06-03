@@ -162,7 +162,12 @@ class parkerTransfer:object
 
 		number position
 		position = val(self.sendCommand("?P12290"))/PPU
-		return position
+		
+		// return position for moving in positive direction (motor on outside)
+		//return position
+		
+		// return position for moving in negative direction (motor close to pecs chamber)
+		return position*-1
 
 	}
 
@@ -249,15 +254,21 @@ class parkerTransfer:object
 		self.print("homing..")
 
 		self.turnOn()
-		self.sendCommand("BIT16152=1") // Home Backup Enable
-		self.sendCommand("BIT16153=0") // Home Negative Edge Select
-		self.sendCommand("BIT16154=1") // Home Negative Final Direction
-		self.sendCommand("JOG HOMVF X1")
-		self.sendCommand("BIT799=0") // HSINT Aborted
-		self.sendCommand("BIT798=0") // HSINT Registered
-		self.sendCommand("JOG JRK X10.000000") // lower jerk for homing
-		self.sendCommand("JOG VEL X5.000000") // lower speed for homing
-		self.sendCommand("JOG HOME X-1") // HOMING COMMAND
+
+		// these home commands are for homing in the negative direction (motor on end)
+		//self.sendCommand("BIT16152=1") // Home Backup Enable
+		//self.sendCommand("BIT16153=0") // Home Negative Edge Select
+		//self.sendCommand("BIT16154=1") // Home Negative Final Direction
+		//self.sendCommand("JOG HOMVF X1")
+		//self.sendCommand("BIT799=0") // HSINT Aborted
+		//self.sendCommand("BIT798=0") // HSINT Registered
+		//self.sendCommand("JOG JRK X10.000000") // lower jerk for homing
+		//self.sendCommand("JOG VEL X5.000000") // lower speed for homing
+		//self.sendCommand("JOG HOME X-1") // HOMING COMMAND
+
+		// these commands home in the positive direction (motor close to chamber)
+		self.sendCommand("AXIS0 JOG HOME 1") //home
+
 
 		// save previous state
 		laststate=state
@@ -313,8 +324,12 @@ class parkerTransfer:object
 		self.setMovingParameters()
 		number current_pos = self.getCurrentPosition()
 		self.print("moveposition: going to move. current pos is: "+current_pos+", going to: "+setpoint)
-		// go to setpoint
-		self.sendCommand("X"+setpoint)
+		// go to setpoint in positive direction
+		//self.sendCommand("X"+setpoint)
+		
+		// go to setpoint in negative direction
+		self.sendCommand("X-"+setpoint)
+
 
 		number i = 0
 		while ((abs(setpoint-current_pos))>accuracy)
