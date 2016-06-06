@@ -145,6 +145,9 @@ class workflow: object
 		self.print("setDefaultPositions: setting default positions for use with Planar dock ")
 		self.print("setDefaultPositions: using calibrations from 20150903 ")
 
+		// TODO: these should come from tags themselves, not these harcoded values
+		
+
 		myTransfer.setPositionTag("outofway",0) // home position, without going through homing sequence
 		myTransfer.setPositionTag("prehome",15) // location where we can move to close to home from where we home
 		myTransfer.setPositionTag("open_pecs",27) // location where arms can open in PECS  // #20150819: was 29, #20150903: was 28
@@ -162,16 +165,19 @@ class workflow: object
 		// save default positions in global tags
 		self.print("setDefaultPositions: setting positions for use with EBSD dock ")
 
+		// TODO: these should come from tags themselves, not these harcoded values
+		// 2016-06-06: calibrated for rough pickup dovetail tests on test chamber (with EBSD dock soon)
+
 		myTransfer.setPositionTag("outofway",0) // home position, without going through homing sequence
-		myTransfer.setPositionTag("prehome",15) // location where we can move to close to home from where we home
-		myTransfer.setPositionTag("open_pecs",27) // location where arms can open in PECS  // #20150819: was 29, #20150903: was 28
-		myTransfer.setPositionTag("pickup_pecs",48) // location where open arms can be used to pickup sample // #20150827: was 48.5, #20150903: was 49.5
+		myTransfer.setPositionTag("prehome",5) // location where we can move to close to home from where we home
+		myTransfer.setPositionTag("open_pecs",23) // location where arms can open in PECS  // #20150819: was 29, #20150903: was 28
+		myTransfer.setPositionTag("pickup_pecs",30) // location where open arms can be used to pickup sample // #20150827: was 48.5, #20150903: was 49.5
 		myTransfer.setPositionTag("beforeGV",100) // location where open arms can be used to pickup sample
 		myTransfer.setPositionTag("dropoff_sem",513) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
 		myTransfer.setPositionTag("pickup_sem",513) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
 		myTransfer.setPositionTag("backoff_sem",430) // location where gripper arms can safely open/close in SEM chamber
-		myTransfer.setPositionTag("dropoff_pecs",46.50) // location where sample gets dropped off in PECS // #20150827: was 45.5
-		myTransfer.setPositionTag("dropoff_pecs_backoff",47.50) // location where sample gets dropped off in PECS // #20150827: was 46.5
+		myTransfer.setPositionTag("dropoff_pecs",30) // location where sample gets dropped off in PECS // #20150827: was 45.5
+		myTransfer.setPositionTag("dropoff_pecs_backoff",31) // location where sample gets dropped off in PECS // #20150827: was 46.5
 	}
 
 	void setDefaultPositions(object self)

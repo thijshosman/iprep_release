@@ -26,6 +26,8 @@ try
 	//IPrep_scribemarkVectorCorrection(-0.1,0)
 	
 	
+	
+
 	//IPrep_cleanup()
 	
 	
@@ -34,7 +36,14 @@ try
 	
 	
 	
+	// *** shutter ***
+	//myWorkflow.returnPecs().moveShutterIn()
+	//myWorkflow.returnPecs().moveShutterOut()
 	
+	// check state
+	//string value
+	//PIPS_GetPropertyDevice("subsystem_milling", "device_cpld", "bit_33", value)   //works set cpld bits individually
+	//result("TSO = " + value + "\n")
 	
 	
 	// *** gate valve ***
@@ -109,7 +118,7 @@ for (i=0;i<50;i++)
 	//myWorkflow.returnTransfer().home()
 	//myWorkflow.returnTransfer().move("outofway")   // home position, without going through homing sequence
     //myWorkflow.returnTransfer().move("prehome")    // location where we can move to close to home from where we home
-    //myWorkflow.returnTransfer().move("open_pecs")  // location where arms can open in PECS	
+   //myWorkflow.returnTransfer().move("open_pecs")  // location where arms can open in PECS	
     //myWorkflow.returnTransfer().move("pickup_pecs") // location where open arms can be used to pickup sample	
 	//myWorkflow.returnTransfer().move("beforeGV")    // location where open arms can be used to pickup sample
 	//myWorkflow.returnTransfer().move("dropoff_sem") // location where sample gets dropped off (arms will open)

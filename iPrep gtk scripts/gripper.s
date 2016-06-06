@@ -149,7 +149,7 @@ class gripper:object
 	{
 		// *** public ***
 		// opens gripper if closed
-		if (state == "closed")
+		//if (state == "closed")
 		{
 			// run until home sensor (back) gets triggered
 			self.sendCommand("T")
@@ -191,7 +191,7 @@ class gripper:object
 	{
 		// *** public ***
 		// closes gripper if open
-		if (state == "open")
+		//if (state == "open")
 		{
 			// run until sensor 2 (front) is triggered in 10000 step increments, then go to string 2
 			self.sendCommand("T")

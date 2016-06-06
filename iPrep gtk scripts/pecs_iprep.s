@@ -403,20 +403,22 @@ class pecs_iprep: object
 		self.print("pecs initialized")
 	}
 	
+	// 2016-06-06
+	// now av2 (bit 22) is gate valve push/pull circuit, av3 (bit 23) is coating target push/pull circuit
+	// state 0 == open/out, state 1 == closed/in
+	// sensors for gate valve are still the same
 
 	void openGVandCheck(object self)
 	{
 		// *** public ***
 		// opens GV and checks that status has changed
 
-
 		self.print("opening GV")
 
-		// turn off av3
-		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_23", "0")
-		// turn on av2
-		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_22", "1")
+		// TODO: probably want to check that the pressures support this at some point (through mediator)
 
+		// turn off av2
+		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_22", "0")
 
 		if (self.getGVState() == "open")
 		{
@@ -432,27 +434,12 @@ class pecs_iprep: object
 			throw("sensors do not detect GV in open state")
 		}
 
-
-
-	/* old check
-		if (self.getGVState() == "open")
-		{
-			self.print("GV opened succesfully")
-			return
-		} else {
-			if(!ContinueCancelDialog( "GV problem. continue?" ))
-				throw("GV did not open correctly")
-		}
-	*/
-
-
 	}
 
 	void closeGVandCheck(object self)
 	{
 		// *** public ***
 		// closes GV and checks that status has changed
-
 
 		self.print("closing GV")
 
@@ -463,10 +450,8 @@ class pecs_iprep: object
 			throw("safetycheck: Parker system not out of the way")
 		}
 
-		// turn off av2
-		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_22", "0")
-		// turn on av3
-		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_23", "1")
+		// turn on av2
+		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_22", "1")
 
 		if (self.getGVState() == "closed")
 		{
@@ -482,21 +467,36 @@ class pecs_iprep: object
 			throw("sensors do not detect GV in closed state")
 		}
 
+	}
+
+	// TODO: register state with class and with mediator
+	// make sure the state of the reed relay sensor is read in BING
+	// string value
+	// PIPS_GetPropertyDevice("subsystem_milling", "device_cpld", "bit_33", value)   //TSO state
+	// value == "false" for inserted state, value == "true" for retracted state
+	
 
 
+	void moveShutterIn(object self)
+	{
+		// *** public ***
+		// move shutter in
 
+		// turn on av3
+		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_23", "1")
 
-	/*
-		if (self.getGVState() == "closed")
-		{
-			self.print("GV closed succesfully")
-			return
-		} else {
-			if(!ContinueCancelDialog( "GV problem. continue?" ))
-				throw("GV did not close correctly")
-		}
-	*/
+		self.print("Shutter inserted")
+	}
 
+	void moveShutterOut(object self)
+	{
+		// *** public ***
+		// move shutter in
+
+		// turn on av3
+		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_23", "0")
+
+		self.print("Shutter retracted")
 
 	}
 
