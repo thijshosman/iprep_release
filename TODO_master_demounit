@@ -7,3 +7,27 @@ parkertransfer:
 -the 'default' values after calibration should be in tags, not hardcoded. now the current value used is stored in tags, but is overridden with what is in the code upon iprep_init run
 -
 
+general improvements that are scheduled to be done in this branch:
+(workflow)-when a dock is no present, iprep_init throws exception and does not fully load
+(gripper)-fix bug in open/close once: if gripper does not move, it won't work this way
+(pecs)-gate valve: check sensors before issuing open/close to speed up workflow
+(dock/gripper)-send allmotion configuration
+(workflow)-when a transfer starts, check for consistency beforehand
+(workflow)-home SEM stage to clear as part of workflow to prevent problems after pressing start button
+(sem)-correct for drift in survey image, set maximum shift parameter and don't move but continue workflow if shift exceeds this
+(workflow)-don't check dock mode at iprep_init as this prevents dock swap when dm is offline
+(workflow)-changing tags during transfer creates consistency problems
+(workflow)-system assumes that calibrateformode (which sets positions parker) is run before doing an initial transfer, which is different from how the SEM coordinates are set. change this t obe like SEM
+(workflow)-after dock swap, set a flag that does not allow movement until iprep_scribemarkervectorcorrection has been run
+(UI)-moves long function implementations from iprep_ui; these belong un iprep_main
+(workflow)-iprep_init should not overwrite the parker_positions
+(workflow)-calibrateformode: mode is only read after setting parkerpositions, this needs to be switched around
+
+(workflow/ui)-fix pressing resume after pressing pause before it actually pauses. this causes bug
+(workflow)-if max slices is reached already and workflow has started, it still gets to running mode; needs a check
+(workflow)-order if images in 3D stack is reversed
+(workflow/ui)-starting iprep_image from menu increases slice number. it is not supposed to do that
+(workflow/sem)-we incorrectly reset focus to value used in nominal_imaging. need to rewrite the stuff with saving workflows in sem class.
+
+ 
+
