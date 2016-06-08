@@ -51,6 +51,7 @@ try
 	//myWorkflow.returnPecs().closeGVandCheck()
 	
 	// *** gripper ***
+	//myWorkflow.returnGripper().sendCommand("V300000L1400h0m20j128R")
 	//myWorkflow.returnGripper().setManualState("open")
 	//myWorkflow.returnGripper().setManualState("closed")
 	//myWorkflow.returnGripper().open()		
@@ -117,20 +118,20 @@ for (i=0;i<50;i++)
 	//myWorkflow.returnTransfer().init()
 	//myWorkflow.returnTransfer().home()
 	//myWorkflow.returnTransfer().move("outofway")   // home position, without going through homing sequence
-    //myWorkflow.returnTransfer().move("prehome")    // location where we can move to close to home from where we home
-   //myWorkflow.returnTransfer().move("open_pecs")  // location where arms can open in PECS	
+   // myWorkflow.returnTransfer().move("prehome")    // location where we can move to close to home from where we home
+    //myWorkflow.returnTransfer().move("open_pecs")  // location where arms can open in PECS	
     //myWorkflow.returnTransfer().move("pickup_pecs") // location where open arms can be used to pickup sample	
 	//myWorkflow.returnTransfer().move("beforeGV")    // location where open arms can be used to pickup sample
 	//myWorkflow.returnTransfer().move("dropoff_sem") // location where sample gets dropped off (arms will open)
     //myWorkflow.returnTransfer().move("pickup_sem")  // location in where sample gets picked up
     //myWorkflow.returnTransfer().move("backoff_sem") // location where gripper arms can safely open/close in SEM chamber
-    //myWorkflow.returnTransfer().move("dropoff_pecs") // location where sample gets dropped off in PECS
-    //myWorkflow.returnTransfer().move("dropoff_pecs_backoff") // location where sample gets dropped off in PECS
+   // myWorkflow.returnTransfer().move("dropoff_pecs") // location where sample gets dropped off in PECS
+   // myWorkflow.returnTransfer().move("dropoff_pecs_backoff") // location where sample gets dropped off in PECS
     //myWorkflow.returnTransfer().turnOff()  // turn off Parker to stop noise
     //myWorkflow.returnTransfer().move("test")  // test location from tags  
 	//result(MyWorkflow.returnTransfer().getCurrentPosition())
 	//result(MyWorkflow.returnTransfer().returnParkerPositions().getCurrentPosition())
-
+	//myWorkflow.returnTransfer().resetKillSwitch()
 
 
     //result(myWorkflow.returnTransfer().getCurrentPosition())

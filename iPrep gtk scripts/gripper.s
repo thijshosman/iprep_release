@@ -120,15 +120,19 @@ class gripper:object
 		
 		//old string, moves back, not used
 		//self.sendCommand("s2D10000R")
-		self.sendCommand("s2T")
+		//self.sendCommand("s2T")
 		// set speed
-		self.sendCommand("V300000")
+		//self.sendCommand("V300000")
 		// set acc
-		self.sendCommand("L1400")
+		//self.sendCommand("L1400")
 		// set holding current
-		self.sendCommand("h0")
+		//self.sendCommand("h0")
 		// set running current
-		self.sendCommand("m46")
+		//self.sendCommand("m46")
+
+		// set all operating parameters
+		self.sendCommand("s2T")
+		self.sendCommand("V300000L1400h0m20j128R")
 
 		self.print("initialized")
 	}

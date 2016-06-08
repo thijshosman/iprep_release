@@ -175,10 +175,11 @@ class parkerTransfer:object
 	{
 		// *** private ***
 		// set speed for normal movement between points
-		self.sendCommand("ACC 50.000000")
-		self.sendCommand("DEC 50.000000")
-		self.sendCommand("JRK 20.000000")
-		self.sendCommand("VEL 80.000000")
+		self.sendCommand("ACC 1000.000000")
+		self.sendCommand("DEC 1000.000000")
+		self.sendCommand("JRK 200.000000")
+		self.sendCommand("VEL 400.000000")
+		self.sendCommand("stp 1000.000000")
 	}
 
 	void init(object self)
@@ -197,31 +198,27 @@ class parkerTransfer:object
 
 		self.sendCommand("ECHO 1") // first send echo to set echo level
 		self.sendCommand("prog0")
-		self.sendCommand("ECHO")
-		self.sendCommand("DETACH")
-		self.sendCommand("ATTACH MASTER0")
-		self.sendCommand("ATTACH SLAVE0 AXIS0 \"X\"")
-		self.sendCommand("ATTACH AXIS0 ENC0 DAC0 ENC0")
-		self.sendCommand("PPU X 1600.000000") // sets step size as function of lead screw lead
-		self.sendCommand("BIT8464=0") // Enable CW/CCW (versus Step/Dir)
-		self.sendCommand("BIT8468=1") // Enable Drive I/O
-		self.sendCommand("AXIS0 ON")
-		self.sendCommand("SLIM X0")
-		self.sendCommand("HLIM X0")
-		self.sendCommand("BIT16144=1") // Positive EOT Limit Level Invert
-		self.sendCommand("BIT16145=1") // Negative EOT Limit Level Invert
-		self.sendCommand("BIT16146=1") // Home Limit Level Invert
-		self.sendCommand("BIT8469=1") // Enable EXC Response
-		self.sendCommand("EXC X(0.5, -0.5)")
-		self.sendCommand("AXIS0 DRIVE ON")
-		self.sendCommand("BIT799=0") // HSINT Aborted
-		self.setMovingParameters()
-		self.sendCommand("BIT798=0") // HSINT Registered
-		self.sendCommand("JOG ACC X50.000000")
-		self.sendCommand("JOG DEC X50.000000")
-		self.sendCommand("JOG JRK X20.000000")
-		self.sendCommand("JOG VEL X40.000000")
-		self.sendCommand("C14=0.1") // set torque limit (in Nm)
+		//self.sendCommand("ECHO")
+		//self.sendCommand("DETACH")
+		//self.sendCommand("ATTACH MASTER0")
+		//self.sendCommand("ATTACH SLAVE0 AXIS0 \"X\"")
+		//self.sendCommand("ATTACH AXIS0 ENC0 DAC0 ENC0")
+		//self.sendCommand("PPU X 1600.000000") // sets step size as function of lead screw lead
+		//self.sendCommand("BIT8464=0") // Enable CW/CCW (versus Step/Dir)
+		//self.sendCommand("BIT8468=1") // Enable Drive I/O
+		//self.sendCommand("AXIS0 ON")
+		//self.sendCommand("SLIM X0")
+		//self.sendCommand("HLIM X0")
+		//self.sendCommand("BIT16144=1") // Positive EOT Limit Level Invert
+		//self.sendCommand("BIT16145=1") // Negative EOT Limit Level Invert
+		//self.sendCommand("BIT16146=1") // Home Limit Level Invert
+		//self.sendCommand("BIT8469=1") // Enable EXC Response
+		//self.sendCommand("EXC X(0.5, -0.5)")
+		//self.sendCommand("AXIS0 DRIVE ON")
+		//self.sendCommand("BIT799=0") // HSINT Aborted
+		//self.setMovingParameters()
+		//self.sendCommand("BIT798=0") // HSINT Registered
+		//self.sendCommand("C14=0.1") // set torque limit (in Nm)
 		//save PPU (factor for encoder position to get to linear position)
 		PPU = val(self.sendCommand("?P12375"))	
 		self.turnOff()
@@ -267,7 +264,14 @@ class parkerTransfer:object
 		//self.sendCommand("JOG HOME X-1") // HOMING COMMAND
 
 		// these commands home in the positive direction (motor close to chamber)
-		self.sendCommand("AXIS0 JOG HOME 1") //home
+		
+
+		// set speed for normal movement between points
+		self.sendCommand("jog ACC x100.000000")
+		self.sendCommand("jog DEC x100.000000")
+		self.sendCommand("jog JRK x0.000000")
+		self.sendCommand("jog VEL x25.000000")
+		self.sendCommand("JOG HOME x1") //home in positive direction
 
 
 		// save previous state

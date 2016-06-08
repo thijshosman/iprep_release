@@ -1,0 +1,26 @@
+
+default PID for IPA+motor:
+P=0.0024414
+I=0
+D=0.000010
+Torque limit = 20
+
+homing command (at reasonable speed in pos direction):
+P00>BIT799=0
+P00>BIT798=0
+P00>JOG ACC X100.000000
+P00>JOG DEC X100.000000
+P00>JOG JRK X0.0
+P00>JOG VEL X25.000000
+P00>JOG HOME X+1
+
+make sure stp and jrk are not too low; in that case, they will limit the speed
+doing steps sets acc and dec really high
+values used for moving in non-jog mode:
+vel 400
+acc 1000
+dec 1000
+jrk 200
+stp 1000
+
+all the usual stuff is commented in initializing transfer is commented out
