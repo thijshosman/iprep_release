@@ -113,6 +113,10 @@ for (i=0;i<50;i++)
 	//PIPS_SetPropertyDevice("subsystem_milling", "device_stage", "set_rotate_mode", "7")  // works,  stage to right front
 	//PIPS_SetPropertyDevice("subsystem_milling", "device_stage", "set_rotate_mode", "3")  // works,  stage to home
 	//PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_24", "1")   //turn on chamber illuminator
+	//myWorkflow.returnPecs().shutoffArgonFlow()
+	//myWorkflow.returnPecs().restoreArgonFlow()
+	
+	
 	
 	// *** parker ***
 	//myWorkflow.returnTransfer().init()

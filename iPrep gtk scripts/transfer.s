@@ -221,7 +221,7 @@ class parkerTransfer:object
 		//self.sendCommand("C14=0.1") // set torque limit (in Nm)
 		//save PPU (factor for encoder position to get to linear position)
 		PPU = val(self.sendCommand("?P12375"))	
-		self.turnOff()
+		//self.turnOff()
 		
 		self.print("parker initialized")
 
