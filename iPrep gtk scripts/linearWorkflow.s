@@ -829,7 +829,11 @@ class workflow: object
 		myPecs.unlock()
 
 		// raise stage
-		myPecs.moveStageUp()
+		// no longer needed when going to etch mode
+		//myPecs.moveStageUp()
+
+		// go to etch mode
+		myPecs.goToEtchMode()
 
 		// start milling. milling state is checked by state machine 
 		if (simulation == 0)
@@ -837,11 +841,9 @@ class workflow: object
 		else
 			myPecs.stageHome()
 
-		self.print("hold Option + Shift to skip remainder of milling milling")
+		self.print("hold Option + Shift to skip remainder of milling")
 
 		tick = GetOSTickCount()		
-		
-		// #todo: get timeout for EBSD from tag
 		
 		while (myPecs.getMillingStatus()!=0)
 		{
@@ -875,6 +877,49 @@ class workflow: object
 		myPecs.lockout()
 		
 	}	
+
+	void executeCoatingStep(object self, number timeout)
+	{
+		self.print("coating started...")
+		// TODO: add timeout
+		myPecs.goToCoatMode()
+
+		myPecs.startMilling()
+		self.print("hold Option + Shift to skip remainder of step")
+
+		tick = GetOSTickCount()		
+		
+		while (myPecs.getMillingStatus()!=0)
+		{
+			tock = GetOSTickCount()
+			if ((tock-tick)/1000 > timeout)
+			{
+				self.print("timeout passed")
+				myPecs.stopMilling()
+
+				// home stage since picture should still be at home
+				myPecs.stageHome()
+				break	
+			}
+			
+			if ((optiondown() && shiftdown()))
+			{
+				self.print("aborted")
+				myPecs.stopMilling()
+
+				// home stage since picture should still be at home
+				myPecs.stageHome()
+				break
+			}
+
+			self.print("coating time remaining: "+myPecs.millingTimeRemaining())
+
+			sleep(1)
+			
+		}
+		self.print("elapsed time in coating: "+(tock-tick)/1000+" s")	
+
+	}
 
 	void preImaging(object self)
 	{

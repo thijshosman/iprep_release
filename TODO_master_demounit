@@ -16,6 +16,7 @@ v-gate valve: check sensors before issuing open/close to speed up workflow
 
 
 general improvements that are scheduled to be done in this branch:
+(workflow)-do we really want the state machine to throw exceptions when asked to go start milling/ebsd/etc when that is prohibited? think about it. 
 (workflow)-when a dock is no present, iprep_init throws exception and does not fully load
 (gripper)-fix bug in open/close once: if gripper does not move, it won't work this way
 (dock/gripper)-send allmotion configuration

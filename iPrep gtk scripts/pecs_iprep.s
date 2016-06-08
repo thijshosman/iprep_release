@@ -12,7 +12,7 @@ class pecs_iprep: object
 	// handles communication with PECS for iPrep
 
 	string leftsccm, rightsccm
-	string stageState // up or down
+	
 	number stageAngle // angle
 	number lockState // UI lockout state, 1 = ui locked, 0 = unlocked
 
@@ -119,11 +119,15 @@ class pecs_iprep: object
 	void goToCoatMode(object self)
 	{
 		// go to coating mode
+		PIPS_Execute("STRTPROC0000,process_movetocoat")
+		self.print("now in coating mode")
 	}
 
 	void goToEtchMode(object self)
 	{
 		// go to etching mode
+		PIPS_Execute("STRTPROC0000,process_movetoetch")
+		self.print("now in etching mode")
 	}
 
 	string getGVState(object self)
@@ -184,6 +188,8 @@ class pecs_iprep: object
 		// *** public ***`
 		// read stage state from system (WL valve). 1=down, 0=up
 		
+		string stageState // up or down
+
 		if (!self.argonCheck())
 		{	
 			stageState = "undefined"
