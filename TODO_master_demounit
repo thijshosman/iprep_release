@@ -7,10 +7,17 @@ parkertransfer:
 -the 'default' values after calibration should be in tags, not hardcoded. now the current value used is stored in tags, but is overridden with what is in the code upon iprep_init run
 -
 
+pecs:
+-add new shutter and argon functions to simulator
+v-gate valve: check sensors before issuing open/close to speed up workflow
+-check state shutter coating sensor
+
+
+
+
 general improvements that are scheduled to be done in this branch:
 (workflow)-when a dock is no present, iprep_init throws exception and does not fully load
 (gripper)-fix bug in open/close once: if gripper does not move, it won't work this way
-(pecs)-gate valve: check sensors before issuing open/close to speed up workflow
 (dock/gripper)-send allmotion configuration
 (workflow)-when a transfer starts, check for consistency beforehand
 (workflow)-home SEM stage to clear as part of workflow to prevent problems after pressing start button

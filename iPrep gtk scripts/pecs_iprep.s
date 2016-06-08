@@ -11,7 +11,7 @@ class pecs_iprep: object
 {
 	// handles communication with PECS for iPrep
 
-	string GVState // open or closed
+	string leftsccm, rightsccm
 	string stageState // up or down
 	number stageAngle // angle
 	number lockState // UI lockout state, 1 = ui locked, 0 = unlocked
@@ -129,7 +129,7 @@ class pecs_iprep: object
 		// gets gate valve state from sensors, SI10 = open, SI11 = closed
 
 
-
+		string GVState // open or closed
 
 		string SI10Value, SI11Value
 		
@@ -412,6 +412,13 @@ class pecs_iprep: object
 	{
 		// *** public ***
 		// opens GV and checks that status has changed
+		// 2016-06-08 update: only open if actually closed
+
+		if (self.getGVState() == "open")
+		{
+			self.print("GV already open")
+			return
+		}
 
 		self.print("opening GV")
 
@@ -440,7 +447,13 @@ class pecs_iprep: object
 	{
 		// *** public ***
 		// closes GV and checks that status has changed
+		// 2016-06-08 update: only close if actually open
 
+		if (self.getGVState() == "closed")
+		{
+			self.print("GV already closed")
+			return
+		}
 		self.print("closing GV")
 
 		// safety check: check that parker is out of the way
@@ -470,13 +483,12 @@ class pecs_iprep: object
 	}
 
 	// TODO: register state with class and with mediator
+	// TODO: synchronize the following with simulator
 	// make sure the state of the reed relay sensor is read in BING
 	// string value
 	// PIPS_GetPropertyDevice("subsystem_milling", "device_cpld", "bit_33", value)   //TSO state
 	// value == "false" for inserted state, value == "true" for retracted state
 	
-
-
 	void moveShutterIn(object self)
 	{
 		// *** public ***
@@ -499,6 +511,57 @@ class pecs_iprep: object
 		self.print("Shutter retracted")
 
 	}
+
+	void shutoffArgonFlow(object self)
+	{
+		// *** public ***
+		// shuts off argon flow to maximize vacuum during transfer
+		
+		// save existing values here
+		PIPS_GetPropertyDevice("subsystem_milling", "device_mfcLeft", "read_gas_flow_sccm", leftsccm)  // works
+		PIPS_GetPropertyDevice("subsystem_milling", "device_mfcRight", "read_gas_flow_sccm", rightsccm)  // works
+
+		self.print("gas flow values remembered: left="+leftsccm+", right="+rightsccm)
+
+		// set them to 0
+		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcLeft", "set_gas_flow_sccm", "0")  // works,  only for manual mode
+		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcRight", "set_gas_flow_sccm", "0")  // works,  only for manual mode
+
+		// debug to check values
+		sleep(2)
+		string leftsccm1, rightsccm1
+		PIPS_GetPropertyDevice("subsystem_milling", "device_mfcLeft", "read_gas_flow_sccm", leftsccm1)  // works
+		PIPS_GetPropertyDevice("subsystem_milling", "device_mfcRight", "read_gas_flow_sccm", rightsccm1)  // works
+		self.print("gas flow values remembered: left="+leftsccm1+", right="+rightsccm1)
+
+
+	}
+
+
+	void restoreArgonFlow(object self)
+	{
+		// *** public ***
+		// restore argon flow to previous values
+		
+		// set gas flow to previously remembered values
+		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcLeft", "set_gas_flow_sccm", leftsccm)  // works,  only for manual mode
+		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcRight", "set_gas_flow_sccm", rightsccm)  // works,  only for manual mode
+
+		//PIPS_SetPropertyDevice("subsystem_milling", "device_mfcLeft", "set_auto_gas_flow_sccm", ".1")  // works,  only for auto mode, overrides angle table
+		//PIPS_SetPropertyDevice("subsystem_milling", "device_mfcRight", "set_auto_gas_flow_sccm", ".1")  // works,  only for auto mode, overrides angle table
+
+		// debug to check values
+		sleep(2)
+		string leftsccm1, rightsccm1
+		PIPS_GetPropertyDevice("subsystem_milling", "device_mfcLeft", "read_gas_flow_sccm", leftsccm1)  // works
+		PIPS_GetPropertyDevice("subsystem_milling", "device_mfcRight", "read_gas_flow_sccm", rightsccm1)  // works
+		self.print("gas flow values remembered: left="+leftsccm1+", right="+rightsccm1)
+
+	}
+
+
+
+
 
 
 }
