@@ -561,6 +561,8 @@ class workflow: object
 
 	}
 
+	// *** actual methods used by workflow following ***
+
 	void fastSemToPecs(object self)
 	{
 		// this method is part of speed improvements in the workflow. we try to get the sample as fast
@@ -568,6 +570,9 @@ class workflow: object
 
 		// lockout PECS UI
 		myPecs.lockout()
+
+		// turn off gas flow
+		myPecs.shutoffArgonFlow()
 
 		// move pecs stage down
 		myPecs.moveStageDown()
@@ -638,6 +643,9 @@ class workflow: object
 		// close GV
 		myPecs.closeGVandCheck()
 
+		// turn gas flow back on
+		myPecs.restoreArgonFlow()
+
 		// move SEM dock clamp down to safely move it around inside SEM
 		mySEMdock.clamp()
 
@@ -656,6 +664,9 @@ class workflow: object
 
 		// lockout PECS UI
 		myPecs.lockout()
+
+		// turn off gas flow
+		myPecs.shutoffArgonFlow()
 
 		// lower pecs stage
 		myPecs.moveStageDown()
@@ -715,6 +726,9 @@ class workflow: object
 
 		// close gate valve
 		myPecs.closeGVandCheck()
+
+		// turn gas flow back on
+		myPecs.restoreArgonFlow()
 
 		// SEM stage move to clear position
 		mySEM.goToClear()

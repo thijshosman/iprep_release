@@ -116,11 +116,14 @@ class pecs_iprep: object
 		return t
 	}
 
-	void setMFCsToZero(object self)
+	void goToCoatMode(object self)
 	{
-		// *** public ***
-		// set both MFCs to 0 in order to not flood the SEM chamber
-		// TODO: find script commands for doing this
+		// go to coating mode
+	}
+
+	void goToEtchMode(object self)
+	{
+		// go to etching mode
 	}
 
 	string getGVState(object self)
