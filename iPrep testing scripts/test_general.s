@@ -115,8 +115,11 @@ for (i=0;i<50;i++)
 	//PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_24", "1")   //turn on chamber illuminator
 	//myWorkflow.returnPecs().shutoffArgonFlow()
 	//myWorkflow.returnPecs().restoreArgonFlow()
-	
-	
+	//PIPS_Execute("STRTPROC0000,process_movetocoat")
+	PIPS_Execute("STRTPROC0000,process_movetoetch")
+	//PIPS_StartMilling()
+	//PIPS_StopMilling()
+	//result(myWorkflow.returnPecs().millingTimeRemaining()+"\n")
 	
 	// *** parker ***
 	//myWorkflow.returnTransfer().init()
