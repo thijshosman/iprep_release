@@ -25,7 +25,7 @@ try
 	
 	//IPrep_scribemarkVectorCorrection(-0.1,0)
 	
-	
+	//myWorkflow.returnPECSCamera().liveView()
 	
 
 	//IPrep_cleanup()
@@ -50,13 +50,17 @@ try
 	//myWorkflow.returnPecs().openGVandCheck()
 	//myWorkflow.returnPecs().closeGVandCheck()
 	
+	//sleep(5)
+	
 	// *** gripper ***
-	//myWorkflow.returnGripper().sendCommand("V300000L1400h0m20j128R")
+	//myWorkflow.returnGripper().sendCommand("V300000L1400h0m20j64R")
 	//myWorkflow.returnGripper().setManualState("open")
 	//myWorkflow.returnGripper().setManualState("closed")
 	//myWorkflow.returnGripper().open()		
 	//myWorkflow.returnGripper().close()
-
+	
+	//myWorkflow.returnGripper().sendCommand("P20000R") // close a bit (P)
+	//myWorkflow.returnGripper().sendCommand("D20000R")
 
 /*
 number i
@@ -78,6 +82,26 @@ for (i=0;i<50;i++)
 	
 	// *** manual workflow items ***
 	//myWorkflow.insertSampleIntoPecsAndRetract()
+	
+	
+	
+	// *** reseating test dovetail ***
+	/*
+	number i
+
+	for (i=0;i<10;i++)
+	{
+		if ((optiondown() && shiftdown()))
+			break
+
+		myStateMachine.reseat()
+		sleep(5)
+		debug("i: "+i+"\n")
+	}
+	*/
+	
+	
+	
 	
 	
 	
@@ -109,6 +133,7 @@ for (i=0;i<50;i++)
 	//myWorkflow.returnPecs().moveStageUp()
 	//myWorkflow.returnPecs().moveStageDown()
 	//myWorkflow.returnPecs().stageHome()
+	//myWorkflow.returnPecs().ilumOn()
 	//result(myWorkflow.returnPecs().argonCheck()+"\n")
 	//PIPS_SetPropertyDevice("subsystem_milling", "device_stage", "set_rotate_mode", "7")  // works,  stage to right front
 	//PIPS_SetPropertyDevice("subsystem_milling", "device_stage", "set_rotate_mode", "3")  // works,  stage to home
@@ -126,17 +151,17 @@ for (i=0;i<50;i++)
 	//myWorkflow.returnTransfer().home()
 	//myWorkflow.returnTransfer().move("outofway")   // home position, without going through homing sequence
    // myWorkflow.returnTransfer().move("prehome")    // location where we can move to close to home from where we home
-    //myWorkflow.returnTransfer().move("open_pecs")  // location where arms can open in PECS	
+  //myWorkflow.returnTransfer().move("open_pecs")  // location where arms can open in PECS	
     //myWorkflow.returnTransfer().move("pickup_pecs") // location where open arms can be used to pickup sample	
 	//myWorkflow.returnTransfer().move("beforeGV")    // location where open arms can be used to pickup sample
 	//myWorkflow.returnTransfer().move("dropoff_sem") // location where sample gets dropped off (arms will open)
     //myWorkflow.returnTransfer().move("pickup_sem")  // location in where sample gets picked up
     //myWorkflow.returnTransfer().move("backoff_sem") // location where gripper arms can safely open/close in SEM chamber
-   // myWorkflow.returnTransfer().move("dropoff_pecs") // location where sample gets dropped off in PECS
-   // myWorkflow.returnTransfer().move("dropoff_pecs_backoff") // location where sample gets dropped off in PECS
+    //myWorkflow.returnTransfer().move("dropoff_pecs") // location where sample gets dropped off in PECS
+  // myWorkflow.returnTransfer().move("dropoff_pecs_backoff") // location where sample gets dropped off in PECS
     //myWorkflow.returnTransfer().turnOff()  // turn off Parker to stop noise
     //myWorkflow.returnTransfer().move("test")  // test location from tags  
-	//result(MyWorkflow.returnTransfer().getCurrentPosition())
+	result(MyWorkflow.returnTransfer().getCurrentPosition())
 	//result(MyWorkflow.returnTransfer().returnParkerPositions().getCurrentPosition())
 	//myWorkflow.returnTransfer().resetKillSwitch()
 

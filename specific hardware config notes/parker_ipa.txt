@@ -3,7 +3,7 @@ default PID for IPA+motor:
 P=0.0024414
 I=0
 D=0.000010
-Torque limit = 20
+Torque limit <1
 
 homing command (at reasonable speed in pos direction):
 P00>BIT799=0
@@ -24,3 +24,32 @@ jrk 200
 stp 1000
 
 all the usual stuff is commented in initializing transfer is commented out
+
+configuration status: 
+
+DRCONFIG: shows all errors and warnings
+C command are configuration parameters, S command are status parameters
+can be issued in prog0
+so ?S20 shows temperature of drive, ?C6 shows max drive temperature configuration
+
+
+parameters: 
+torque: 
+not quite sure where the torque limit lives. it can be set by the configuration wizard and the program follows that value, but don't know what the parameters is or the command to set it. the status panel uses a "% of peek" value which is the signal output of the servo loop (P12319), but that is not it. ?C14 is also not it since it does not change. TLM is the command that the guide describes as setting the limit, ?P12328 for plus and ?P12329 for minus, which are now set to +0.4 (and -0.4). verified experimentally that 0.1 is too low. command: TLM AXIS0 0.3
+0.1: too low, fails on insertion
+0.4: works
+0.3: works
+0.2: works
+0.1: too low again, fails on insertion
+0.15: works
+0.125: works, leaving it at that, measured to be about 11 lbs on force gauge
+
+setting limit to 0.125 volts for now. 
+we can dynamically adjust this to use lower values during actual transfer and this value during dovetail insertion
+
+0.125 is not enough for dropoff in vacuum, so we are increasing it
+0.135: works in vacuum (with planar holder)
+0.135 failed in vacuum after pumping overnight. trying again with 0.150
+0.150: succesful 3 times in vacuum, then failed
+0.160: trying in vacuum. still failed in 9th attempt 
+0.170: 

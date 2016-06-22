@@ -162,7 +162,10 @@ class planarSEMdock : object
 		//self.sendCommand("m30h0I27L24V10000v2500R")
 		
 		// thijs update 11/26/2015 after spring increased force
-		self.sendCommand("m30h0l27L10000V4000R")
+		//self.sendCommand("m30h0l27L10000V4000R")
+
+		// thijs update 2016-06-20 after testing with new PA-built unit
+		self.sendcommand("m30h0I27L10000V2000j64R")
 
 		self.sendCommand("T")
 		self.print("dock initialized (planar)")
@@ -306,6 +309,22 @@ class planarSEMdock : object
 		return sampleStatus
 
 	}
+
+	void camOn(object self)
+	{
+		// turn chamberscope camera and aillumination on
+		self.sendCommand("J4R")
+		self.print("chamberscope turned ON")
+	}
+
+
+	void camOff(object self)
+	{
+		// turn chamberscope camera and aillumination on
+		self.sendCommand("J0R")
+		self.print("chamberscope turned OFF")
+	}
+
 
 	void calibrateCoords(object self)
 	{

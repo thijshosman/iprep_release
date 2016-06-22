@@ -63,6 +63,7 @@ class parkerTransfer:object
 		//}
 		//self.print("Reply to command \""+cmd+"\" is "+reply)
 		sleep(0.1)
+		sleep(0.2)
 		return reply
 	}	
 	

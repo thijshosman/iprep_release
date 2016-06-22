@@ -132,7 +132,7 @@ class gripper:object
 
 		// set all operating parameters
 		self.sendCommand("s2T")
-		self.sendCommand("V300000L1400h0m20j128R")
+		self.sendCommand("V300000L1400h0m20j64R")
 
 		self.print("initialized")
 	}
@@ -220,7 +220,9 @@ class gripper:object
 					break
 				}
 			}
+			self.sendCommand("gP70000R")
 			self.sendCommand("gP20000R")
+			
 			self.setManualState("closed")
 			self.print("gripper closed succesfully")
 
