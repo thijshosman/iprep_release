@@ -139,16 +139,7 @@ class EBSDSEMdock : object
 	void init(object self)
 	{
 		// *** public ***
-		// detect dock
-		if (self.detectMode() != "ebsd")
-		{
-			throw("dock mode is not detected. mode detected: "+self.detectMode())
-		}
-		else
-		{
-			self.print("dock detection passed")
-		}
-
+		
 		// register with mediator
 		myMediator = returnMediator()
 		myMediator.registerDock(self)

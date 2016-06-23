@@ -220,9 +220,21 @@ class gripper:object
 					break
 				}
 			}
-			self.sendCommand("gP70000R")
-			self.sendCommand("gP20000R")
 			
+			// worked until 2016-06-22 in vacuum
+			//self.sendCommand("gP70000R")
+			//self.sendCommand("gP20000R")
+
+			// 2016-06-23
+			//self.sendCommand("gP70000R")
+
+			// 2016-06-23 -2
+			//self.sendCommand("gP60000R")
+
+			// 2016-06-23 -3
+			self.sendCommand("gP65000R")
+			self.sendCommand("gP10000R")
+
 			self.setManualState("closed")
 			self.print("gripper closed succesfully")
 

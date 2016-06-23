@@ -52,4 +52,6 @@ we can dynamically adjust this to use lower values during actual transfer and th
 0.135 failed in vacuum after pumping overnight. trying again with 0.150
 0.150: succesful 3 times in vacuum, then failed
 0.160: trying in vacuum. still failed in 9th attempt 
+keeping it at 0.160 after changing how far the gripper arms close
+after 1 error during attempt 30, increasing to 0.170
 0.170: 

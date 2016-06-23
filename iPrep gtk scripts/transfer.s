@@ -49,21 +49,32 @@ class parkerTransfer:object
 		cmd = command
 		// try sending command. if it throws exception, silently ignore it once and try again
 		// this will help the occasional error as observed in testing
-		//try 
-		//{
+		try 
+		{
 			Parker_SendCommand(cmd, reply)
-		//}
-		//catch
-		//{
-		//	self.print("level 1 error generated with command: "+cmd)
-		//	debug("level 1 error generated with command: "+cmd+"\n")
-		//	sleep(2)
-		//	Parker_SendCommand(cmd, reply)
-		//	break
-		//}
+		}
+		catch
+		{
+			self.print("level 1 error generated with command: "+cmd)
+			debug("level 1 error generated with command: "+cmd+"\n")
+			sleep(2)
+			try
+			{ 
+				Parker_SendCommand(cmd, reply) // trying again
+			}
+			catch
+			{
+				self.print("level 2 error generated with command: "+cmd)
+				debug("level 2 error generated with command: "+cmd+"\n")
+				sleep(2)
+				Parker_SendCommand(cmd, reply) // trying final time
+				break
+			}
+			break
+		}
 		//self.print("Reply to command \""+cmd+"\" is "+reply)
 		sleep(0.1)
-		sleep(0.2)
+
 		return reply
 	}	
 	
@@ -179,7 +190,8 @@ class parkerTransfer:object
 		self.sendCommand("ACC 1000.000000")
 		self.sendCommand("DEC 1000.000000")
 		self.sendCommand("JRK 200.000000")
-		self.sendCommand("VEL 400.000000")
+		self.sendCommand("VEL 400.000000") // set after long calibration
+		//self.sendCommand("VEL 25.000000") // testing for dovetail problems 2016-06-23
 		self.sendCommand("stp 1000.000000")
 	}
 

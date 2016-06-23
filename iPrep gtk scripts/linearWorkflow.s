@@ -2,6 +2,9 @@
 number XYZZY = 0
 class workflow: object
 {
+	// the workflow object is responsible for initializing all hardware and interacting with it. 
+	// it initializes simulators where needed depending on tags and keeps a reference to these individual objects. 
+	// it sets position values (for transfer system and SEM) based on modes selected. 
 
 	// timer numbers
 	number tick, tock
@@ -85,7 +88,7 @@ class workflow: object
 		}	
 		else
 		{
-			throw("system mode (planar or ebsd) not set!")
+			throw("system mode (planar or ebsd) not detected! Don't know which dock to initialize")
 		}
 
 		// init SEM Dock
@@ -143,22 +146,10 @@ class workflow: object
 	{
 		// save default positions in global tags
 		self.print("setDefaultPositions: setting default positions for use with Planar dock ")
-		self.print("setDefaultPositions: using calibrations from 20150903 ")
-
-		// TODO: these should come from tags themselves, not these harcoded values
 		
-		// 2016-06-20: updated for quanta
-
-		myTransfer.setPositionTag("outofway",0) // home position, without going through homing sequence
-		myTransfer.setPositionTag("prehome",5) // location where we can move to close to home from where we home
-		myTransfer.setPositionTag("open_pecs",23.5) // location where arms can open in PECS  // #20150819: was 29, #20150903: was 28
-		myTransfer.setPositionTag("pickup_pecs",42) // location where open arms can be used to pickup sample // #20150827: was 48.5, #20150903: was 49.5
-		myTransfer.setPositionTag("beforeGV",100) // location where open arms can be used to pickup sample
 		myTransfer.setPositionTag("dropoff_sem",500) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
 		myTransfer.setPositionTag("pickup_sem",500) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
-		myTransfer.setPositionTag("backoff_sem",430) // location where gripper arms can safely open/close in SEM chamber
-		myTransfer.setPositionTag("dropoff_pecs",40) // location where sample gets dropped off in PECS // #20150827: was 45.5
-		myTransfer.setPositionTag("dropoff_pecs_backoff",41) // location where sample gets dropped off in PECS // #20150827: was 46.5
+		
 	}
 
 	void setDefaultPositionsEBSD(object self)
@@ -166,31 +157,35 @@ class workflow: object
 		// save default positions in global tags
 		self.print("setDefaultPositions: setting positions for use with EBSD dock ")
 
-		// TODO: these should come from tags themselves, not these harcoded values
-		// 2016-06-06: calibrated for rough pickup dovetail tests on test chamber (with EBSD dock soon)
-
-		myTransfer.setPositionTag("outofway",0) // home position, without going through homing sequence
-		myTransfer.setPositionTag("prehome",5) // location where we can move to close to home from where we home
-		myTransfer.setPositionTag("open_pecs",23.5) // 23.5 for chamber with cutouts location where arms can open in PECS  // #20150819: was 29, #20150903: was 28
-		myTransfer.setPositionTag("pickup_pecs",42) // location where open arms can be used to pickup sample // #20150827: was 48.5, #20150903: was 49.5
-		myTransfer.setPositionTag("beforeGV",100) // location where open arms can be used to pickup sample
 		myTransfer.setPositionTag("dropoff_sem",513) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
 		myTransfer.setPositionTag("pickup_sem",513) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
-		myTransfer.setPositionTag("backoff_sem",430) // location where gripper arms can safely open/close in SEM chamber
-		myTransfer.setPositionTag("dropoff_pecs",40) // location where sample gets dropped off in PECS // #20150827: was 45.5
-		myTransfer.setPositionTag("dropoff_pecs_backoff",41) // location where sample gets dropped off in PECS // #20150827: was 46.5
 	}
 
 	void setDefaultPositions(object self)
 	{
+		// saves calibrated positions, both generic ones (ie dovetail and home) for both docks and dock specific ones
+		// TODO: these should come from tags themselves, not these harcoded values
+		self.print("setting generic positions (dovetail, home etc.)")
 
-		// save calibrated positions for transfer for correct dock
+		// generic positions
+		myTransfer.setPositionTag("outofway",0) // home position, without going through homing sequence
+		myTransfer.setPositionTag("prehome",5) // location where we can move to close to home from where we home
+		myTransfer.setPositionTag("open_pecs",23.5) // location where arms can open in PECS  // #20150819: was 29, #20150903: was 28
+		myTransfer.setPositionTag("pickup_pecs",42) // location where open arms can be used to pickup sample // #20150827: was 48.5, #20150903: was 49.5
+		myTransfer.setPositionTag("beforeGV",100) // location where open arms can be used to pickup sample
+		myTransfer.setPositionTag("backoff_sem",430) // location where gripper arms can safely open/close in SEM chamber
+		myTransfer.setPositionTag("dropoff_pecs",40) // location where sample gets dropped off in PECS // #20150827: was 45.5
+		myTransfer.setPositionTag("dropoff_pecs_backoff",41) // location where sample gets dropped off in PECS // #20150827: was 46.5
+
+
+
+		// save additional calibrated positions for transfer for correct dock
 		if (mode == "planar")
 			self.setDefaultPositionsPlanar()
 		else if (mode == "ebsd")
 			self.setDefaultPositionsEBSD()
 		else
-			throw("system mode not set!")
+			self.print("WARNING: system mode not set!")
 	}	
 
 	void calibrateForMode(object self)
@@ -220,8 +215,6 @@ class workflow: object
 				mySEMdock = createDock(1)
 			else 
 				mySEMdock = createDock(3)
-
-
 		}
 		
 		// init SEM Dock
@@ -272,7 +265,7 @@ class workflow: object
 
 
 
-	// *** workflow items ***
+	// *** workflow items (old style) ***
 
 	void pickupFromPecsAndMoveToGV(object self)
 	{
@@ -1034,6 +1027,13 @@ class workflowStateMachine: object
 	number Tick
 	number Tock
 
+	object PecsToSem_seq
+	object SemToPecs_seq
+	object reseat_seq
+	object custom_seq
+
+
+
 	// flag set when system is in weird state
 	object deadFlag
 
@@ -1041,6 +1041,20 @@ class workflowStateMachine: object
 	{
 		result("StateMachine: "+str1+"\n")
 	}
+	
+	/*
+	void initSequences(object self)
+	{
+		// public
+		// create sequence objects
+		
+		// reseat sequence, create and init with transfer devices
+		reseat = createSequence("reseat_default")
+		reseat.init("reseat",myworkflow)
+
+	}
+	*/
+
 
 	void workflowStateMachine(object self)
 	{
@@ -1049,6 +1063,8 @@ class workflowStateMachine: object
 		workflowStatePersistance.init("workflowState")
 		lastCompletedStep = alloc(statePersistance)
 		lastCompletedStep.init("lastCompletedStep")
+
+		// register default 
 
 		percentage = 0
 		// "SEM" = sample in dock
@@ -1113,7 +1129,34 @@ class workflowStateMachine: object
 		if (workflowState == "PECS")
 		{
 			self.changeWorkflowState("reseating")
-			myWorkflow.reseat()
+			
+			// old style
+			myWorkflow.reseat() 
+			
+			/*
+			try
+			{
+				reseat_seq.do()
+			}
+			catch
+			{
+				// exception in transfer, see if we can undo
+				string exc = GetExceptionString()
+				self.print("exception during reseating: "+exc+", trying undo")
+				if (reseat_seq.undo()) // undo succesful, return to previous state
+				{
+					self.print("succesfully recovered")
+					self.changeWorkflowState("PECS")
+					return
+				}
+				else // undo failed, throw original exception
+				{
+					throw("exception in reseat. cannot undo. mesg: "+exc)
+				}
+			}
+
+			*/
+			
 			self.changeWorkflowState("PECS")
 			lastCompletedStep.setState("RESEAT")
 		}
@@ -1135,10 +1178,6 @@ class workflowStateMachine: object
 				// fast, as fast as can be done synchronously
 				myWorkflow.fastPecsToSem()
 
-				// old, slow
-				//myWorkflow.pickupFromPecsAndMoveToGV()
-				//myWorkflow.insertIntoSEM()
-				//myWorkflow.retractArmAfterDropoff()
 				
 				number tock = GetOSTickCount()
 				self.print("elapsed time PECS->SEM: "+(tock-tick)/1000+" s")
@@ -1166,9 +1205,6 @@ class workflowStateMachine: object
 				// fast, as fast as can be done synchronously
 				myWorkflow.fastSemToPecs()
 				
-				// old, slow
-				//myWorkflow.removeSampleFromSEM()
-				//myWorkflow.insertSampleIntoPecsAndRetract()
 				
 				number tock = GetOSTickCount()
 				self.print("elapsed time SEM->PECS: "+(tock-tick)/1000+" s")

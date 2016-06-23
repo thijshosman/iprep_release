@@ -39,4 +39,6 @@ general improvements that are scheduled to be done in this branch:
 
  (linearworkflow)-make a class for 'transfers' and make an object for each transfer that defines it instead of hardcoding it in linearworkflow class. linearworkflow would invoke the 'do' method in this command-like pattern. this is more flexible than what we have now. we can lateron even go to a script-like 
 
-(docks)-allow camera on/off
+(docks)-allow chamberscope camera on/off
+(semcoordmanager/docks)-move calibrating coordinates from dock class to workflow class
+

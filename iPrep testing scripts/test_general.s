@@ -59,7 +59,7 @@ try
 	//myWorkflow.returnGripper().open()		
 	//myWorkflow.returnGripper().close()
 	
-	//myWorkflow.returnGripper().sendCommand("P20000R") // close a bit (P)
+	//myWorkflow.returnGripper().sendCommand("P10000R") // close a bit (P)
 	//myWorkflow.returnGripper().sendCommand("D20000R")
 
 /*
@@ -86,10 +86,10 @@ for (i=0;i<50;i++)
 	
 	
 	// *** reseating test dovetail ***
-	/*
+	
 	number i
 
-	for (i=0;i<10;i++)
+	for (i=0;i<50;i++)
 	{
 		if ((optiondown() && shiftdown()))
 			break
@@ -98,7 +98,7 @@ for (i=0;i<50;i++)
 		sleep(5)
 		debug("i: "+i+"\n")
 	}
-	*/
+	
 	
 	
 	
@@ -152,7 +152,7 @@ for (i=0;i<50;i++)
 	//myWorkflow.returnTransfer().move("outofway")   // home position, without going through homing sequence
    // myWorkflow.returnTransfer().move("prehome")    // location where we can move to close to home from where we home
   //myWorkflow.returnTransfer().move("open_pecs")  // location where arms can open in PECS	
-    //myWorkflow.returnTransfer().move("pickup_pecs") // location where open arms can be used to pickup sample	
+   //myWorkflow.returnTransfer().move("pickup_pecs") // location where open arms can be used to pickup sample	
 	//myWorkflow.returnTransfer().move("beforeGV")    // location where open arms can be used to pickup sample
 	//myWorkflow.returnTransfer().move("dropoff_sem") // location where sample gets dropped off (arms will open)
     //myWorkflow.returnTransfer().move("pickup_sem")  // location in where sample gets picked up
@@ -161,7 +161,7 @@ for (i=0;i<50;i++)
   // myWorkflow.returnTransfer().move("dropoff_pecs_backoff") // location where sample gets dropped off in PECS
     //myWorkflow.returnTransfer().turnOff()  // turn off Parker to stop noise
     //myWorkflow.returnTransfer().move("test")  // test location from tags  
-	result(MyWorkflow.returnTransfer().getCurrentPosition())
+	//result(MyWorkflow.returnTransfer().getCurrentPosition())
 	//result(MyWorkflow.returnTransfer().returnParkerPositions().getCurrentPosition())
 	//myWorkflow.returnTransfer().resetKillSwitch()
 

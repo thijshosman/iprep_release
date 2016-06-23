@@ -531,6 +531,9 @@ number IPrep_init()
 		// get initial state from tag
 		myStateMachine.init(myWorkflow)
 
+		// #TODO: check dock against mode tag
+		// use okcanceldialog wrapper to choose to ignore this as warning or throw error
+
 
 		print("current slice: "+IPrep_sliceNumber())
 		myPW.updateC("slice: "+IPrep_sliceNumber())
