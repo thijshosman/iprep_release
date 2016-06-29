@@ -425,10 +425,14 @@ class SEM_IPrep: object
 		// intended to be used to go to the clear position as a 'homing' point manually
 		// disabling consistency checks. intended to be installed as menu command
 
+		// #TODO: should we move in Z first or last? in Quanta I would say last, since we are likely under the pole piece and don't want to bump into it, 
+		// #TODO: but in Nova we go in Z first. 
+
 		object clear = returnSEMCoordManager().getCoordAsCoord("clear")
 
 		self.print("going to clear with checks disabled")
-		self.goToCoordsZFirst(clear.getX(),clear.getY(),clear.getZ())
+		//self.goToCoordsZFirst(clear.getX(),clear.getY(),clear.getZ()) // Nova
+		self.goToCoordsZLast(clear.getX(),clear.getY(),clear.getZ()) // Quanta
 		self.printCoords()
 		self.setManualState("clear")
 

@@ -17,11 +17,11 @@ v-gate valve: check sensors before issuing open/close to speed up workflow
 
 general improvements that are scheduled to be done in this branch:
 (workflow)-do we really want the state machine to throw exceptions when asked to go start milling/ebsd/etc when that is prohibited? think about it. 
-(workflow)-when a dock is no present, iprep_init throws exception and does not fully load
+v (workflow)-when a dock is no present, iprep_init throws exception and does not fully load
 (gripper)-fix bug in open/close once: if gripper does not move, it won't work this way
 (dock/gripper)-send allmotion configuration
 (workflow)-when a transfer starts, check for consistency beforehand
-(workflow)-home SEM stage to clear as part of workflow to prevent problems after pressing start button
+v (workflow)-home SEM stage to clear as part of workflow to prevent problems after pressing start button
 (sem)-correct for drift in survey image, set maximum shift parameter and don't move but continue workflow if shift exceeds this
 (workflow)-don't check dock mode at iprep_init as this prevents dock swap when dm is offline
 (workflow)-changing tags during transfer creates consistency problems
@@ -41,4 +41,17 @@ general improvements that are scheduled to be done in this branch:
 
 (docks)-allow chamberscope camera on/off
 (semcoordmanager/docks)-move calibrating coordinates from dock class to workflow class
+
+
+
+alignment: 
+(1)-store calibration values for SEM (scribe_pos_ebsd, scribe_pos_planar, reference_ebsd, reference_planar) and parker (pickup_dropoff_ebsd, pickup_dropoff_planar) in (sem position and numeric) tags. these do NOT change except when alignment changes. 
+(2)-store vectors for SEM coordinates (ie where is highgridfront with respect to scribe_pos? where is clear with respect to reference?) in (sem position)tags. these get applied when IPrep calibration routines are ran
+(3)-store values used by workflow routines in tags. the workflow uses these and does not know of ebsd/planar. these tags do not get changed except by IPrep calibration routines. 
+notes:
+-no values are hardcoded in code; the vectors (2) can change manually, the calibration values can change (1), but (3) is always found by applying (2) to (1) in a controlled routine that can be ran as often as needed
+-the vectors (2) and the calibration values (1) have default values that can be set by running a function. 
+
+
+
 

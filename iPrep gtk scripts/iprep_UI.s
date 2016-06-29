@@ -498,7 +498,8 @@ void Set_autofocus_enable_dialog( void )
 number IPrep_calibrate_transfer()
 {
 	result("iprep_calibrate_transfer"+"\n")
-	myWorkflow.calibrateForMode()
+	// #todo: no longe works until alignment is fixed
+	//myWorkflow.calibrateForMode()
 }
 
 

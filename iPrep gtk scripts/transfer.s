@@ -187,10 +187,13 @@ class parkerTransfer:object
 	{
 		// *** private ***
 		// set speed for normal movement between points
-		self.sendCommand("ACC 1000.000000")
+		//self.sendCommand("ACC 1000.000000") // lower this because it causes kill all motion errors when moving back to 0 (home)
+		self.sendCommand("ACC 80.000000")
 		self.sendCommand("DEC 1000.000000")
-		self.sendCommand("JRK 200.000000")
-		self.sendCommand("VEL 400.000000") // set after long calibration
+		//self.sendCommand("JRK 200.000000") // 
+		self.sendCommand("JRK 100.000000")
+		//self.sendCommand("VEL 400.000000") // set after long calibration, but may be too high when moving pos (back to home)
+		self.sendCommand("VEL 100.000000")
 		//self.sendCommand("VEL 25.000000") // testing for dovetail problems 2016-06-23
 		self.sendCommand("stp 1000.000000")
 	}
@@ -280,7 +283,7 @@ class parkerTransfer:object
 		
 
 		// set speed for normal movement between points
-		self.sendCommand("jog ACC x100.000000")
+		self.sendCommand("jog ACC x100.000000") 
 		self.sendCommand("jog DEC x100.000000")
 		self.sendCommand("jog JRK x0.000000")
 		self.sendCommand("jog VEL x25.000000")

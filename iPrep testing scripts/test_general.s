@@ -87,9 +87,10 @@ for (i=0;i<50;i++)
 	
 	// *** reseating test dovetail ***
 	
+/*
 	number i
 
-	for (i=0;i<50;i++)
+	for (i=0;i<10;i++)
 	{
 		if ((optiondown() && shiftdown()))
 			break
@@ -99,7 +100,7 @@ for (i=0;i<50;i++)
 		debug("i: "+i+"\n")
 	}
 	
-	
+*/
 	
 	
 	
@@ -177,7 +178,12 @@ for (i=0;i<50;i++)
 
 		
 	// *** SEM ***
-	// homing to clear:
+	// align all positions in SEM the hack way to planar dock
+	//IPrep_align_planar_hack()
+	//object reference = returnSEMCoordManager().getCoordAsCoord("reference_planar")
+	//reference.print()
+	
+	// homing to clear (no pop ups):
 	//myWorkflow.returnSEM().homeToClear()
 
 	// add a coord

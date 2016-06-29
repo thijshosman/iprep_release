@@ -75,6 +75,9 @@ InstallFile( PathConcatenate( gPath, "ebsd_manual.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "ebsd_oi_automatic.s" ), package, 3 )
 
 InstallFile( PathConcatenate( gPath, "linearWorkflow.s" ), package, 3 )
+
+// InstallFile( PathConcatenate( gPath, "iprep_alignment.s" ), package, 3 )
+
 InstallFile( PathConcatenate( gPath, "iprep_main.s" ), package, 3 )
 
 //InstallFile( PathConcatenate( gPath, "iprep_pecsstatuschecker.s" ), package, 3 )

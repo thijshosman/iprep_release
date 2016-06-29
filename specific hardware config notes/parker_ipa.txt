@@ -54,4 +54,4 @@ we can dynamically adjust this to use lower values during actual transfer and th
 0.160: trying in vacuum. still failed in 9th attempt 
 keeping it at 0.160 after changing how far the gripper arms close
 after 1 error during attempt 30, increasing to 0.170
-0.170: 
+0.170: going with this. 

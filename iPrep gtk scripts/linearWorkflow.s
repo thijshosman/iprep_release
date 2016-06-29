@@ -139,92 +139,6 @@ class workflow: object
 	}
 
 
-
-	// position calibrations as part of workflow
-
-	void setDefaultPositionsPlanar(object self)
-	{
-		// save default positions in global tags
-		self.print("setDefaultPositions: setting default positions for use with Planar dock ")
-		
-		myTransfer.setPositionTag("dropoff_sem",500) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
-		myTransfer.setPositionTag("pickup_sem",500) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
-		
-	}
-
-	void setDefaultPositionsEBSD(object self)
-	{
-		// save default positions in global tags
-		self.print("setDefaultPositions: setting positions for use with EBSD dock ")
-
-		myTransfer.setPositionTag("dropoff_sem",513) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
-		myTransfer.setPositionTag("pickup_sem",513) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
-	}
-
-	void setDefaultPositions(object self)
-	{
-		// saves calibrated positions, both generic ones (ie dovetail and home) for both docks and dock specific ones
-		// TODO: these should come from tags themselves, not these harcoded values
-		self.print("setting generic positions (dovetail, home etc.)")
-
-		// generic positions
-		myTransfer.setPositionTag("outofway",0) // home position, without going through homing sequence
-		myTransfer.setPositionTag("prehome",5) // location where we can move to close to home from where we home
-		myTransfer.setPositionTag("open_pecs",23.5) // location where arms can open in PECS  // #20150819: was 29, #20150903: was 28
-		myTransfer.setPositionTag("pickup_pecs",42) // location where open arms can be used to pickup sample // #20150827: was 48.5, #20150903: was 49.5
-		myTransfer.setPositionTag("beforeGV",100) // location where open arms can be used to pickup sample
-		myTransfer.setPositionTag("backoff_sem",430) // location where gripper arms can safely open/close in SEM chamber
-		myTransfer.setPositionTag("dropoff_pecs",40) // location where sample gets dropped off in PECS // #20150827: was 45.5
-		myTransfer.setPositionTag("dropoff_pecs_backoff",41) // location where sample gets dropped off in PECS // #20150827: was 46.5
-
-
-
-		// save additional calibrated positions for transfer for correct dock
-		if (mode == "planar")
-			self.setDefaultPositionsPlanar()
-		else if (mode == "ebsd")
-			self.setDefaultPositionsEBSD()
-		else
-			self.print("WARNING: system mode not set!")
-	}	
-
-	void calibrateForMode(object self)
-	{
-		// calibrate SEMdock and parker for this particular mode
-		self.print("calibrating sem postions and parker positions for mode")
-
-		// parker transfer		
-		self.setDefaultPositions() // queries mode and sets parker positions correctly
-		myTransfer.init()
-
-		mode = getSystemMode()
-		self.print("mode = "+mode)
-		
-		number sim_dock_simulate =  GetTagValue("IPrep:simulation:dock")
-
-		if (mode == "planar")
-		{
-			if (sim_dock_simulate)
-				mySEMdock = createDock(1)
-			else 
-				mySEMdock = createDock(2)
-		} 
-		else if (mode == "ebsd")
-		{
-			if (sim_dock_simulate)
-				mySEMdock = createDock(1)
-			else 
-				mySEMdock = createDock(3)
-		}
-		
-		// init SEM Dock
-		mySEMdock.init()
-
-		// now calibrate SEM dock, which sets reference
-		mySEMdock.calibrateCoords()
-
-	}
-
 	// *** methods for returning subclasses (used for testing)
 	
 	object returnSEMDock(object self)
@@ -613,6 +527,10 @@ class workflow: object
 			}
 		}
 
+		// intermediate point as not to trigger the torque limit
+		// #TODO: fix unneeded step
+		myTransfer.move("beforeGV")
+
 		// slide sample into dovetail
 		myTransfer.move("dropoff_pecs")
 
@@ -693,6 +611,8 @@ class workflow: object
 		// move SEM dock up to allow sample to go in
 		mySEMdock.unclamp()
 
+		continueCheck()
+
 		// move into chamber
 		myTransfer.move("dropoff_sem")
 
@@ -712,6 +632,10 @@ class workflow: object
 		// gripper close
 		myGripper.close()
 	
+		// intermediate point as not to trigger the torque limit
+		// #TODO: fix unneeded step
+		myTransfer.move("beforeGV")
+
 		// parker move back to prehome
 		myTransfer.move("prehome")
 
@@ -1133,7 +1057,7 @@ class workflowStateMachine: object
 			// old style
 			myWorkflow.reseat() 
 			
-			/*
+			/* new style
 			try
 			{
 				reseat_seq.do()
