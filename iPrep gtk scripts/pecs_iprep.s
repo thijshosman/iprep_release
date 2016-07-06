@@ -97,8 +97,20 @@ class pecs_iprep: object
 		
 		if (!self.argonCheck())
 			throw("argon pressure check failed, aborting")
-		
+		PIPS_Execute("SETP_SUB0000,subsystem_milling,set_milling_variation,0")
 		PIPS_StartMilling()
+	}
+
+	void startCoating(object self)
+	{
+		// *** public ***
+
+		if (!self.argonCheck())
+			throw("argon pressure check failed, aborting")
+		
+		PIPS_Execute("SETP_SUB0000,subsystem_milling,set_milling_variation,1")
+		PIPS_StartMilling()	
+
 	}
 
 	void stopMilling(object self)
@@ -120,6 +132,7 @@ class pecs_iprep: object
 	{
 		// go to coating mode
 		PIPS_Execute("STRTPROC0000,process_movetocoat")
+		PIPS_Execute("SETP_SUB0000,subsystem_milling,set_milling_variation,1")
 		self.print("now in coating mode")
 	}
 
@@ -127,6 +140,7 @@ class pecs_iprep: object
 	{
 		// go to etching mode
 		PIPS_Execute("STRTPROC0000,process_movetoetch")
+		PIPS_Execute("SETP_SUB0000,subsystem_milling,set_milling_variation,0")
 		self.print("now in etching mode")
 	}
 
@@ -527,8 +541,8 @@ class pecs_iprep: object
 		// shuts off argon flow to maximize vacuum during transfer
 		
 		// save existing values here
-		PIPS_GetPropertyDevice("subsystem_milling", "device_mfcLeft", "read_gas_flow_sccm", leftsccm)  // works
-		PIPS_GetPropertyDevice("subsystem_milling", "device_mfcRight", "read_gas_flow_sccm", rightsccm)  // works
+		PIPS_GetPropertyDevice("subsystem_milling", "device_mfcLeft", "set_gas_flow_sccm", leftsccm)  // works
+		PIPS_GetPropertyDevice("subsystem_milling", "device_mfcRight", "set_gas_flow_sccm", rightsccm)  // works
 
 		self.print("shutting off gas flow. remembered values are: "+leftsccm+", "+rightsccm)
 
@@ -556,6 +570,10 @@ class pecs_iprep: object
 		// *** public ***
 		// restore argon flow to previous values
 		
+		// #TODO: hack to hardcode sccm values to 0.1 to compensate for drift
+		//rightsccm = "0.1"
+		//leftsccm = "0.1"
+
 		self.print("restoring gasflow to previous values: "+leftsccm+", "+rightsccm)
 
 		// set gas flow to previously remembered values

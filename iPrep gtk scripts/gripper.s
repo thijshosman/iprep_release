@@ -132,7 +132,7 @@ class gripper:object
 
 		// set all operating parameters
 		self.sendCommand("s2T")
-		self.sendCommand("V300000L1400h0m20j64R")
+		self.sendCommand("V300000L1400h0m25j64R")
 
 		self.print("initialized")
 	}
@@ -232,8 +232,12 @@ class gripper:object
 			//self.sendCommand("gP60000R")
 
 			// 2016-06-23 -3
-			self.sendCommand("gP65000R")
-			self.sendCommand("gP10000R")
+			//self.sendCommand("gP65000R")
+			//self.sendCommand("gP10000R")
+
+			// 2016-06-29
+			self.sendCommand("gP75000R")
+			self.sendCommand("gD10000R")
 
 			self.setManualState("closed")
 			self.print("gripper closed succesfully")

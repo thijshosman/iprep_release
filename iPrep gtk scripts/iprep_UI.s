@@ -51,7 +51,7 @@ void Goto_nominal_imaging(void)
 	if (OKCancelDialog(s1))
 		myWorkflow.returnSEM().goToNominalImaging()
 	
-	//WorkaroundQuantaMagBug()
+	WorkaroundQuantaMagBug()
 
 }
 
@@ -68,7 +68,7 @@ void Recall_imaging_XYZ_position( void )
 	if (OKCancelDialog(s1))
 		myWorkflow.returnSEM().goToStoredImaging()
 	
-	//WorkaroundQuantaMagBug()
+	WorkaroundQuantaMagBug()
 
 }
 
@@ -108,7 +108,7 @@ void Recall_imaging_position_focus( void )
 		myWorkflow.returnSEM().setDesiredWD(saved_focus)
 	}
 	
-	//WorkaroundQuantaMagBug()
+	WorkaroundQuantaMagBug()
 }
 
 void Goto_alignment_grid( void ) // not needed in Nova
@@ -117,7 +117,7 @@ void Goto_alignment_grid( void ) // not needed in Nova
 	if (OKCancelDialog(s1))
 	{
 		myWorkflow.returnSEM().goTofwdGrid()
-		//WorkaroundQuantaMagBug()
+		WorkaroundQuantaMagBug()
 	}
 }
 
@@ -127,7 +127,7 @@ void Goto_highgridback( void )
 	if (OKCancelDialog(s1))
 	{
 		myWorkflow.returnSEM().goToHighGridBack()
-		//WorkaroundQuantaMagBug()
+		WorkaroundQuantaMagBug()
 	}
 
 
@@ -139,7 +139,7 @@ void Goto_clear()
 	if (OKCancelDialog(s1))
 	{
 		myWorkflow.returnSEM().goToClear()
-		//WorkaroundQuantaMagBug()
+		WorkaroundQuantaMagBug()
 	}
 }
 
@@ -150,7 +150,7 @@ void Goto_highgridfront( void )
 	if (OKCancelDialog(s1))
 	{
 		myWorkflow.returnSEM().goToHighGridFront()
-		//WorkaroundQuantaMagBug()
+		WorkaroundQuantaMagBug()
 	}
 
 
@@ -162,7 +162,7 @@ void Goto_scribe_mark( void )
 	if (OKCancelDialog(s1))
 	{
 		myWorkflow.returnSEM().goToScribeMark()
-		//WorkaroundQuantaMagBug()
+		WorkaroundQuantaMagBug()
 	}
 }
 
@@ -209,7 +209,7 @@ void Recall_imaging_parameters_from_image( void )
 			EMSetStageXY( XX, YY )
 		}
 		
-		//WorkaroundQuantaMagBug()
+		WorkaroundQuantaMagBug()
 
 	}
 		
@@ -365,6 +365,7 @@ void homeSEMStageToClear(void)
 	string s1 = "clear position\n("+xx+","+yy+","+zz+")\n\nGo (home) there now?"
 	if (OKCancelDialog(s1))
 		myWorkflow.returnSEM().homeToClear()
+	WorkaroundQuantaMagBug()
 }
 
 void gotoPickupDropoff(void)
@@ -378,38 +379,55 @@ void gotoPickupDropoff(void)
 	string s1 = "pickup dropoff position\n("+xx+","+yy+","+zz+")\n\nGo there now?"
 	if (OKCancelDialog(s1))
 		myWorkflow.returnSEM().goToPickup_Dropoff()
+	WorkaroundQuantaMagBug()
 }
 
 void homeParker(void)
 {
-	myWorkflow.returnTransfer().home()
+	string s1 = "Home the parker stage now?"
+	if (OKCancelDialog(s1))
+		myWorkflow.returnTransfer().home()
 }
 
 void lowerPECSStage(void)
 {
-	myWorkflow.returnPECS().moveStageDown()
+	string s1 = "Lower the PECS stage now?"
+	if (OKCancelDialog(s1))
+		myWorkflow.returnPECS().moveStageDown()
 }
 
 void openGV(void)
 {
-	myWorkflow.returnPECS().openGVandCheck()
+	string s1 = "Open the Gate Valve?"
+	if (OKCancelDialog(s1))
+		myWorkflow.returnPECS().openGVandCheck()
 }
 
 void closeGV(void)
 {
-	myWorkflow.returnPECS().closeGVandCheck()
+	string s1 = "Close the Gate Valve?"
+	if (OKCancelDialog(s1))
+		myWorkflow.returnPECS().closeGVandCheck()
 }
 
 void clamp(void)
 {
-	myWorkflow.returnSEMDock().clamp()
-	myWorkflow.returnSEMDock().lookupState(1)
+	string s1 = "Clamp the dock?"
+	if (OKCancelDialog(s1))
+	{	
+		myWorkflow.returnSEMDock().clamp()
+		myWorkflow.returnSEMDock().lookupState(1)
+	}
 }
 
 void unclamp(void)
 {
-	myWorkflow.returnSEMDock().unclamp()
-	myWorkflow.returnSEMDock().lookupState(1)
+	string s1 = "Unclamp the dock?"
+	if (OKCancelDialog(s1))
+	{
+		myWorkflow.returnSEMDock().unclamp()
+		myWorkflow.returnSEMDock().lookupState(1)
+	}
 }
 
 void lockPecs(void)
@@ -555,6 +573,7 @@ void iprep_InstallMenuItems( void )
 	AddScriptToMenu( "Goto_nominal_imaging()", "Goto nominal imaging position...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "Goto_highgridback()", "Goto grid on back post...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "Goto_highgridfront()", "Goto grid on front post...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
+	AddScriptToMenu( "WorkaroundQuantaMagBug()", "WorkaroundQuantaMagBug", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 
 	AddScriptToMenu( "beep()", "--", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
 

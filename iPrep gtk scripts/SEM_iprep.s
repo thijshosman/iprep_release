@@ -507,8 +507,10 @@ if (XYZZY)		self.setkVForImaging()
 if (XYZZY)		self.setWDForImaging()
 		
 		object local = nominal_imaging
+		// #TODO: figure out why it does this
 		if ( local.getdfvalid() )
-			self.setWDFromDFandScribePos( local.getdf() )	
+			//self.setWDFromDFandScribePos( local.getdf() )	
+
 
 		self.printCoords()
 		self.setManualState("imaging")

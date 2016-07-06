@@ -491,6 +491,9 @@ class workflow: object
 		// move SEM stage to clear point
 		mySEM.goToClear()
 
+		// hold dock in place to make sure it does not move down by itself as a result of spring force overcoming stepper drive
+		mySEMdock.hold()
+
 		// move SEM dock clamp up to release sample
 		mySEMdock.unclamp()
 
@@ -531,6 +534,12 @@ class workflow: object
 		// #TODO: fix unneeded step
 		myTransfer.move("beforeGV")
 
+		// turn hold off again
+		mySEMdock.unhold()
+
+		// move SEM dock clamp down to safely move it around inside SEM
+		mySEMdock.clamp()
+
 		// slide sample into dovetail
 		myTransfer.move("dropoff_pecs")
 
@@ -557,9 +566,6 @@ class workflow: object
 
 		// turn gas flow back on
 		myPecs.restoreArgonFlow()
-
-		// move SEM dock clamp down to safely move it around inside SEM
-		mySEMdock.clamp()
 
 		// turn transfer system off
 		//myTransfer.turnOff()
@@ -608,6 +614,9 @@ class workflow: object
 		// move sem stage to clear point
 		mySEM.goToClear()
 	
+		// hold dock in place to make sure it does not move down by itself as a result of spring force overcoming stepper drive
+		mySEMdock.hold()
+
 		// move SEM dock up to allow sample to go in
 		mySEMdock.unclamp()
 
@@ -636,6 +645,15 @@ class workflow: object
 		// #TODO: fix unneeded step
 		myTransfer.move("beforeGV")
 
+		// SEM stage move to clear position
+		mySEM.goToClear()
+
+		// turn hold off again
+		mySEMdock.unhold()
+
+		// move SEM dock down to clamp
+		mySEMdock.clamp()
+
 		// parker move back to prehome
 		myTransfer.move("prehome")
 
@@ -647,12 +665,6 @@ class workflow: object
 
 		// turn gas flow back on
 		myPecs.restoreArgonFlow()
-
-		// SEM stage move to clear position
-		mySEM.goToClear()
-
-		// move SEM dock down to clamp
-		mySEMdock.clamp()
 
 		if (GetTagValue("IPrep:simulation:samplechecker") == 1)
 		{
@@ -753,11 +765,13 @@ class workflow: object
 		myPecs.unlock()
 
 		// raise stage
-		// no longer needed when going to etch mode
-		//myPecs.moveStageUp()
+		// #TODO: bug that messes up etching mode and milling when system is lowered when started
+		myPecs.moveStageUp()
 
 		// go to etch mode
 		myPecs.goToEtchMode()
+
+
 
 		// start milling. milling state is checked by state machine 
 		if (simulation == 0)
@@ -766,6 +780,8 @@ class workflow: object
 			myPecs.stageHome()
 
 		self.print("hold Option + Shift to skip remainder of milling")
+
+		sleep(2)
 
 		tick = GetOSTickCount()		
 		
@@ -808,7 +824,7 @@ class workflow: object
 		// TODO: add timeout
 		myPecs.goToCoatMode()
 
-		myPecs.startMilling()
+		myPecs.startCoating()
 		self.print("hold Option + Shift to skip remainder of step")
 
 		tick = GetOSTickCount()		
@@ -849,14 +865,14 @@ class workflow: object
 	{
 		// prepares system for taking of image, like setting HV and WD settings and unblanking beam
 
-		//mySEM.blankOff()
+		mySEM.blankOff()
 
 		self.print("preimaging done")
 	}
 	
 	void postImaging(object self)
 	{
-		//mySEM.blankOn()
+		mySEM.blankOn()
 		
 		// does some cleaning up after imaging, like blanking beam 
 		self.print("postimaging done")

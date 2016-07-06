@@ -179,86 +179,123 @@ void WorkaroundQuantaMagBug( void )
 void IPrep_autofocus()
 {
 	// wrapper for autofocus function in DM
-	// #todo: test, just copied from JH example
+	// #todo: test, just copied from JH example; modified 20160701
+	
+	// Dear Thijs...you are going to hate this default focus mod. 
 
 	string s1="Private:AFS Parameters"
 	string s2="Focus accuracy"
 	string s3="Focus limit (lower)"
 	string s4="Focus limit (upper)"
 	string s5="Focus search range"
-	number n2,n3,n4,n5
+	string s6="Stigmation enabled"
+	
+	string s7="Default focus"
+	number n2,n3,n4,n5,n6,n7
 
 	string str2 
-	number focus_range_fraction = .2
+	number focus_range_fraction = .1
 	number focus = EMGetFocus()
-	number focus_range = .1*focus
-	number focus_res = .01*focus
+	result(datestamp()+": current focus value before autofocus: "+focus+"\n")
+	
+	///// CRAP CODE
+		str2 = s1+":"+s7
+		n7=9001
+		if (!GetPersistentNumberNote( str2, n7 ))
+			{
+				if ( !GetNumber( str2, n7, n7 ) ) 
+				{
+					n7 = 9000
+					result("  USING DEFAULT FOCUS OF 9000 microns\n")
+				}
+				
+				SetPersistentNumberNote( str2, n7 )
+			}
+			
+		number default_focus=n7
 
+
+		// number start_focus = EMGetFocus()
+		number start_focus = default_focus
+		EMSetFocus( start_focus )
+		focus=start_focus
+		result(datestamp()+": setting focus to (before AFS): "+start_focus+"\n")
+		result("\n"+datestamp()+": start WD = "+(start_focus/1000)+"\n")
+	///// END CRAP CODE
+	
+	
+	
+	number focus_range = focus_range_fraction*focus
+	number focus_res = .0025*focus
+	number useDialog = 0 
+	
+	number AF_do_stig = 1
+	
 	str2 = s1+":"+s2
 	GetPersistentNumberNote( str2, n2 )
 	n2 = focus_res
-	if ( !GetNumber( str2, n2, n2 ) ) exit(0)
+	if ( useDialog) 
+		if (!GetNumber( str2, n2, n2 ) ) exit(0)
+		
 	SetPersistentNumberNote( str2, n2 )
 
 
 	str2 = s1+":"+s3
 	GetPersistentNumberNote( str2, n3 )
 	n3 = focus - focus * focus_range_fraction
-	if ( !GetNumber( str2, n3, n3 ) ) exit(0)
+		if ( useDialog) 
+			if ( !GetNumber( str2, n3, n3 ) ) exit(0)
 	SetPersistentNumberNote( str2, n3 )
 
 	str2 = s1+":"+s4
 	GetPersistentNumberNote( str2, n4 )
 	n4 = focus + focus * focus_range_fraction
-	if ( !GetNumber( str2, n4, n4 ) ) exit(0)
+	if ( useDialog) 
+		if ( !GetNumber( str2, n4, n4 ) ) exit(0)
 	SetPersistentNumberNote( str2, n4 )
 
 	str2 = s1+":"+s5
 	GetPersistentNumberNote( str2, n5 )
 	n5=focus_range
-	if ( !GetNumber( str2, n5, n5 ) ) exit(0)
+	if ( useDialog) 
+		if ( !GetNumber( str2, n5, n5 ) ) exit(0)
 	SetPersistentNumberNote( str2, n5 )
 
-	//AF_Run()
-	// /*
-	number start_focus = EMGetFocus()
-	result("\n"+datestamp()+": start WD = "+(start_focus/1000)+"\n")
-	AFS_Run()
+	str2 = s1+":"+s6
+	n6=AF_do_stig
+	GetPersistentNumberNote( str2, n6 )
+	if ( useDialog) 
+		if ( !GetNumber( str2, n6, n6 ) ) exit(0)
+	
+	SetPersistentNumberNote( str2, n6 )
+	AF_do_stig=n6
+	
+	if ( AF_do_stig )
+	{
+		result("  Autofocus enabled with stigmation\n")
+		AFS_Run()
+	}
+	 else
+	{
+		result("  Autofocus enabled without stigmation\n")
+		AF_Run()
+	}
 
 	while( AFS_IsBusy() )
 	{
 		sleep( 1 )
 		result(".")
 	}
-	result("\n")
+// WARNING  - more crap code
 	number end_focus = EMGetFocus()
+	
+	if ( abs(end_focus-default_focus) > 5000 )
+		okdialog( "WARNING: focus is not within 5mm of the default focus" )
+	
+	
 	result(datestamp()+": final WD = "+(end_focus/1000)+"\n")
-	//*/
-	/*
-	{
-		number mag=EMGetMagnification()
-		number focus=EMGetFocus()
-		number i=0,df
-		image plot:=RealImage("AF test,mag="+mag+",prec="+n2,4,11,1)
-		plot.showimage()
-		plot.displayat(500,100)
-		plot=focus/1000
-		for (df=-2.5;df<=2.5;df+=.5)
-		{
-			EMSetFocus(focus+1000*df)
-			sleep(1)
-			if (shiftdown() &&optiondown() ) exit(0)
-			number start_focus = EMGetFocus()
-			result(i+":"+datestamp()+": start WD = "+(start_focus/1000)+"\n")
-			AFS_Run()
-			number end_focus = EMGetFocus()
-			result(i+":"+datestamp()+": final WD = "+(end_focus/1000)+"\n\n")
-			plot[i,0]=end_focus/1000
-			plot.updateimage()
-			i+=1
-		}
-	}
-	*/
+		result("  Change in focus = "+((start_focus-end_focus)/1000)+"\n")
+
 }
 
 void acquire_PECS_image( image &img )
@@ -268,7 +305,7 @@ void acquire_PECS_image( image &img )
 // Image is not displayed
 // Turns off illumination on exit
 {
-
+/*
 // Check if stage is up (needs to be up for imaging)
 	string first_stagepos = myWorkflow.returnPecs().getStageState()
 	if ( first_stagepos != "up" )
@@ -284,13 +321,14 @@ void acquire_PECS_image( image &img )
 	}
 		//datestamp()
 		print("PECS stage in up position" )
-
+*/
 	// Light on, acquire, light off
 	myWorkflow.returnPecs().ilumOn()
 	myWorkflow.returnPECSCamera().acquire(img) // use correct method
 	myWorkflow.returnPecs().ilumOff()
 	
 	// If stage was originally down, then return stage to down position
+/*
 	if ( first_stagepos != "up" )
 	{
 		print("PECS stage in up position. Returning to down position")
@@ -301,6 +339,7 @@ void acquire_PECS_image( image &img )
 
 		print("PECS stage returned to down position" )
 	}
+*/
 }
 
 
@@ -859,6 +898,10 @@ Number IPrep_Setup_Imaging()
 		myDefaultROI.setFocus(imagingWD)
 		print("Setup Imaging: Working Distance="+imagingWD)
 
+		// set focus mode
+		// #TODO: when autofocusing, needs to be 1, when using fixed value, use 2
+		myDefaultROI.setAFMode(2)
+
 		// update StoredImaging position with current position
 		myWorkflow.returnSEM().saveCurrentAsStoredImaging()
 		print("Setup Imaging: StoredImaging Coord set")
@@ -1099,8 +1142,8 @@ Number IPrep_StartRun()
 	{
 		
 		// set stop and pause back to 0
-		returnstopVar().set(0)
-		returnPauseVar().set(0)
+		returnstopVar().set1(0)
+		returnPauseVar().set1(0)
 		
 		if (myStateMachine.getCurrentWorkflowState() == "SEM")
 		{
@@ -1164,7 +1207,7 @@ Number IPrep_PauseRun()
 	number returncode = 0
 
 	// set pausevar
-	returnPauseVar().set(1)
+	returnPauseVar().set1(1)
 
 	returncode = 1 // to indicate success
 
@@ -1188,7 +1231,7 @@ Number IPrep_StopRun()
 {
 	print("IPrep_StopRun")
 
-	returnStopVar().set(1)
+	returnStopVar().set1(1)
 
 	return 1
 }
@@ -1221,18 +1264,22 @@ number IPrep_image()
 		print("IMAGE: going to location: "+myROI.getName())
 		myWorkflow.returnSEM().goToImagingPosition(myROI.getName())
 		
+		// fix magnificationbug on Quanta
+		WorkaroundQuantaMagBug()
+
 		// focus
 		if (myROI.getAFMode() == 1) //autofocus on every slice
 		{
 			print("IMAGE: autofocusing")
-			//IPrep_autofocus()
+			IPrep_autofocus()
 			number afs_sleep = 1	// seconds of delay
 			sleep( afs_sleep )
-
+/*
 			number current_focus = myWorkflow.returnSEM().measureWD()	
 			number saved_focus = returnROIManager().getFocus()
 			number change = current_focus - saved_focus
 			print("IMAGE: Autofocus changed focus value by "+change+" mm")
+*/
 		}
 		else if (myROI.getAFMode() == 2) // no autofocus, use stored value
 		{
@@ -1300,6 +1347,10 @@ number IPrep_image()
 		//myWorkflow.returnDigiscan().config(dsp)
 		// or use digiscan parameters as setup in the normal 'capture' at this moment
 		myWorkflow.returnDigiscan().config()
+
+		// fix magnificationbug on Quanta
+		// second time, before imaging
+		WorkaroundQuantaMagBug()
 
 		myWorkflow.returnDigiscan().acquire(temp_slice_im)
 
@@ -1682,6 +1733,7 @@ class IPrep_mainloop:thread
 		// increment i by 1 modulo p
 		number newi = (iPersist.getNumber()+1)%p
 		iPersist.setNumber(newi)
+		//self.print("debug breakpoint")
 	}
 
 	void seti(object self, number newi)
@@ -1703,6 +1755,8 @@ class IPrep_mainloop:thread
 		// 0: irrecoverable error or stop/pause pressed, stop loop
 		// -1: repeat previous step
 
+		//self.print("DEBUG: processing returnval "+returnval)
+
 		if (returnval==1)
 		{	
 			// success
@@ -1722,18 +1776,18 @@ class IPrep_mainloop:thread
 		} 
 
 		// if stop button is pressed or irrecoverable error ocuured, stop loop
-		if (returnStopVar().get() || returnval == 0)
+		if (returnStopVar().get1() || returnval == 0)
 		{
-			returnstopVar().set(0) // set stopvar back to 0
+			returnstopVar().set1(0) // set stopvar back to 0
 			IPrep_abortrun() // send UI stop command, tells ui elements to exit loop running state
-			returnPauseVar().set(0) // set pausevar back to 0, just in case in was pressed
+			returnPauseVar().set1(0) // set pausevar back to 0, just in case in was pressed
 			return 0 
 		}
 
 		// if pause button is pressed, stop loop and wait for resume or stop
-		if (returnPauseVar().get())
+		if (returnPauseVar().get1())
 		{
-			returnPauseVar().set(0) // set pausevar back to 0
+			returnPauseVar().set1(0) // set pausevar back to 0
 			return 0 
 		}
 	

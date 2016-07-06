@@ -54,4 +54,10 @@ we can dynamically adjust this to use lower values during actual transfer and th
 0.160: trying in vacuum. still failed in 9th attempt 
 keeping it at 0.160 after changing how far the gripper arms close
 after 1 error during attempt 30, increasing to 0.170
-0.170: going with this. 
+0.170: going with this. 200 succesfull transfers, but still dependent on angle
+after swapping to different mount and back to original mount, we get problems. increasing to 0.190
+0.190: going well so far, testing in vacuum
+0.200: desperate attempt to keep it from tripping when inserting into dovetail
+0.200: extensive rebuilt of gripper and realignment, now operates smootly. 
+0.200: due to bing bug, stage was raised during transfer and hit the gripper when it was moving forward. didn't seem to cause damage, but did not operate smoothly until steppermotor current was changed from 20 to 25% of max, so now we need to lower limit 
+0.170: succesful transfer in air, now in vacuum.

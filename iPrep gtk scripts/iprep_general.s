@@ -475,12 +475,12 @@ class stopVar:object
 		i = 0
 	}
 
-	void set(object self, number ii)
+	void set1(object self, number ii)
 	{
 		i = ii
 	}
 
-	number get(object self)
+	number get1(object self)
 	{	
 		return i
 	}
@@ -499,12 +499,12 @@ class pauseVar:object
 		i = 0
 	}
 
-	void set(object self, number ii)
+	void set1(object self, number ii)
 	{
 		i = ii
 	}
 
-	number get(object self)
+	number get1(object self)
 	{	
 		return i
 	}

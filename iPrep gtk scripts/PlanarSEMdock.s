@@ -162,6 +162,21 @@ class planarSEMdock : object
 		self.print("dock initialized (planar)")
 	}
 	
+	void hold(object self)
+	{
+		// set holding torque to finite value to make sure motor does not move
+		self.sendcommand("h15R")
+		self.print("holding torque SET")
+	}
+
+	void unhold(object self)
+	{
+		// set holding torque to finite value to make sure motor does not move
+		self.sendcommand("h0R")
+		self.print("holding torque SET")
+	}
+
+
 	void PLANARsemDOCK(object self) 
 	{
 		// contructor

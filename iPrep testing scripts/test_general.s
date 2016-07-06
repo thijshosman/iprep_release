@@ -53,14 +53,15 @@ try
 	//sleep(5)
 	
 	// *** gripper ***
-	//myWorkflow.returnGripper().sendCommand("V300000L1400h0m20j64R")
+	//myWorkflow.returnGripper().init()
+	//myWorkflow.returnGripper().sendCommand("V300000L1400h0m25j64R")
 	//myWorkflow.returnGripper().setManualState("open")
 	//myWorkflow.returnGripper().setManualState("closed")
 	//myWorkflow.returnGripper().open()		
 	//myWorkflow.returnGripper().close()
 	
 	//myWorkflow.returnGripper().sendCommand("P10000R") // close a bit (P)
-	//myWorkflow.returnGripper().sendCommand("D20000R")
+	//myWorkflow.returnGripper().sendCommand("D10000R")
 
 /*
 number i
@@ -71,18 +72,13 @@ for (i=0;i<50;i++)
 	myWorkflow.returnGripper().open()		
 	myWorkflow.returnGripper().close()
 	result("i: "+i+"\n")
+	sleep(5)
 }
 */
 	
-
-	
-//myWorkflow.returnGripper().lookupState(1)
+	//myWorkflow.returnGripper().lookupState(1)
 	//sleep(5)
-	//myWorkflow.returnGripper().sendCommand("D100000R")
-	
-	// *** manual workflow items ***
-	//myWorkflow.insertSampleIntoPecsAndRetract()
-	
+
 	
 	
 	// *** reseating test dovetail ***
@@ -99,8 +95,8 @@ for (i=0;i<50;i++)
 		sleep(5)
 		debug("i: "+i+"\n")
 	}
-	
-*/
+*/	
+
 	
 	
 	
@@ -141,8 +137,16 @@ for (i=0;i<50;i++)
 	//PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_24", "1")   //turn on chamber illuminator
 	//myWorkflow.returnPecs().shutoffArgonFlow()
 	//myWorkflow.returnPecs().restoreArgonFlow()
+	
+	// move to coating
 	//PIPS_Execute("STRTPROC0000,process_movetocoat")
-	//PIPS_Execute("STRTPROC0000,process_movetoetch")
+	//PIPS_Execute("SETP_SUB0000,subsystem_milling,set_milling_variation,1")    //coating mode
+		
+	// move to etch
+	//PIPS_Execute("STRTPROC0000,process_movetoetch")	
+	//PIPS_Execute("SETP_SUB0000,subsystem_milling,set_milling_variation,0")     //etching mode
+	
+	//sleep(2)
 	//PIPS_StartMilling()
 	//PIPS_StopMilling()
 	//result(myWorkflow.returnPecs().millingTimeRemaining()+"\n")
@@ -182,6 +186,8 @@ for (i=0;i<50;i++)
 	//IPrep_align_planar_hack()
 	//object reference = returnSEMCoordManager().getCoordAsCoord("reference_planar")
 	//reference.print()
+	
+	//WorkaroundQuantaMagBug()
 	
 	// homing to clear (no pop ups):
 	//myWorkflow.returnSEM().homeToClear()

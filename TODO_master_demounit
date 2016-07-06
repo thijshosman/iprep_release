@@ -12,6 +12,22 @@ pecs:
 v-gate valve: check sensors before issuing open/close to speed up workflow
 -check state shutter coating sensor
 
+SEM:
+-have a way to check that z-height is set (for example by moving 10 micron in z and seeing if it throws an exception?)
+
+dock:
+v-set holding torque during transfer when opens so that we don't have the thing close as it is picked up or the arm comes in
+
+workflow
+v-beam does not blank
+v-beam does not focus on storedimaging after transfer
+v-af_mode is set by setup_imaging to 2 so that workflow uses the fixed value. for autofocus, this needs to be 1. 
+-ability to autofocus every x slices
+
+BING Bugs
+-we cannot read argon setpoint, only flow. this causes long term drift when setting it back after transfers. need fix
+-go to etch does not work when having stage lowered manually beforehand. then it somehow uses coating parameters and messes up milling time remaining
+
 
 
 
@@ -30,7 +46,7 @@ v (workflow)-home SEM stage to clear as part of workflow to prevent problems aft
 (UI)-moves long function implementations from iprep_ui; these belong un iprep_main
 (workflow)-iprep_init should not overwrite the parker_positions
 (workflow)-calibrateformode: mode is only read after setting parkerpositions, this needs to be switched around
-
+(workflow)-do not give warnings for pecs stage in raised or lowered position; only argon
 (workflow/ui)-fix pressing resume after pressing pause before it actually pauses. this causes bug
 (workflow)-if max slices is reached already and workflow has started, it still gets to running mode; needs a check
 (workflow)-order if images in 3D stack is reversed
