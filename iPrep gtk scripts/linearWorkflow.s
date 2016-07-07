@@ -563,6 +563,9 @@ class workflow: object
 		// lockout PECS UI
 		myPecs.lockout()
 
+		// turn off gas flow
+		myPecs.shutoffArgonFlow()
+
 		// move pecs stage down
 		myPecs.moveStageDown()
 
@@ -632,6 +635,9 @@ class workflow: object
 		// move SEM dock clamp down to safely move it around inside SEM
 		mySEMdock.clamp()
 
+		// turn gas flow back on
+		myPecs.restoreArgonFlow()
+
 		// turn transfer system off
 		myTransfer.turnOff()
 
@@ -647,6 +653,9 @@ class workflow: object
 
 		// lockout PECS UI
 		myPecs.lockout()
+
+		// turn off gas flow
+		myPecs.shutoffArgonFlow()
 
 		// lower pecs stage
 		myPecs.moveStageDown()
@@ -712,6 +721,9 @@ class workflow: object
 
 		// move SEM dock down to clamp
 		mySEMdock.clamp()
+
+		// turn gas flow back on
+		myPecs.restoreArgonFlow()
 
 		if (GetTagValue("IPrep:simulation:samplechecker") == 1)
 		{
