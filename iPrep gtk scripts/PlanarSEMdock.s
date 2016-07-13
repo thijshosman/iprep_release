@@ -173,7 +173,7 @@ class planarSEMdock : object
 	{
 		// set holding torque to finite value to make sure motor does not move
 		self.sendcommand("h0R")
-		self.print("holding torque SET")
+		self.print("holding torque UNSET")
 	}
 
 

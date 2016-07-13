@@ -900,7 +900,7 @@ Number IPrep_Setup_Imaging()
 
 		// set focus mode
 		// #TODO: when autofocusing, needs to be 1, when using fixed value, use 2
-		myDefaultROI.setAFMode(2)
+		//myDefaultROI.setAFMode(2)
 
 		// update StoredImaging position with current position
 		myWorkflow.returnSEM().saveCurrentAsStoredImaging()

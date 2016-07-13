@@ -215,6 +215,30 @@ void Recall_imaging_parameters_from_image( void )
 		
 }
 
+void Set_autofocus_enable_dialog( void )
+{
+	// set autofocus state for workflow
+
+	// get the ROI (default/StoredImaging in this case)
+	object myROI 
+	string name1 = "StoredImaging"
+	returnROIManager().getROIAsObject(name1, myROI)
+
+	number af_mode = myROI.getAFMode()
+	GetNumber("Enter autofocus mode (0=leave alone, 1=autofocus, 2=fixed value saved)", af_mode, af_mode )
+	
+	if (af_mode > 2)
+	{
+		result("leaving Autofocus alone\n")
+		throw ("invalid number, leaving autofocus mode alone")
+	}
+	else
+		myROI.setAFMode(af_mode)
+
+	result("Autofocus mode set to "+af_mode+"\n")
+}
+
+
 // PECS functions
 
 void pecs_reseat(void)
@@ -566,6 +590,8 @@ void iprep_InstallMenuItems( void )
 
 	AddScriptToMenu( "Set_autofocus_enable_dialog()", "Set autofocus state...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	
+	AddScriptToMenu( "IPrep_autofocus()", "Run IPrep Autofocus routine", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
+
 	AddScriptToMenu( "beep()", "------", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
 
 	AddScriptToMenu( "Goto_clear()", "Goto clear and move in z last...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
