@@ -9,21 +9,22 @@ This file describes what all the todos are for the demounit master development b
 
 ***pecs***:
 
-- [] add new shutter and argon functions to simulator
+- [x] add new shutter and argon functions to simulator
 - [x] gate valve: check sensors before issuing open/close to speed up workflow
 - [] check state shutter coating sensor
 - [] tmp check can fail due to unterminated rs485. add redundancy
 
 ***SEM***:
 
-- [] have a way to check that z-height is set (for example by moving 10 micron in z and seeing if it throws an exception?)
+- [] prevent sem from moving 
+- [] have a way to check that z-height is set (for example by moving 10 micron in z and seeing if it throws an exception?) -> checkFWDCoupling in sem
 - [] correct for drift in survey image, set maximum shift parameter and don't move but continue workflow if shift exceeds this
 
 
 ***dock***:
 
-- [] set holding torque during transfer when opens so that we don't have the thing close as it is picked up or the arm comes in
-- [] allow chamberscope camera on/off
+- [x] set holding torque during transfer when opens so that we don't have the thing close as it is picked up or the arm comes in (planar only for now)
+- [] allow chamberscope camera on/off -> needs hardware fix? 
 
 ***linearworkflow***
 
@@ -32,13 +33,14 @@ This file describes what all the todos are for the demounit master development b
 
 ***workflow***
 
-- [] don't check dock mode at iprep_init as this prevents dock swap when dm is offline
-- [] when a dock is no present, iprep_init throws exception and does not fully load
+- [] consistencychecks should not be done by calling workflow object, but instead should be done through mediator
+- [x] don't check dock mode at iprep_init as this prevents dock swap when dm is offline
+- [x] when a dock is no present, iprep_init throws exception and does not fully load
 - [x] beam does not blank
 - [x] beam does not focus on storedimaging after transfer
 - [x] af_mode is set by setup_imaging to 2 so that workflow uses the fixed value. for autofocus, this needs to be 1. 
 - [] ability to autofocus every x slices
-- [] when pausing during milling, it pauses, but then when resuming it mills again
+- [x] when pausing during milling, it pauses, but then when resuming it mills again
 - [] do we really want the state machine to throw exceptions when asked to go start milling/ebsd/etc when that is prohibited? think about it. 
 - [] when a transfer starts, check for consistency beforehand
 - [] home SEM stage to clear as part of workflow to prevent problems after pressing start button
@@ -52,7 +54,7 @@ This file describes what all the todos are for the demounit master development b
 ***UI***
 
 - [] move long function implementations from iprep_ui; these belong un iprep_main
-- [] add iprep autofocus as a menu item
+- [x] add iprep autofocus as a menu item
 
 ***gripper***
 
@@ -70,6 +72,7 @@ This file describes what all the todos are for the demounit master development b
 
 - [] changing directory where data gets saved does not affect running process
 - [] no longer trigger on max slices to stop workflow
+- [] make sure to grey out stop/pause after it is pressed so that we cannot resume before the actual pause has happened. this now causes problems since it calls script functions that are not supposed to be called until system is idle. 
 
 ***alignment***
 

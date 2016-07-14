@@ -517,10 +517,23 @@ class pecs_iprep: object
 		// *** public ***
 		// move shutter in
 
+		if(!self.argonCheck())
+		{
+			self.print("argon check failed when trying to insert shutter")
+			throw("argon check failed when trying to insert shutter")
+		}
+
+		if(self.getStageState() != "down")
+		{
+			self.print("argon check failed when trying to insert shutter")
+			throw("argon check failed when trying to insert shutter")		
+		}
+
 		// turn on av3
 		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_23", "1")
 
 		self.print("Shutter inserted")
+
 	}
 
 	void moveShutterOut(object self)
@@ -528,7 +541,7 @@ class pecs_iprep: object
 		// *** public ***
 		// move shutter in
 
-		// turn on av3
+		// turn off av3
 		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_23", "0")
 
 		self.print("Shutter retracted")

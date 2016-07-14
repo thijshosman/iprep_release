@@ -95,11 +95,19 @@ class pecs_simulator: object
 	void startMilling(object self)
 	{
 		// *** public ***
-		
+		sleep(5)
 		if (!self.argonCheck())
 			throw("argon pressure check failed, aborting")
 		
-		//PIPS_StartMilling()
+	}
+
+	void startCoating(object self)
+	{
+		// *** public ***
+
+		if (!self.argonCheck())
+			throw("argon pressure check failed, aborting")
+
 	}
 
 	void stopMilling(object self)
@@ -117,12 +125,20 @@ class pecs_simulator: object
 		return t
 	}
 
-	void setMFCsToZero(object self)
+	void goToCoatMode(object self)
 	{
-		// *** public ***
-		// set both MFCs to 0 in order to not flood the SEM chamber
-		// TODO: find script commands for doing this
+		// go to coating mode
+
+		self.print("now in coating mode")
 	}
+
+	void goToEtchMode(object self)
+	{
+		// go to etching mode
+
+		self.print("now in etching mode")
+	}
+
 
 	string getGVState(object self)
 	{
@@ -398,6 +414,39 @@ class pecs_simulator: object
 
 	}
 
+
+	void moveShutterIn(object self)
+	{
+		// *** public ***
+		// move shutter in
+
+		self.print("Shutter inserted")
+
+	}
+
+	void moveShutterOut(object self)
+	{
+		// *** public ***
+		// move shutter out
+
+		self.print("Shutter retracted")
+
+	}
+
+	void shutoffArgonFlow(object self)
+	{
+		// *** public ***
+		// shuts off argon flow to maximize vacuum during transfer
+
+	}
+
+
+	void restoreArgonFlow(object self)
+	{
+		// *** public ***
+		// restore argon flow to previous values
+
+	}
 
 }
 

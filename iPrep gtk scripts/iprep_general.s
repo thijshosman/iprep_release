@@ -296,6 +296,14 @@ class safetyMediator:object
 		return status // "ebsd", "planar", "disconnected" or "undefined"
 	}
 
+	string getDockState(object self)
+	{
+		// check if dock is clamped
+		string status
+		status = dock.getDockState()
+
+		return status // "clamped", "unclamped", or "inbetween"
+	}
 
 	// *** actions ***
 	// experimental, not used yet

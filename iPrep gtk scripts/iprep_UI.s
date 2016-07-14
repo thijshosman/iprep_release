@@ -524,6 +524,7 @@ void loadTagsFromFile(void)
 }
 
 
+/*
 void Set_autofocus_enable_dialog( void )
 {	
 // Set Autofocus tag
@@ -534,7 +535,7 @@ void Set_autofocus_enable_dialog( void )
 		SetPersistentNumberNote( tagname, afs_enable )
 
 }
-
+*/
 
 
 number IPrep_calibrate_transfer()

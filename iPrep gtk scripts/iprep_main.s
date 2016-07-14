@@ -350,6 +350,9 @@ number IPrep_consistency_check()
 	// -hardware classes have their states in tags synchronized with sensors
 	// if we detect an unsafe flag, we need manual intervention
 
+	try
+	{
+
 	print("iprep consistency check:")
 
 	// workflow state machine
@@ -420,9 +423,6 @@ number IPrep_consistency_check()
 		print("GV:sensordata do not agree with previous save state. either caused by a malfunction or powerloss")
 		returnDeadFlag().setDead(1, "GV", "GV state unknown: manual recovery needed")
 		
-		// not unsafe yet
-		//returnDeadFlag().setSafety(0, "GV state unknown: manual recovery needed")
-
 	}
 	else
 	{
@@ -437,8 +437,6 @@ number IPrep_consistency_check()
 			print("PECS stage:sensordata do not agree with previous save state. either caused by a malfunction, powerloss or argon pressure loss")
 			returnDeadFlag().setDead(1, "PECS", "pecs stage not in well defined position")
 		
-			// not unsafe yet
-			//returnDeadFlag().setSafety(0, "pecs stage not in well defined position")
 		}
 	}
 	else
@@ -463,17 +461,31 @@ number IPrep_consistency_check()
 		print("Transfer stage state consistent")
 	}
 
+	// check if the FWD is coupled right
+	if (!returnMediator().checkFWDCoupling(0))
+	{
+		print("FWD not correctly coupled")
+		returnDeadFlag().setDead(1, "SEM", "FWD not set")
+	}
 
 	// semstage, check that current coordinates are consistent with the state 
 	if(!myWorkflow.returnSEM().checkStateConsistency())
 	{
 
-		print("sem stage: stage coordinates are not consistent with what the state of the stage is")
-		returnDeadFlag().setDead(1, "SEM", "SEM stage in "+myWorkflow.returnSEM().getState()+", but not at state coordinates of that state")
+		if (okcanceldialog("SEM stage not where it should be. home to clear? "))
+		{
+			print("homing SEM stage to clear")
+			myWorkflow.returnSEM().homeToClear()
+			
+		}
+		else
+		{
+			print("sem stage: stage coordinates are not consistent with what the state of the stage is")
+			returnDeadFlag().setDead(1, "SEM", "SEM stage in "+myWorkflow.returnSEM().getState()+", but not at state coordinates of that state")
 		
-		// set unsafe
-		returnDeadFlag().setSafety(0, "SEM stage in "+myWorkflow.returnSEM().getState()+", but not at state coordinates of that state")
-
+			// set unsafe
+			//returnDeadFlag().setSafety(0, "SEM stage in "+myWorkflow.returnSEM().getState()+", but not at state coordinates of that state")
+		}
 	} 
 	else
 	{
@@ -485,8 +497,14 @@ number IPrep_consistency_check()
 	if (getSystemMode() != returnMediator().detectMode())
 	{
 		print(getSystemMode()+" dock not detected. detected dock is "+returnMediator().detectMode())
-		returnDeadFlag().setDead(1, "DOCK", getSystemMode()+" dock not detected. detected dock is "+returnMediator().detectMode())
-		
+
+		// give user option to ignore
+		if (!okcanceldialog("dock mode not detected. detected "+returnMediator().detectMode()+", but mode is set to "+getSystemMode()+". continue?"))
+		{
+			
+			returnDeadFlag().setDead(1, "DOCK", getSystemMode()+" dock not detected. detected dock is "+returnMediator().detectMode())
+		}
+		print("ignoring dock warning")
 	}
 	else
 	{
@@ -494,6 +512,7 @@ number IPrep_consistency_check()
 	}
 
 	// dock state
+	// #todo
 
 	// gripper
 	// #todo: what if stuck in open position? go to unsafe, since gripper problems cannot be easily fixed!
@@ -501,12 +520,12 @@ number IPrep_consistency_check()
 
 
 	// if dead, return 0
-	if (returnDeadFlag().isDead())
-	{
-		print("system is in dead mode, devices need to be manually put in correct state")	
-		okdialog("system is in dead mode, devices need to be manually put in correct state")	
-		return 0
-	}
+	//if (returnDeadFlag().isDead())
+	//{
+	//	print("system is in dead mode, devices need to be manually put in correct state")	
+	//	okdialog("system is in dead mode, devices need to be manually put in correct state")	
+	//	return 0
+	//}
 
 
 	// if unsafe, there is nothing we can do without manually figuring this out
@@ -517,14 +536,24 @@ number IPrep_consistency_check()
 		return 0
 	}
 
-	// success
-	print("consistency check passed!")
+	// success,
+	print("consistency check finished!")
 	return 1
+
+}
+catch
+{
+	// #todo
+}
 
 }
 
 number IPrep_recover_deadflag()
 {
+
+	// the idea is that a succesful consistency check will recover from the 'dead' state, 
+	// but not from the 'unsafe' state
+
 	// attempts to recover from dead flag problem by asking user questions and doing tests where possible
 	// if problem is fixed, dead flag set to 0 again and workflow can continue
 	// -ask user if there was a power failure (check UPS)
@@ -548,6 +577,13 @@ number IPrep_recover_deadflag()
 	// if set by transfer:
 	// check that position is 0, if not, we are unsafe
 
+	// for now, a succesful IPrep_consistency_check() will remove the dead flag
+	// #todo: we need to add some extra checks
+	if (IPrep_consistency_check())
+	{
+		print("system no longer dead")
+		returnDeadFlag().setDead(0)
+	}
 
 }
 
@@ -668,9 +704,6 @@ number IPrep_init()
 		// init iprep workflow and set the default positions for transfer in tags
 		myWorkflow.init()
 		
-		// alignment no longer part of init
-		//myWorkflow.setDefaultPositions()
-
 		// hand over workflow object to state machine, who handles allowed transfers and keeps track of them
 		// get initial state from tag
 		myStateMachine.init(myWorkflow)
@@ -930,37 +963,6 @@ Number IPrep_Setup_Imaging()
 			break
 		}
 
-		/* // legacy
-
-		// set WD in class to current value
-		number imagingWD = myWorkflow.returnSEM().measureWD()
-		myWorkflow.returnSEM().setDesiredWD(imagingWD)
-		print("working distance to do imaging at: "+imagingWD)
-		
-		// set kv in class to current value (if needed, was needed for Quanta)
-		//myWorkflow.returnSEM().setDesiredkV(IPrepVoltage)
-
-		// register current coordinate to come back to
-		//myWorkflow.returnSEM().saveCurrentAsStoredImaging()
-
-		// blank the beam
-		myWorkflow.returnSEM().blankOn()
-
-		if(!ContinueCancelDialog( "is digiscan configured correctly?" ))
-			return returncode
-
-		// 3D volume stuff, number of slices in 3D block
-		// make the displayed 3D stack of digiscan images the size of what the capture setting is
-		//number slices = 10
-		//my3DvolumeSEM = alloc(IPrep_3Dvolume)
-		//my3DvolumePECSbefore = alloc(IPrep_3Dvolume)
-		//my3DvolumePECSafter = alloc(IPrep_3Dvolume)
-		//my3DvolumePECSbefore.initPECS_3D(slices)
-		//my3DvolumePECSafter.initPECS_3D(slices)
-		//my3DvolumeSEM.initSEM_3D(slices, DSGetWidth(4), DSGetHeight(4))
-
-		*/
-
 		returncode = 1
 	}
 	catch
@@ -1109,8 +1111,6 @@ Number IPrep_check()
 
 	// UPS status
 
-	// consistency of states (optional)
-
 	return 1
 
 
@@ -1138,6 +1138,7 @@ Number IPrep_StartRun()
 	// # can query this with: myStateMachine.getLastCompletedStep() ("IMAGE", "MILL", "SEM", "PECS", "RESEAT")
 	// we should wrap this and call this function IPrep_infer()
 
+	// now that we have concluded the system is in a good state to start, infer where we are
 	try
 	{
 		
@@ -1167,7 +1168,7 @@ Number IPrep_StartRun()
 		{
 			if (myStateMachine.getLastCompletedStep() == "MILL")
 			{
-				myloop.seti(5) // start at image after mill
+				myloop.seti(6) // start at image after mill
 				print("starting from i=5, pecs camera image after milling")
 			} 
 			else
@@ -1775,19 +1776,24 @@ class IPrep_mainloop:thread
 
 		} 
 
-		// if stop button is pressed or irrecoverable error ocuured, stop loop
-		if (returnStopVar().get1() || returnval == 0)
+		// if irrecoverable error occured, stop loop
+		if (returnval == 0)
 		{
-			returnstopVar().set1(0) // set stopvar back to 0
+			
 			IPrep_abortrun() // send UI stop command, tells ui elements to exit loop running state
-			returnPauseVar().set1(0) // set pausevar back to 0, just in case in was pressed
+
+			returnPauseVar().set1(0) // set pausevar back to 0, in case it was pressed
+			returnstopVar().set1(0) // set stopvar back to 0, in case it was pressed
+
 			return 0 
 		}
 
-		// if pause button is pressed, stop loop and wait for resume or stop
-		if (returnPauseVar().get1())
+		// if pause/stop button is pressed, stop loop and wait for resume
+		if (returnPauseVar().get1() || returnStopVar().get1())
 		{
 			returnPauseVar().set1(0) // set pausevar back to 0
+			returnstopVar().set1(0) // set stopvar back to 0
+
 			return 0 
 		}
 	
@@ -1976,7 +1982,7 @@ class IPrep_mainloop:thread
 		if (!returnDeadFlag().isSafe())
 		{
 			self.print("system unsafe when exiting mainloop: running cleanup routine")
-			IPrep_cleanup()
+			self.stop(1)
 		}
 
 		loop_running = 0
@@ -2000,7 +2006,6 @@ try
 
 	Iprep_init() // initialize hardware
 
-	//IPrep_consistency_check() // check consistency of workflowstates and hardware
 
 }
 catch

@@ -306,6 +306,12 @@ class planarSEMdock : object
 		return state
 	}
 
+	string getDockState(object self)
+	{
+		// for Mediator
+		return self.getState()
+	}
+
 	number checkSamplePresent(object self)
 	{
 		// *** public ***

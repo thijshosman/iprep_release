@@ -72,7 +72,7 @@ class workflow: object
 		{
 			// planar mode selected
 			if (sim_dock == 1)
-				mySEMdock = createDock(1)
+				mySEMdock = createDock(1) // simulator
 			else 
 				mySEMdock = createDock(2)
 
@@ -81,7 +81,7 @@ class workflow: object
 		{
 			// ebsd mode selected
 			if (sim_dock == 1)
-				mySEMdock = createDock(1)
+				mySEMdock = createDock(1) // simulator
 			else 
 				mySEMdock = createDock(3)
 
