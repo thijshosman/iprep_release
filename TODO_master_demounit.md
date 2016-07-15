@@ -13,6 +13,7 @@ This file describes what all the todos are for the demounit master development b
 - [x] gate valve: check sensors before issuing open/close to speed up workflow
 - [] check state shutter coating sensor
 - [] tmp check can fail due to unterminated rs485. add redundancy
+- [] set a flag that is used for shutoff gas flow to make sure it never gets executed twice and 0 gets remembered
 
 *** SEM ***:
 
