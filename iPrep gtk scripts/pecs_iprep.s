@@ -11,7 +11,8 @@ class pecs_iprep: object
 {
 	// handles communication with PECS for iPrep
 
-	string GVState // open or closed
+	string leftsccm, rightsccm
+	
 	string stageState // up or down
 	number stageAngle // angle
 	number lockState // UI lockout state, 1 = ui locked, 0 = unlocked
@@ -128,7 +129,7 @@ class pecs_iprep: object
 		// *** public ***
 		// gets gate valve state from sensors, SI10 = open, SI11 = closed
 
-
+		string GVState // open or closed
 
 
 		string SI10Value, SI11Value
@@ -409,6 +410,11 @@ class pecs_iprep: object
 		// *** public ***
 		// opens GV and checks that status has changed
 
+		if (self.getGVState() == "open")
+		{
+			self.print("GV already open")
+			return
+		}
 
 		self.print("opening GV")
 
@@ -422,7 +428,7 @@ class pecs_iprep: object
 		{
 			// success
 			self.print("GV opened succesfully")
-			GVState = "open"
+
 			GVPersistance.setState("open")
 			return
 		}
@@ -452,7 +458,12 @@ class pecs_iprep: object
 	{
 		// *** public ***
 		// closes GV and checks that status has changed
-
+		
+		if (self.getGVState() == "closed")
+		{
+			self.print("GV already closed")
+			return
+		}
 
 		self.print("closing GV")
 
@@ -472,7 +483,7 @@ class pecs_iprep: object
 		{
 			// success
 			self.print("GV closed succesfully")
-			GVState = "closed"
+
 			GVPersistance.setState("closed")
 			return
 		}
@@ -497,6 +508,63 @@ class pecs_iprep: object
 		}
 	*/
 
+
+	}
+
+	void shutoffArgonFlow(object self)
+	{
+		// *** public ***
+		// shuts off argon flow to maximize vacuum during transfer
+		
+		// save existing values here
+		PIPS_GetPropertyDevice("subsystem_milling", "device_mfcLeft", "set_gas_flow_sccm", leftsccm)  // works
+		PIPS_GetPropertyDevice("subsystem_milling", "device_mfcRight", "set_gas_flow_sccm", rightsccm)  // works
+
+		self.print("shutting off gas flow. remembered values are: "+leftsccm+", "+rightsccm)
+
+		// set them to 0 for manual mode
+		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcLeft", "set_gas_flow_sccm", "0")  // works,  only for manual mode
+		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcRight", "set_gas_flow_sccm", "0")  // works,  only for manual mode
+
+		// set them to 0 for auto mode
+		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcLeft", "set_auto_gas_flow_sccm", "0")  // works,  only for auto mode, overrides angle table
+		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcRight", "set_auto_gas_flow_sccm", "0")  // works,  only for auto mode, overrides angle table
+
+		// debug to check values
+		//sleep(2)
+		//string leftsccm1, rightsccm1
+		//PIPS_GetPropertyDevice("subsystem_milling", "device_mfcLeft", "read_gas_flow_sccm", leftsccm1)  // works
+		//PIPS_GetPropertyDevice("subsystem_milling", "device_mfcRight", "read_gas_flow_sccm", rightsccm1)  // works
+		//self.print("gas flow values debug: left="+leftsccm1+", right="+rightsccm1)
+
+
+	}
+
+
+	void restoreArgonFlow(object self)
+	{
+		// *** public ***
+		// restore argon flow to previous values
+		
+		// #TODO: hack to hardcode sccm values to 0.1 to compensate for drift
+		//rightsccm = "0.1"
+		//leftsccm = "0.1"
+
+		self.print("restoring gasflow to previous values: "+leftsccm+", "+rightsccm)
+
+		// set gas flow to previously remembered values
+		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcLeft", "set_gas_flow_sccm", leftsccm)  // works,  only for manual mode
+		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcRight", "set_gas_flow_sccm", rightsccm)  // works,  only for manual mode
+
+		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcLeft", "set_auto_gas_flow_sccm", leftsccm)  // works,  only for auto mode, overrides angle table
+		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcRight", "set_auto_gas_flow_sccm", rightsccm)  // works,  only for auto mode, overrides angle table
+
+		// debug to check values
+		//sleep(2)
+		//string leftsccm1, rightsccm1
+		//PIPS_GetPropertyDevice("subsystem_milling", "device_mfcLeft", "read_gas_flow_sccm", leftsccm1)  // works
+		//PIPS_GetPropertyDevice("subsystem_milling", "device_mfcRight", "read_gas_flow_sccm", rightsccm1)  // works
+		//self.print("gas flow values debug: left="+leftsccm1+", right="+rightsccm1)
 
 	}
 
