@@ -2,36 +2,37 @@
 This file describes what all the todos are for the demounit master development branch. 
 
 
-***parkertransfer***:
+*** parkertransfer ***:
 
 - [x] allow homing to happen in the wrong direction. 
 - [] direction should be in a tag so that iprep can use it either way, also for normal positions
 
-***pecs***:
+*** pecs ***:
 
 - [x] add new shutter and argon functions to simulator
 - [x] gate valve: check sensors before issuing open/close to speed up workflow
 - [] check state shutter coating sensor
 - [] tmp check can fail due to unterminated rs485. add redundancy
 
-***SEM***:
+*** SEM ***:
 
 - [] prevent sem from moving 
 - [] have a way to check that z-height is set (for example by moving 10 micron in z and seeing if it throws an exception?) -> checkFWDCoupling in sem
 - [] correct for drift in survey image, set maximum shift parameter and don't move but continue workflow if shift exceeds this
 
 
-***dock***:
+*** dock ***:
 
 - [x] set holding torque during transfer when opens so that we don't have the thing close as it is picked up or the arm comes in (planar only for now)
 - [] allow chamberscope camera on/off -> needs hardware fix? 
 
-***linearworkflow***
+*** linearworkflow ***
 
 - [] make a class for 'transfers' and make an object for each transfer that defines it instead of hardcoding it in 
 - [] linearworkflow class. linearworkflow would invoke the 'do' method in this command-like pattern. this is more flexible than what we have now. we can lateron even go to a script-like 
+- [] migrate everything over to this class and create factory to create sequences
 
-***workflow***
+*** workflow ***
 
 - [] consistencychecks should not be done by calling workflow object, but instead should be done through mediator
 - [x] don't check dock mode at iprep_init as this prevents dock swap when dm is offline
@@ -51,12 +52,12 @@ This file describes what all the todos are for the demounit master development b
 - [] order if images in 3D stack is reversed
 - [] starting iprep_image from menu increases slice number. it is not supposed to do that
 
-***UI***
+*** UI ***
 
 - [] move long function implementations from iprep_ui; these belong un iprep_main
 - [x] add iprep autofocus as a menu item
 
-***gripper***
+*** gripper ***
 
 - [] fix bug in open/close once: if gripper does not move, it won't work this way
 
@@ -74,8 +75,9 @@ This file describes what all the todos are for the demounit master development b
 - [] no longer trigger on max slices to stop workflow
 - [] make sure to grey out stop/pause after it is pressed so that we cannot resume before the actual pause has happened. this now causes problems since it calls script functions that are not supposed to be called until system is idle. 
 
-***alignment***
+*** alignment ***
 
+- all this goes to iprep_alignment.s, a different file
 - the 'default' values after calibration should be in tags, not hardcoded. now the current value used is stored in tags, but is overridden with what is in the code upon iprep_init runs
 (1)- store calibration values for SEM (scribe_pos_ebsd, scribe_pos_planar, reference_ebsd, reference_planar) and parker (pickup_dropoff_ebsd, pickup_dropoff_planar) in (sem position and numeric) tags. these do NOT change except when alignment changes. 
 (2)- store vectors for SEM coordinates (ie where is highgridfront with respect to scribe_pos? where is clear with respect to reference?) in (sem position)tags. these get applied when IPrep calibration routines are ran

@@ -5,6 +5,10 @@
 
 class transferSequence: object
 {
+	// this class acts as the base class for transfer sequences and contains all the logic. 
+	// some of these methods are to be inherited by implementations of sequences. these are: 
+	// precheck(), postcheck(), do_actual(), undo_actual(), final()
+
 	string _name
 	string _skeleton
 
@@ -42,23 +46,54 @@ class transferSequence: object
 
 	number precheck(object self)
 	{
-		// public
+		// public, inheritable
 		// checks that have to be  in order for this sequence to be allowed to run
+		// otherwise, goes directly to final. only check state of subsystems, not states controlled by higher level controls (ie mystatemachine)
 		return 1
 	}
 
 	number postcheck(object self)
 	{
-		// public
+		// public, inheritable
 		// checks that have to be performed after sequence has completed
+		// gets executed after sequence
 		return 1
+	}
+
+	number do_actual(object self)
+	{
+		// public, inheritable, must be inherited
 	}
 
 	number do(object self)
 	{
-		// public
+		// public, static
 		// performs actual transfer
 		// returns 1 when succesful, 0 when it fails
+		
+		if (!self.precheck())
+		{
+			self.print("precheck failed")
+			return 0
+		}
+
+		try
+		{
+			self.do_actual()
+		}
+		catch
+		{
+			self.print("")
+			self.final()
+		}
+
+		if(!self.postcheck())
+		{
+			self.print("postcheck failed")
+			return 0
+		}
+
+		// success
 		return 1
 	}
 
@@ -69,12 +104,22 @@ class transferSequence: object
 		return 1
 	}
 
+	number final(object self)
+	{
+		// public
+		// this method always gets executed afterwards if something fails
+	}
+
 
 }
 
 
-class reseatSequenceDefault: object
+class reseatSequenceDefault: transferSequence
 {
+
+	// implementation of transferSequence
+	// reseating procedure as of 2016-07-14
+
 	string _name
 	string _skeleton
 
