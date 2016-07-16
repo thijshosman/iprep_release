@@ -35,6 +35,8 @@ This file describes what all the todos are for the demounit master development b
 
 *** workflow ***
 
+- [] we want to make sure that an error during the workflow, ie something that puts system in dead state, generates a popup dialog that user sees
+- [] right now iprep_image puts the lastcompleted step at image, think about if you want to do this. it does allow manipulation of where workflow picks up
 - [] consistencychecks should not be done by calling workflow object, but instead should be done through mediator
 - [x] don't check dock mode at iprep_init as this prevents dock swap when dm is offline
 - [x] when a dock is no present, iprep_init throws exception and does not fully load
@@ -62,6 +64,9 @@ This file describes what all the todos are for the demounit master development b
 
 - [] fix bug in open/close once: if gripper does not move, it won't work this way
 
+*** digiscan ***
+
+- [] find way to configure digiscan with parameters from ROI object. can be done both nicely and hacky. 
 
 *** BING Bugs ***
 

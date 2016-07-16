@@ -91,7 +91,7 @@ taggroup GetTagGroup(string tagpath)
 
 class persistentTag: object
 {
-	// class that can be used to save and load a tag number or string
+	// class that can be used to save and load a eneral tag number or string
 
 	string tagpath
 
@@ -103,21 +103,26 @@ class persistentTag: object
 	void set(object self, string str1)
 	{
 		// save tag in path
-		AddTag(GetPersistentTagGroup(), tagpath, str1 )
+		TagGroupSetTagAsString(GetPersistentTagGroup(),tagpath,str1)
 		ApplicationSavePreferences()
 	}
 
 	void set(object self, number val1)
 	{
 		// save tag in path
-		AddTag(GetPersistentTagGroup(), tagpath, val1 )
+		TagGroupSetTagAsNumber(GetPersistentTagGroup(),tagpath,val1)
 		ApplicationSavePreferences()
 	}
 
 	string get(object self)
 	{
 		// return value as string
-		return GetTagString(tagpath)
+		
+		TagGroup tg = GetPersistentTagGroup() 
+		string current
+		TagGroupGetTagAsString(tg,tagpath, current )
+		return current
+
 	}
 
 	void init(object self, string tagpath1)
@@ -737,6 +742,12 @@ aMan.getCoordAsCoord("testcoord3").print()
 
 
 // --- testing persistance ---
+
+// general class
+//object rightsccmPersistance = alloc(persistentTag)
+//rightsccmPersistance.init("testtag:rightsccm")
+//rightsccmPersistance.set("7")
+//result(rightsccmPersistance.get())
 
 // text class
 //object gripperPersistance1 = alloc(statePersistance)

@@ -11,7 +11,7 @@ class pecs_iprep: object
 {
 	// handles communication with PECS for iPrep
 
-	string leftsccm, rightsccm
+	
 	
 	number stageAngle // angle
 	number lockState // UI lockout state, 1 = ui locked, 0 = unlocked
@@ -19,6 +19,11 @@ class pecs_iprep: object
 	// store gv state in tag for safety
 	object GVPersistance 
 	object stagePersistance 
+
+	// store gas flow values in tag for safety (and mode)
+	object rightsccmPersistance
+	object leftsccmPersistance
+	object mfcmodePersistance
 
 	object myMediator
 
@@ -306,6 +311,15 @@ class pecs_iprep: object
 		stagePersistance = alloc(statePersistance)
 		stagePersistance.init("PECSStageState")
 
+		leftsccmPersistance = alloc(persistentTag)
+		leftsccmPersistance.init("IPrep:PECSParameters:leftsccm")
+
+		rightsccmPersistance = alloc(persistentTag)
+		rightsccmPersistance.init("IPrep:PECSParameters:rightsccm")
+
+		mfcmodePersistance = alloc(persistentTag)
+		mfcmodePersistance.init("IPrep:PECSParameters:mfcmode")
+
 		self.getGVState()
 		self.getStageState()
 		self.getStageAngle()
@@ -553,19 +567,62 @@ class pecs_iprep: object
 		// *** public ***
 		// shuts off argon flow to maximize vacuum during transfer
 		
-		// save existing values here
-		PIPS_GetPropertyDevice("subsystem_milling", "device_mfcLeft", "set_gas_flow_sccm", leftsccm)  // works
-		PIPS_GetPropertyDevice("subsystem_milling", "device_mfcRight", "set_gas_flow_sccm", rightsccm)  // works
+		// only save values when they are nonzero. otherwise set gas flow to defualt value
+		// #TODO: this is not the nicest way to do this, but ok for now. 
+		string leftsccm, rightsccm
 
-		self.print("shutting off gas flow. remembered values are: "+leftsccm+", "+rightsccm)
+		// read the gas flow mode first
+		string gasflowmode
+		PIPS_GetPropertySubsystem("subsystem_milling", "set_gas_mode", gasflowmode) // 0 for automatic, 1 for manual 
 
+		// save the state, manual or automatic
+		mfcmodePersistance.set(gasflowmode)
+
+		// if manual, remember value and set to 0
+		if (gasflowmode == "1") // manual
+		{
+			// get manual set points
+			PIPS_GetPropertyDevice("subsystem_milling", "device_mfcLeft", "set_gas_flow_sccm", leftsccm)  // works
+			PIPS_GetPropertyDevice("subsystem_milling", "device_mfcRight", "set_gas_flow_sccm", rightsccm)  // works
+
+		}
+		else if (gasflowmode == "0") // automatic
+		{
+			// get auto set points
+			PIPS_GetPropertyDevice("subsystem_milling", "device_mfcLeft", "set_auto_gas_flow_sccm", leftsccm)  // works
+			PIPS_GetPropertyDevice("subsystem_milling", "device_mfcRight", "set_auto_gas_flow_sccm", rightsccm)  // works		
+
+		}
+
+		// now save the values
+		if (leftsccm != "0" && rightsccm != "0") // make sure we are not just saving 0, if so, dont save them
+		{
+			rightsccmPersistance.set(rightsccm)
+			leftsccmPersistance.set(leftsccm)
+		}
+		else
+		{
+			self.print("warning: attempted to set mfcs to 0. skipping..")
+		}
+		
 		// set them to 0 for manual mode
 		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcLeft", "set_gas_flow_sccm", "0")  // works,  only for manual mode
 		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcRight", "set_gas_flow_sccm", "0")  // works,  only for manual mode
 
-		// set them to 0 for auto mode
-		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcLeft", "set_auto_gas_flow_sccm", "0")  // works,  only for auto mode, overrides angle table
-		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcRight", "set_auto_gas_flow_sccm", "0")  // works,  only for auto mode, overrides angle table
+		if (gasflowmode == "0") // automatic
+		{
+			self.print("setting PECS to manual gas flow mode")
+			PIPS_SetPropertySubsystem("subsystem_milling", "set_gas_mode", "1") // set to manual if not already so
+		}
+		else
+		{
+			self.print("PECS already in manual mode")
+		}
+
+
+
+
+		self.print("shutting off gas flow. remembered values are: "+leftsccm+", "+rightsccm)
 
 		// debug to check values
 		//sleep(2)
@@ -583,18 +640,29 @@ class pecs_iprep: object
 		// *** public ***
 		// restore argon flow to previous values
 		
-		// #TODO: hack to hardcode sccm values to 0.1 to compensate for drift
-		//rightsccm = "0.1"
-		//leftsccm = "0.1"
+		string leftsccm, rightsccm, gasflowmode
+		leftsccm = leftsccmPersistance.get()
+		rightsccm = rightsccmPersistance.get()
+		gasflowmode = mfcmodePersistance.get()
+
+
+		if (leftsccm == "0" || rightsccm == "0")
+		{
+			self.print("warning: attempting to restore gas flow values to 0. using default values instead")
+		}
+
+		if (gasflowmode == "0") // automatic, should automatically put them back
+		{
+			// set back to automatic
+			PIPS_SetPropertySubsystem("subsystem_milling", "set_gas_mode", "0")
+		}
+
 
 		self.print("restoring gasflow to previous values: "+leftsccm+", "+rightsccm)
 
 		// set gas flow to previously remembered values
 		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcLeft", "set_gas_flow_sccm", leftsccm)  // works,  only for manual mode
 		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcRight", "set_gas_flow_sccm", rightsccm)  // works,  only for manual mode
-
-		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcLeft", "set_auto_gas_flow_sccm", leftsccm)  // works,  only for auto mode, overrides angle table
-		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcRight", "set_auto_gas_flow_sccm", rightsccm)  // works,  only for auto mode, overrides angle table
 
 		// debug to check values
 		//sleep(2)

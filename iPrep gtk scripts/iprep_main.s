@@ -462,11 +462,11 @@ number IPrep_consistency_check()
 	}
 
 	// check if the FWD is coupled right
-	if (!returnMediator().checkFWDCoupling(0))
-	{
-		print("FWD not correctly coupled")
-		returnDeadFlag().setDead(1, "SEM", "FWD not set")
-	}
+	//if (!returnMediator().checkFWDCoupling(0))
+	//{
+	//	print("FWD not correctly coupled")
+	//	returnDeadFlag().setDead(1, "SEM", "FWD not set")
+	//}
 
 	// semstage, check that current coordinates are consistent with the state 
 	if(!myWorkflow.returnSEM().checkStateConsistency())
@@ -1237,7 +1237,7 @@ Number IPrep_StopRun()
 	return 1
 }
 
-number IPrep_image()
+number IPrep_image_single()
 {
 	// supports multi ROI
 
@@ -1261,7 +1261,7 @@ number IPrep_image()
 		// Update GMS status bar - SEM imaging started
 		myPW.updateB("SEM imaging...")	
 
-		// go to ROI
+		// go to ROI1
 		print("IMAGE: going to location: "+myROI.getName())
 		myWorkflow.returnSEM().goToImagingPosition(myROI.getName())
 		
@@ -1275,12 +1275,12 @@ number IPrep_image()
 			IPrep_autofocus()
 			number afs_sleep = 1	// seconds of delay
 			sleep( afs_sleep )
-/*
+
 			number current_focus = myWorkflow.returnSEM().measureWD()	
-			number saved_focus = returnROIManager().getFocus()
+			number saved_focus = myROI.getFocus()
 			number change = current_focus - saved_focus
 			print("IMAGE: Autofocus changed focus value by "+change+" mm")
-*/
+
 		}
 		else if (myROI.getAFMode() == 2) // no autofocus, use stored value
 		{
@@ -1344,11 +1344,12 @@ number IPrep_image()
 		image temp_slice_im
 		
 		// digiscan
+
 		// can set digiscan parameter taggroup from this ROI to overwrite 'capture' settings
 		//myWorkflow.returnDigiscan().config(dsp)
 		// or use digiscan parameters as setup in the normal 'capture' at this moment
 		myWorkflow.returnDigiscan().config()
-
+		
 		// fix magnificationbug on Quanta
 		// second time, before imaging
 		WorkaroundQuantaMagBug()
@@ -1356,7 +1357,7 @@ number IPrep_image()
 		myWorkflow.returnDigiscan().acquire(temp_slice_im)
 
 
-		//AcquireDigiscanImage(temp_slice_im )
+		
 		
 		// Verify SEM is functioning properly - pause acquisition otherwise (might be better to do before AFS with a test scan, easier here)
 		// if tag exists
@@ -1393,6 +1394,205 @@ number IPrep_image()
 
 		// Close Digiscan image
 		ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
+		imdoc.ImageDocumentClose(0)
+			
+		// add image to 3D volume and update 
+		// quietly ignore if stack is not initialized
+		try
+		{
+			my3DvolumeSEM.addSlice(temp_slice_im)
+			my3DvolumeSEM.show()
+		}
+		catch
+		{
+			print("ignoring 3D volume stack")
+			break
+		}
+
+		// Update GMS status bar - SEM imaging done
+		myPW.updateB("SEM imaging completed")
+		print("IMAGE: SEM mag 2 = "+EMGetMagnification())
+
+		// do post-imaging
+		myStateMachine.stop_image()  
+
+		myPW.updateB("imaging done")
+		print("imaging done")
+
+		returncode = 1
+
+	}
+	catch
+	{
+		
+		// system caught unhandled exception and is now considered dead/unsafe
+		print("exception caught in iprep_image(): "+GetExceptionString())
+
+		// an exception in iprep_imaging is most likely safe
+		returnDeadFlag().setDead(1, "SEM", "exception in iprep_image: "+GetExceptionString())
+
+		//returnDeadFlag().setDeadUnSafe()
+
+		break // so that flow continues
+
+	}
+
+	return returncode
+
+}
+
+number IPrep_image()
+{
+	// 2 ROIS, first new ROI
+
+	number returncode = 0
+
+	ImageDocument imdoc
+
+	try
+	{
+
+		// tell the state machine it is time to image
+		myStateMachine.start_image()
+
+		// Update GMS status bar - SEM imaging started
+		myPW.updateB("SEM imaging...")	
+
+
+
+		// *** get the ROI (default/StoredImaging in this case) and set up everything not related to digiscan
+		
+		object myROI 
+		string name1 = "StoredImaging"
+		if (!returnROIManager().getROIAsObject(name1, myROI))
+		{
+			print("IMAGE: tag does not exist!")
+			return returncode
+		}
+
+		// go to ROI1
+		print("IMAGE: going to location: "+myROI.getName())
+		myWorkflow.returnSEM().goToImagingPosition(myROI.getName())
+		
+		// fix magnificationbug on Quanta
+		WorkaroundQuantaMagBug()
+
+		// focus
+		if (myROI.getAFMode() == 1) //autofocus on every slice
+		{
+			print("IMAGE: autofocusing")
+			IPrep_autofocus()
+			number afs_sleep = 1	// seconds of delay
+			sleep( afs_sleep )
+
+			number current_focus = myWorkflow.returnSEM().measureWD()	
+			number saved_focus = myROI.getFocus()
+			number change = current_focus - saved_focus
+			print("IMAGE: Autofocus changed focus value by "+change+" mm")
+
+		}
+		else if (myROI.getAFMode() == 2) // no autofocus, use stored value
+		{
+			print("IMAGE: focus is: "+myROI.getFocus())
+			myWorkflow.returnSEM().setDesiredWD(myROI.getFocus()) // automatically sets it after storing it in object
+		}
+
+		// brightness
+		if(returnROIEnables().brightness())
+		{
+			print("IMAGE: brightness is: "+myROI.getBrightness())
+			myROI.getBrightness()
+		}
+
+		// contrast
+		if(returnROIEnables().contrast())
+		{
+			print("IMAGE: contrast is: "+myROI.getContrast())
+			myROI.getContrast()
+		}
+
+		// mag
+		if(returnROIEnables().mag())
+		{
+			print("IMAGE: magnification is: "+myROI.getMag())
+			myROI.getMag()
+		}
+
+		// voltage
+		if(returnROIEnables().voltage())
+		{
+			print("IMAGE: voltage is: "+myROI.getVoltage())
+			myROI.getVoltage()
+		}
+
+		// ss
+		if(returnROIEnables().ss())
+		{
+			print("IMAGE: spot size is: "+myROI.getss())
+			myROI.getss()
+		}	
+
+		// stigx
+		if(returnROIEnables().stigx())
+		{
+			print("IMAGE: stigmation in X is: "+myROI.getStigx())
+			myROI.getStigx()
+		}
+
+		// stigy
+		if(returnROIEnables().stigy())
+		{
+			print("IMAGE: stigmation in Y is: "+myROI.getStigy())
+			myROI.getStigy()
+		}
+
+		// fix magnificationbug on Quanta
+		// second time, before imaging
+		WorkaroundQuantaMagBug()
+
+		// get second ROI (ExtraROI)
+		
+		object myExtraROI
+		string name2 = "ExtraROI"
+		returnROIManager().getROIAsObject(name2, myExtraROI)
+
+
+		// *** image ExtraROI using ROI digiscan parameters
+/*
+		//get digiscan parameters saved in ROI
+		taggroup dsp = myExtraROI.getDigiscanParam()
+
+		// create image
+		image temp_slice_im_ExtraROI
+		
+		// set up digiscan using settings from ROI
+		myWorkflow.returnDigiscan().config(dsp)
+		
+		// acquire
+		myWorkflow.returnDigiscan().acquire(temp_slice_im_ExtraROI)
+
+		// Save Digiscan image
+		IPrep_saveSEMImage(temp_slice_im_ExtraROI, "digiscan_extraROI")
+
+		// Close Digiscan image
+		imdoc = ImageGetOrCreateImageDocument(temp_slice_im_ExtraROI)
+		imdoc.ImageDocumentClose(0)
+*/
+
+		// *** image default ROI using default capture digiscan parameters
+		
+		image temp_slice_im
+
+		// or use digiscan parameters as setup in the normal 'capture' at this moment
+		myWorkflow.returnDigiscan().config()
+		
+		myWorkflow.returnDigiscan().acquire(temp_slice_im)
+		
+		// Save Digiscan image
+		IPrep_saveSEMImage(temp_slice_im, "digiscan")
+
+		// Close Digiscan image
+		imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
 		imdoc.ImageDocumentClose(0)
 			
 		// add image to 3D volume and update 
@@ -1576,7 +1776,7 @@ Number IPrep_Mill()
 
 		myPW.updateB("PECS milling done")
 		
-		print("milling done. new slice number: "+IPrep_sliceNumber())
+		print("milling done on slice number: "+IPrep_sliceNumber())
 	
 		returncode = 1
 

@@ -61,11 +61,24 @@ class digiscan_iprep : object
 
 	void config(object self, taggroup DSParam)
 	{
+		// copy the parameters from DSParam taggroup
+
+		width = 100
+		height = 100
+		pixelTime = 4
+		lineSync = 0
+		rotation = 0
+
+		signed = 0	// Image has to be of type unsigned-integer
+		datatype = 2	// Currently this is hard coded - no way to read from DS plugin - #TODO: fix
 		
+		signalIndex = 0		// Only 1 signal supported now - #TODO: fix
+		name = "0"
+
 		// Copy all tags in the TagGroup 'sTG' into the TagGroup 'gTG' 
-		taggroup subtag
-		GetPersistentTagGroup().TagGroupGetTagAsTagGroup("Private:DigiScan:Faux:Setup:Record", subtag )
-		subtag.TagGroupReplaceTagsWithCopy( DSParam )
+		//taggroup subtag
+		//GetPersistentTagGroup().TagGroupGetTagAsTagGroup("Private:DigiScan:Faux:Setup:Record", subtag )
+		//subtag.TagGroupReplaceTagsWithCopy( DSParam )
 		// #TODO: this is not the correct digiscan tag
 		
 		self.config()
