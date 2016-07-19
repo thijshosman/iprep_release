@@ -516,6 +516,11 @@ class pecs_iprep: object
 		// *** public ***
 		// shuts off argon flow to maximize vacuum during transfer
 		
+		// 2016-07-18: since we had some problems here with values staying at 0 after failed
+		// runs, we will, for now, set these values to a hard 0.1, which works for all voltages. 
+		// we will also set the 'mode' to manual so that we dont mess with auto flow 
+		// all this is solved on the demo unit master branch in an elegant way
+
 		// save existing values here
 		PIPS_GetPropertyDevice("subsystem_milling", "device_mfcLeft", "set_gas_flow_sccm", leftsccm)  // works
 		PIPS_GetPropertyDevice("subsystem_milling", "device_mfcRight", "set_gas_flow_sccm", rightsccm)  // works
@@ -526,18 +531,8 @@ class pecs_iprep: object
 		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcLeft", "set_gas_flow_sccm", "0")  // works,  only for manual mode
 		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcRight", "set_gas_flow_sccm", "0")  // works,  only for manual mode
 
-		// set them to 0 for auto mode
-		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcLeft", "set_auto_gas_flow_sccm", "0")  // works,  only for auto mode, overrides angle table
-		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcRight", "set_auto_gas_flow_sccm", "0")  // works,  only for auto mode, overrides angle table
-
-		// debug to check values
-		//sleep(2)
-		//string leftsccm1, rightsccm1
-		//PIPS_GetPropertyDevice("subsystem_milling", "device_mfcLeft", "read_gas_flow_sccm", leftsccm1)  // works
-		//PIPS_GetPropertyDevice("subsystem_milling", "device_mfcRight", "read_gas_flow_sccm", rightsccm1)  // works
-		//self.print("gas flow values debug: left="+leftsccm1+", right="+rightsccm1)
-
-
+		// set mode to manual
+		PIPS_SetPropertySubsystem("subsystem_milling", "set_gas_mode", 1)  
 	}
 
 
@@ -546,25 +541,22 @@ class pecs_iprep: object
 		// *** public ***
 		// restore argon flow to previous values
 		
+		// see notes on shutoff
+
 		// #TODO: hack to hardcode sccm values to 0.1 to compensate for drift
-		//rightsccm = "0.1"
-		//leftsccm = "0.1"
+		rightsccm = "0.1"
+		leftsccm = "0.1"
 
 		self.print("restoring gasflow to previous values: "+leftsccm+", "+rightsccm)
+
+		// set mode to manual
+		PIPS_SetPropertySubsystem("subsystem_milling", "set_gas_mode", 1)  		
 
 		// set gas flow to previously remembered values
 		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcLeft", "set_gas_flow_sccm", leftsccm)  // works,  only for manual mode
 		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcRight", "set_gas_flow_sccm", rightsccm)  // works,  only for manual mode
 
-		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcLeft", "set_auto_gas_flow_sccm", leftsccm)  // works,  only for auto mode, overrides angle table
-		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcRight", "set_auto_gas_flow_sccm", rightsccm)  // works,  only for auto mode, overrides angle table
 
-		// debug to check values
-		//sleep(2)
-		//string leftsccm1, rightsccm1
-		//PIPS_GetPropertyDevice("subsystem_milling", "device_mfcLeft", "read_gas_flow_sccm", leftsccm1)  // works
-		//PIPS_GetPropertyDevice("subsystem_milling", "device_mfcRight", "read_gas_flow_sccm", rightsccm1)  // works
-		//self.print("gas flow values debug: left="+leftsccm1+", right="+rightsccm1)
 
 	}
 
