@@ -550,7 +550,7 @@ class pecs_iprep: object
 		self.print("restoring gasflow to previous values: "+leftsccm+", "+rightsccm)
 
 		// set mode to manual
-		PIPS_SetPropertySubsystem("subsystem_milling", "set_gas_mode", 1)  		
+		PIPS_SetPropertySubsystem("subsystem_milling", "set_gas_mode", "1")  		
 
 		// set gas flow to previously remembered values
 		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcLeft", "set_gas_flow_sccm", leftsccm)  // works,  only for manual mode
