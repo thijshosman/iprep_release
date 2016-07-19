@@ -532,7 +532,7 @@ class pecs_iprep: object
 		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcRight", "set_gas_flow_sccm", "0")  // works,  only for manual mode
 
 		// set mode to manual
-		PIPS_SetPropertySubsystem("subsystem_milling", "set_gas_mode", 1)  
+		PIPS_SetPropertySubsystem("subsystem_milling", "set_gas_mode", "1")  
 	}
 
 
