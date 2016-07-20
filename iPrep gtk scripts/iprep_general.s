@@ -269,6 +269,16 @@ class safetyMediator:object
 
 	}
 
+	string getShutterState(object self)
+	{
+		// returns the current state of the coating shutter
+		string status
+
+		status = pecs.getShutterState()
+
+		return status // "in", "out", "unknown"
+	}
+
 	number checkFWDCoupling(object self, number active)
 	{
 		// check if FWD is coupled correctly

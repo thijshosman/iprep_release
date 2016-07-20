@@ -7,7 +7,7 @@ class dock_simulator : object
 	number timeout // time allowed to take to get to intended position
 	string cmd,reply
 	object SEMdockPersistance
-	object sampleDockSamplePresence
+	//object sampleDockSamplePresence
 
 	object myMediator	
 
@@ -71,14 +71,14 @@ class dock_simulator : object
 		// *** private ***
 		// check state from sensor input
 
-		string sample = sampleDockSamplePresence.getState()
+//		string sample = sampleDockSamplePresence.getState()
 
 		state = SEMdockPersistance.getState()
 
-		if (sample == "found")
-			sampleStatus = 1
-		else
-			sampleStatus = 0
+//		if (sample == "found")
+//			sampleStatus = 1
+//		else
+//			sampleStatus = 0
 
 
 		if (view == 1)
@@ -125,8 +125,8 @@ class dock_simulator : object
 		SEMdockPersistance.init("SEMdock")
 
 		// for simulating sample presence
-		sampleDockSamplePresence = alloc(statePersistance)
-		sampleDockSamplePresence.init("simulationparameters:sampleDockSamplePresence")
+		//sampleDockSamplePresence = alloc(statePersistance)
+		//sampleDockSamplePresence.init("simulationparameters:sampleDockSamplePresence")
 
 
 		address = 2

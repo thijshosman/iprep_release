@@ -353,198 +353,198 @@ number IPrep_consistency_check()
 	try
 	{
 
-	print("iprep consistency check:")
+		print("iprep consistency check:")
 
-	// workflow state machine
-	print("current workflow state: "+myStateMachine.getCurrentWorkflowState())
+		// workflow state machine
+		print("current workflow state: "+myStateMachine.getCurrentWorkflowState())
 
-	// determine where workflow is. used in case of DM crash or powerfailure of system. will tell user
-	// where system was when it was still functioning
-	if (myStateMachine.getCurrentWorkflowState() == "onTheWayToPECS"  || myStateMachine.getCurrentWorkflowState() == "onTheWayToSEM")
-	{	
-		// system crashed when doing transfer. nothing we can do. contact service and do a manual recovery
-		print("DM terminated when system was "+myStateMachine.getCurrentWorkflowState()+", manual recovery needed")
-		returnDeadFlag().setDeadUnSafe()
-
-	}
-	else if (myStateMachine.getCurrentWorkflowState() == "PECS") // sample was in PECS
-	{
-		// system was last in PECS, but did milling finish
-		print("last finished step: "+myStateMachine.getLastCompletedStep())
-		if (myStateMachine.getLastCompletedStep() == "MILL") // did milling finish? 
+		// determine where workflow is. used in case of DM crash or powerfailure of system. will tell user
+		// where system was when it was still functioning
+		if (myStateMachine.getCurrentWorkflowState() == "onTheWayToPECS"  || myStateMachine.getCurrentWorkflowState() == "onTheWayToSEM")
 		{	
+			// system crashed when doing transfer. nothing we can do. contact service and do a manual recovery
+			print("DM terminated when system was "+myStateMachine.getCurrentWorkflowState()+", manual recovery needed")
+			returnDeadFlag().setDeadUnSafe()
 
-			print("milling was finished before DM terminated")
 		}
-		else if (myStateMachine.getLastCompletedStep() == "RESEAT")
+		else if (myStateMachine.getCurrentWorkflowState() == "PECS") // sample was in PECS
 		{
+			// system was last in PECS, but did milling finish
+			print("last finished step: "+myStateMachine.getLastCompletedStep())
+			if (myStateMachine.getLastCompletedStep() == "MILL") // did milling finish? 
+			{	
 
-			print("reseating was finished before DM terminated")
+				print("milling was finished before DM terminated")
+			}
+			else if (myStateMachine.getLastCompletedStep() == "RESEAT")
+			{
+
+				print("reseating was finished before DM terminated")
+			}
+			else // milling did not finish
+			{
+
+				print("milling was not finished when workflow was aborted")
+			}
 		}
-		else // milling did not finish
+		else if (myStateMachine.getCurrentWorkflowState() == "SEM") // sample was in SEM
 		{
+			print("last finished step: "+myStateMachine.getLastCompletedStep())
+			if (myStateMachine.getLastCompletedStep() == "IMAGE") // did imaging finish?
+			{	
 
-			print("milling was not finished when workflow was aborted")
-		}
-	}
-	else if (myStateMachine.getCurrentWorkflowState() == "SEM") // sample was in SEM
-	{
-		print("last finished step: "+myStateMachine.getLastCompletedStep())
-		if (myStateMachine.getLastCompletedStep() == "IMAGE") // did imaging finish?
-		{	
-
-			print("imaging was finished before DM terminated")
-		}
-		else
-		{
-			
-			print("imaging was not finished when workflow was aborted")
-		}		
-	}
-	else
-	{
-		// workflow in unknown state, set dead unsafe. unlikely catch all state
-		print("DM crashed when system was "+myStateMachine.getCurrentWorkflowState()+", manual recovery needed")
-		returnDeadFlag().setDead(1, "state machine", "DM crashed when system was "+myStateMachine.getCurrentWorkflowState()+", manual recovery needed")
-		returnDeadFlag().setSafety(0, "current workflow state not known: "+myStateMachine.getCurrentWorkflowState())
-
-	}
-
-	// sample is either in SEM Dock or on PECS stage, so we can most likely recover
-	// figure out state of hardware one by one by running corresponding consistencychecks
-
-	// pips
-	// -check gate valve against sensor values
-	// -check stage state 
-	if (!myWorkflow.returnPecs().GVConsistencyCheck())
-	{
-		// GV is not nicely opened or closed
-		// system is now dead
-		print("GV:sensordata do not agree with previous save state. either caused by a malfunction or powerloss")
-		returnDeadFlag().setDead(1, "GV", "GV state unknown: manual recovery needed")
-		
-	}
-	else
-	{
-		print("GV state consistent")
-	}
-
-
-	if (!myWorkflow.returnPecs().StageConsistencyCheck())
-	{
-		if(!okcanceldialog("is the PECS stage in a known position?"))
-		{	
-			print("PECS stage:sensordata do not agree with previous save state. either caused by a malfunction, powerloss or argon pressure loss")
-			returnDeadFlag().setDead(1, "PECS", "pecs stage not in well defined position")
-		
-		}
-	}
-	else
-	{
-		print("PECS stage state consistent")
-	}
-
-
-	// transfer, is saved position similar to where it thinks it is?
-	if (myWorkflow.returnTransfer().consistencycheck() != 1)
-	{
+				print("imaging was finished before DM terminated")
+			}
+			else
+			{
 				
-		print("transfer controller: stage is not where system thinks it is. manual recovery needed")
-		returnDeadFlag().setDead(1, "TRANSFER", "transfer system not where system thinks it is. caused by faulted drive or powerloss while system was not at home")
-		
-		// set unsafe
-		returnDeadFlag().setSafety(0, "transfer system not where system thinks it is. caused by faulted drive or powerloss while system was not at home")
-
-	}
-	else
-	{
-		print("Transfer stage state consistent")
-	}
-
-	// check if the FWD is coupled right
-	//if (!returnMediator().checkFWDCoupling(0))
-	//{
-	//	print("FWD not correctly coupled")
-	//	returnDeadFlag().setDead(1, "SEM", "FWD not set")
-	//}
-
-	// semstage, check that current coordinates are consistent with the state 
-	if(!myWorkflow.returnSEM().checkStateConsistency())
-	{
-
-		if (okcanceldialog("SEM stage not where it should be. home to clear? "))
+				print("imaging was not finished when workflow was aborted")
+			}		
+		}
+		else
 		{
-			print("homing SEM stage to clear")
-			myWorkflow.returnSEM().homeToClear()
+			// workflow in unknown state, set dead unsafe. unlikely catch all state
+			print("DM crashed when system was "+myStateMachine.getCurrentWorkflowState()+", manual recovery needed")
+			returnDeadFlag().setDead(1, "state machine", "DM crashed when system was "+myStateMachine.getCurrentWorkflowState()+", manual recovery needed")
+			returnDeadFlag().setSafety(0, "current workflow state not known: "+myStateMachine.getCurrentWorkflowState())
+
+		}
+
+		// sample is either in SEM Dock or on PECS stage, so we can most likely recover
+		// figure out state of hardware one by one by running corresponding consistencychecks
+
+		// pips
+		// -check gate valve against sensor values
+		// -check stage state 
+		if (!myWorkflow.returnPecs().GVConsistencyCheck())
+		{
+			// GV is not nicely opened or closed
+			// system is now dead
+			print("GV:sensordata do not agree with previous save state. either caused by a malfunction or powerloss")
+			returnDeadFlag().setDead(1, "GV", "GV state unknown: manual recovery needed")
 			
 		}
 		else
 		{
-			print("sem stage: stage coordinates are not consistent with what the state of the stage is")
-			returnDeadFlag().setDead(1, "SEM", "SEM stage in "+myWorkflow.returnSEM().getState()+", but not at state coordinates of that state")
-		
-			// set unsafe
-			//returnDeadFlag().setSafety(0, "SEM stage in "+myWorkflow.returnSEM().getState()+", but not at state coordinates of that state")
+			print("GV state consistent")
 		}
-	} 
-	else
-	{
-		print("SEM stage state consistent")
-	}
 
-	// dock mode
-	// check that new mode is consistent with readout of dock
-	if (getSystemMode() != returnMediator().detectMode())
-	{
-		print(getSystemMode()+" dock not detected. detected dock is "+returnMediator().detectMode())
 
-		// give user option to ignore
-		if (!okcanceldialog("dock mode not detected. detected "+returnMediator().detectMode()+", but mode is set to "+getSystemMode()+". continue?"))
+		if (!myWorkflow.returnPecs().StageConsistencyCheck())
 		{
+			if(!okcanceldialog("is the PECS stage in a known position?"))
+			{	
+				print("PECS stage:sensordata do not agree with previous save state. either caused by a malfunction, powerloss or argon pressure loss")
+				returnDeadFlag().setDead(1, "PECS", "pecs stage not in well defined position")
 			
-			returnDeadFlag().setDead(1, "DOCK", getSystemMode()+" dock not detected. detected dock is "+returnMediator().detectMode())
+			}
 		}
-		print("ignoring dock warning")
+		else
+		{
+			print("PECS stage state consistent")
+		}
+
+
+		// transfer, is saved position similar to where it thinks it is?
+		if (myWorkflow.returnTransfer().consistencycheck() != 1)
+		{
+					
+			print("transfer controller: stage is not where system thinks it is. manual recovery needed")
+			returnDeadFlag().setDead(1, "TRANSFER", "transfer system not where system thinks it is. caused by faulted drive or powerloss while system was not at home")
+			
+			// set unsafe
+			returnDeadFlag().setSafety(0, "transfer system not where system thinks it is. caused by faulted drive or powerloss while system was not at home")
+
+		}
+		else
+		{
+			print("Transfer stage state consistent")
+		}
+
+		// check if the FWD is coupled right
+		//if (!returnMediator().checkFWDCoupling(0))
+		//{
+		//	print("FWD not correctly coupled")
+		//	returnDeadFlag().setDead(1, "SEM", "FWD not set")
+		//}
+
+		// semstage, check that current coordinates are consistent with the state 
+		if(!myWorkflow.returnSEM().checkStateConsistency())
+		{
+
+			if (okcanceldialog("SEM stage not where it should be. home to clear? "))
+			{
+				print("homing SEM stage to clear")
+				myWorkflow.returnSEM().homeToClear()
+				
+			}
+			else
+			{
+				print("sem stage: stage coordinates are not consistent with what the state of the stage is")
+				returnDeadFlag().setDead(1, "SEM", "SEM stage in "+myWorkflow.returnSEM().getState()+", but not at state coordinates of that state")
+			
+				// set unsafe
+				//returnDeadFlag().setSafety(0, "SEM stage in "+myWorkflow.returnSEM().getState()+", but not at state coordinates of that state")
+			}
+		} 
+		else
+		{
+			print("SEM stage state consistent")
+		}
+
+		// dock mode
+		// check that new mode is consistent with readout of dock
+		if (getSystemMode() != returnMediator().detectMode())
+		{
+			print(getSystemMode()+" dock not detected. detected dock is "+returnMediator().detectMode())
+
+			// give user option to ignore
+			if (!okcanceldialog("dock mode not detected. detected "+returnMediator().detectMode()+", but mode is set to "+getSystemMode()+". continue?"))
+			{
+				
+				returnDeadFlag().setDead(1, "DOCK", getSystemMode()+" dock not detected. detected dock is "+returnMediator().detectMode())
+			}
+			print("ignoring dock warning")
+		}
+		else
+		{
+			print("dock mode consistent: "+returnMediator().detectMode())
+		}
+
+		// dock state
+		// #todo
+
+		// gripper
+		// #todo: what if stuck in open position? go to unsafe, since gripper problems cannot be easily fixed!
+
+
+
+		// if dead, return 0
+		//if (returnDeadFlag().isDead())
+		//{
+		//	print("system is in dead mode, devices need to be manually put in correct state")	
+		//	okdialog("system is in dead mode, devices need to be manually put in correct state")	
+		//	return 0
+		//}
+
+
+		// if unsafe, there is nothing we can do without manually figuring this out
+		if (!returnDeadFlag().isSafe())
+		{
+			print("system is in unsafe mode, please contact Gatan service")	
+			okdialog("system is in unsafe mode, please contact Gatan service")	
+			return 0
+		}
+
+		// success,
+		print("consistency check finished!")
+		return 1
+
 	}
-	else
+	catch
 	{
-		print("dock mode consistent: "+returnMediator().detectMode())
+		// #todo
 	}
-
-	// dock state
-	// #todo
-
-	// gripper
-	// #todo: what if stuck in open position? go to unsafe, since gripper problems cannot be easily fixed!
-
-
-
-	// if dead, return 0
-	//if (returnDeadFlag().isDead())
-	//{
-	//	print("system is in dead mode, devices need to be manually put in correct state")	
-	//	okdialog("system is in dead mode, devices need to be manually put in correct state")	
-	//	return 0
-	//}
-
-
-	// if unsafe, there is nothing we can do without manually figuring this out
-	if (!returnDeadFlag().isSafe())
-	{
-		print("system is in unsafe mode, please contact Gatan service")	
-		okdialog("system is in unsafe mode, please contact Gatan service")	
-		return 0
-	}
-
-	// success,
-	print("consistency check finished!")
-	return 1
-
-}
-catch
-{
-	// #todo
-}
 
 }
 
@@ -581,7 +581,7 @@ number IPrep_recover_deadflag()
 	// #todo: we need to add some extra checks
 	if (IPrep_consistency_check())
 	{
-		print("system no longer dead")
+		print("consistency check passed. system no longer dead")
 		returnDeadFlag().setDead(0)
 	}
 

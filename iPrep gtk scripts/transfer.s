@@ -8,6 +8,9 @@ class parkerTransfer:object
 	object parkerPositions // manages positions in tags
 	object myMediator
 
+	number direction // defines direction of positive axis. 
+	// 0=unset, 1=neg(motor close, as on demo unit), 2=pos(motor far, as in manchester)
+
 	String cmd, reply, state, laststate
 	number PPU // factor between encoder ticks and position (function of lead)
 	number timeout // timeout for going to position
@@ -83,6 +86,7 @@ class parkerTransfer:object
 		// *** public ***
 		// constructor
 
+		direction = 0 // unset
 		timeout = 60
 		accuracy = 0.15	
 
@@ -175,11 +179,11 @@ class parkerTransfer:object
 		number position
 		position = val(self.sendCommand("?P12290"))/PPU
 		
-		// return position for moving in positive direction (motor on outside)
-		//return position
 		
-		// return position for moving in negative direction (motor close to pecs chamber)
-		return position*-1
+		if (direction == 2) // return position for moving in positive direction (motor on outside)
+			return position
+		else if (direction == 1)// return position for moving in negative direction (motor close to pecs chamber)
+			return position*-1
 
 	}
 
@@ -207,8 +211,23 @@ class parkerTransfer:object
 		myMediator = returnMediator()
 		myMediator.registerTransfer(self)
 
+		// load direction from tag
+		object dir = alloc(persistentTag)
+		dir.init("IPrep:parkerdirection:direction")
+		direction = val(dir.get())
+		if (direction == 2)
+			self.print("direction: 2 (positive)")
+		else if (direction == 1)
+			self.print("direction: 1 (negative)")
+		else
+		{
+			string er = "direction of parker system not set. direction read = "+direction
+			self.print(er)
+			throw(er)
+		}
+
 		// load positions from globaltags
-		// TODO: check that stage has been homed since last reboot
+		// #TODO: check that stage has been homed since last reboot
 		parkerPositions = alloc(positionManager)
 		self.restoreState()
 
@@ -287,8 +306,11 @@ class parkerTransfer:object
 		self.sendCommand("jog DEC x100.000000")
 		self.sendCommand("jog JRK x0.000000")
 		self.sendCommand("jog VEL x25.000000")
-		self.sendCommand("JOG HOME x1") //home in positive direction
-
+		
+		if (direction == 1)
+			self.sendCommand("JOG HOME x1") //home in positive direction
+		else if (direction == 2)
+			self.sendCommand("JOG HOME x-1") //home in negative direction
 
 		// save previous state
 		laststate=state
@@ -344,29 +366,33 @@ class parkerTransfer:object
 		self.setMovingParameters()
 		number current_pos = self.getCurrentPosition()
 		self.print("moveposition: going to move. current pos is: "+current_pos+", going to: "+setpoint)
-		// go to setpoint in positive direction
-		//self.sendCommand("X"+setpoint)
-		
-		// go to setpoint in negative direction
-		self.sendCommand("X-"+setpoint)
 
+		if (direction == 1)// go to setpoint in negative direction
+		{
+			self.sendCommand("X-"+setpoint)
+		}
+		else if (direction == 2)// go to setpoint in positive direction
+			self.sendCommand("X"+setpoint)
+		{
+			
+		
 
 		number i = 0
 		while ((abs(setpoint-current_pos))>accuracy)
-    	{
-    		
-    		current_pos = self.getCurrentPosition()
-    		parkerPositions.saveCurrentPosition(current_pos)
+	    	{
+	    		
+	    		current_pos = self.getCurrentPosition()
+	    		parkerPositions.saveCurrentPosition(current_pos)
 			sleep(1)
-    		i++
-    		if (i>timeout)
-    		{
-    			self.print("warning, did not get to position. cur="+current_pos+", setp="+setpoint)
-    			throw("timeout. did not get to position. current pos: "+current_pos+", setp: "+setpoint)
-    			return 0
-    		}
-    		self.print("moveposition: current pos: "+current_pos+", setpoint: "+setpoint)
-    	}
+	    		i++
+	    		if (i>timeout)
+	    		{
+	    			self.print("warning, did not get to position. cur="+current_pos+", setp="+setpoint)
+	    			throw("timeout. did not get to position. current pos: "+current_pos+", setp: "+setpoint)
+	    			return 0
+	    		}
+	    		self.print("moveposition: current pos: "+current_pos+", setpoint: "+setpoint)
+	    	}
 		self.print("moveposition: arrived at: "+current_pos+", setpoint was: "+setpoint)
 		
 		return 1

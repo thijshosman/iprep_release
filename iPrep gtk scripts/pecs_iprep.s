@@ -68,9 +68,25 @@ class pecs_iprep: object
 		PIPS_GetPropertyDevice("subsystem_pumping", "device_turboPump", "read_speed_Hz", tmpSpeed)
 		self.log(2,"tmpspeed: "+tmpSpeed)
 		if (val(tmpSpeed)>1275)
-			return 1
+		{
+			return 1	
+		}
 		else
-			return 0
+		{
+			// check again to make sure:
+			PIPS_GetPropertyDevice("subsystem_pumping", "device_turboPump", "read_speed_Hz", tmpSpeed)
+			self.log(2,"tmpspeed extra check: "+tmpSpeed)
+			if (val(tmpSpeed)>1275)
+			{ 
+				// return 1 like nothing happened
+				return 1
+			}
+			else 
+			{ 
+				// now we have a real problem
+				return 0
+			}
+		}
 
 	}
 
@@ -519,13 +535,33 @@ class pecs_iprep: object
 
 	}
 
-	// TODO: register state with class and with mediator
+	
 	// TODO: synchronize the following with simulator
 	// make sure the state of the reed relay sensor is read in BING
-	// string value
-	// PIPS_GetPropertyDevice("subsystem_milling", "device_cpld", "bit_33", value)   //TSO state
+	
 	// value == "false" for inserted state, value == "true" for retracted state
 	
+	string getShutterState(object self)
+	{
+		// *** public ***
+		// get state of shutter. value == "false" for inserted state, value == "true" for retracted state
+		string value
+		PIPS_GetPropertyDevice("subsystem_milling", "device_cpld", "bit_33", value)   //TSO state
+		if (value=="true")
+		{
+			return "out"
+		}
+		else if (value == "false")
+		{
+			return "in"
+		}
+		else
+		{
+			return  "unknown"
+		}
+
+	}
+
 	void moveShutterIn(object self)
 	{
 		// *** public ***
@@ -554,6 +590,13 @@ class pecs_iprep: object
 	{
 		// *** public ***
 		// move shutter in
+
+		// check if it is already there. if so, do nothing
+		if (self.getShutterState() == "out")
+		{
+			self.print("Shutter already retracted")
+			return
+		}
 
 		// turn off av3
 		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_23", "0")

@@ -1,6 +1,9 @@
 
 This file describes what all the todos are for the demounit master development branch. 
 
+*** general/helper ***
+
+- [x] the persistance classes need to throw a readable exception when a tag is not found to facilitate easy fixes on systems that do not have all the tags. 
 
 *** parkertransfer ***:
 
@@ -11,9 +14,9 @@ This file describes what all the todos are for the demounit master development b
 
 - [x] add new shutter and argon functions to simulator
 - [x] gate valve: check sensors before issuing open/close to speed up workflow
-- [] check state shutter coating sensor
-- [] tmp check can fail due to unterminated rs485. add redundancy
-- [] set a flag that is used for shutoff gas flow to make sure it never gets executed twice and 0 gets remembered
+- [x] check state shutter coating sensor
+- [x] tmp check can fail due to unterminated rs485. add redundancy
+- [x] set a flag that is used for shutoff gas flow to make sure it never gets executed twice and 0 gets remembered
 
 *** SEM ***:
 
@@ -83,7 +86,10 @@ This file describes what all the todos are for the demounit master development b
 
 *** alignment ***
 
+
 - all this goes to iprep_alignment.s, a different file
+- [] add a function to change ROI alignment by a standard vector (ie StoredImaging) due to crash
+
 - the 'default' values after calibration should be in tags, not hardcoded. now the current value used is stored in tags, but is overridden with what is in the code upon iprep_init runs
 (1)- store calibration values for SEM (scribe_pos_ebsd, scribe_pos_planar, reference_ebsd, reference_planar) and parker (pickup_dropoff_ebsd, pickup_dropoff_planar) in (sem position and numeric) tags. these do NOT change except when alignment changes. 
 (2)- store vectors for SEM coordinates (ie where is highgridfront with respect to scribe_pos? where is clear with respect to reference?) in (sem position)tags. these get applied when IPrep calibration routines are ran

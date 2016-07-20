@@ -93,7 +93,7 @@ class persistentTag: object
 {
 	// class that can be used to save and load a eneral tag number or string
 
-	string tagpath
+	string tagname
 
 	persistentTag(object self)
 	{
@@ -103,14 +103,14 @@ class persistentTag: object
 	void set(object self, string str1)
 	{
 		// save tag in path
-		TagGroupSetTagAsString(GetPersistentTagGroup(),tagpath,str1)
+		TagGroupSetTagAsString(GetPersistentTagGroup(),tagname,str1)
 		ApplicationSavePreferences()
 	}
 
 	void set(object self, number val1)
 	{
 		// save tag in path
-		TagGroupSetTagAsNumber(GetPersistentTagGroup(),tagpath,val1)
+		TagGroupSetTagAsNumber(GetPersistentTagGroup(),tagname,val1)
 		ApplicationSavePreferences()
 	}
 
@@ -120,7 +120,7 @@ class persistentTag: object
 		
 		TagGroup tg = GetPersistentTagGroup() 
 		string current
-		TagGroupGetTagAsString(tg,tagpath, current )
+		TagGroupGetTagAsString(tg,tagname, current )
 		return current
 
 	}
@@ -128,13 +128,28 @@ class persistentTag: object
 	void init(object self, string tagpath1)
 	{
 		// set the tagpath
-		tagpath = tagpath1
+		tagname = tagpath1
 		taggroup tg = GetPersistentTagGroup()
-		if ( !tg.TagGroupDoesTagExist(tagpath) )
+		if ( !tg.TagGroupDoesTagExist(tagname) )
+		{	
 			self.set("default_initialized")
-		ApplicationSavePreferences()
-
+			ApplicationSavePreferences()
+			
+			
+		}
 		
+		// check if tag has real value, not just "default_initialized"
+		string current
+		TagGroupGetTagAsString(tg,tagname, current )
+		if (current == "default_initialized")
+		{
+			string er = "persistentTag: "+tagname+" exists but has default value, please set to correct state"
+			result(er+"\n")
+			throw(er)	
+		}
+
+
+
 	}
 
 
@@ -142,12 +157,33 @@ class persistentTag: object
 
 class statePersistance:object
 {
+	// general class to contain tag "state" in path following "IPrep" subtag
 	string tagname
 	void init(object self, string name) 
 	{
 		tagname = name
-			// #TODO: create tag if it does not exist yet
+		
+		taggroup tg = GetPersistentTagGroup()
 
+		// check if tag already exists
+		if ( !tg.TagGroupDoesTagExist("IPrep:"+tagname) )
+		{	
+			// tag does not yet exist, create but set to "default_initialized" 
+			TagGroupSetTagAsString(tg,"IPrep:"+tagname+":state","default_initialized")
+			result("tag "+tagname+" created and set to default value\n")
+			ApplicationSavePreferences()
+
+		}
+
+		// check if tag has real value, not just "default_initialized"
+		string current
+		TagGroupGetTagAsString(tg,"IPrep:"+tagname+":state", current )
+		if (current == "default_initialized")
+		{
+			string er = "statePersistance: IPrep:"+tagname+" exists but has default value, please set to correct state"
+			result(er+"\n")
+			throw(er)	
+		}
 	}
 
 	// saves and retrieves state information from tags
@@ -173,17 +209,50 @@ class statePersistance:object
 
 class statePersistanceNumeric:object
 {
+	// stores numbers in IPrep:NameOfVale:value
+
 	// name of tag group under which this is stored
 	string tagname
 	
-	// name of the tag itself that the value beFloats to
+	// name of the tag itself that the value is stored as
 	string valueName
 
 	void init(object self, string name) 
 	{
 		tagname = name
-		valuename = "value"
-		//if (TagGroupDoesTagExist(GetPersistentTagGroup(),))
+		valueName = "value"
+		taggroup tg = GetPersistentTagGroup()
+
+/*		// create tag if it does not exist yet
+		
+		if ( !tg.TagGroupDoesTagExist("IPrep:"+tagname) )
+		{	
+			//self.set("default_initialized")
+			//ApplicationSavePreferences()
+			result("trying to create IPrep:"+tagname+", problem\n")
+			throw("tag at IPrep:"+tagname+" does not exist. please create")
+		}	
+*/
+		// check if tag already exists
+		if ( !tg.TagGroupDoesTagExist("IPrep:"+tagname) )
+		{	
+			// tag does not yet exist, create but set to "default_initialized" 
+			TagGroupSetTagAsString(tg,"IPrep:"+tagname+":"+valueName,"default_initialized")
+			result("tag "+tagname+" created and set to default value\n")
+			ApplicationSavePreferences()
+
+		}
+
+		// check if tag has real value, not just "default_initialized"
+		string current
+		TagGroupGetTagAsString(tg,"IPrep:"+tagname+":"+valueName, current )
+		if (current == "default_initialized")
+		{
+			string er = "statePersistanceNumeric: IPrep:"+tagname+" exists but has default value, please set to correct state"
+			result(er+"\n")
+			throw(er)	
+		}
+
 	}
 
 	TagGroup getStoredNumber(object self)
@@ -748,6 +817,8 @@ aMan.getCoordAsCoord("testcoord3").print()
 //rightsccmPersistance.init("testtag:rightsccm")
 //rightsccmPersistance.set("7")
 //result(rightsccmPersistance.get())
+
+
 
 // text class
 //object gripperPersistance1 = alloc(statePersistance)
