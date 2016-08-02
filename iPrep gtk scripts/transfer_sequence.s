@@ -1,127 +1,23 @@
 // $BACKGROUND$
 
+object myWorkflow = returnWorkflow()
+object myStateMachine = returnStateMachine()
+object myMediator = returnMediator()
+
 // this defines a transfer sequence: a series of moves by different subsystems. it will have a pre-check and a post-check and a do method. 
 
 
-class transferSequence: object
+class deviceSequence: object
 {
 	// this class acts as the base class for transfer sequences and contains all the logic. 
 	// some of these methods are to be inherited by implementations of sequences. these are: 
 	// precheck(), postcheck(), do_actual(), undo_actual(), final()
 
-	string _name
-	string _skeleton
-
-	void log(object self, number level, string text)
-	{
-		// log events in log files
-		LogEvent("sequence "+_name+" ", level, text)
-	}
-
-	void print(object self, string str1)
-	{
-		result("sequence "+_name+": "+str1+"\n")
-		self.log(2,str1)
-	}
-
-	string name(object self)
-	{
-		return _name
-	}
-
-	void init(object self, string name, object myTransfer)
-	{
-		// public
-		// initialize with the transfer object
-		_name = name
-		_skeleton = 1
-		self.print("name regsitered as "+ _name)
-	}
-
-	number registered(object self)
-	{
-		// return _skeleton, 1 if this class (ABS) is registered, 0 for real implementations
-		return _skeleton
-	}
-
-	number precheck(object self)
-	{
-		// public, inheritable
-		// checks that have to be  in order for this sequence to be allowed to run
-		// otherwise, goes directly to final. only check state of subsystems, not states controlled by higher level controls (ie mystatemachine)
-		return 1
-	}
-
-	number postcheck(object self)
-	{
-		// public, inheritable
-		// checks that have to be performed after sequence has completed
-		// gets executed after sequence
-		return 1
-	}
-
-	number do_actual(object self)
-	{
-		// public, inheritable, must be inherited
-	}
-
-	number do(object self)
-	{
-		// public, static
-		// performs actual transfer
-		// returns 1 when succesful, 0 when it fails
-		
-		if (!self.precheck())
-		{
-			self.print("precheck failed")
-			return 0
-		}
-
-		try
-		{
-			self.do_actual()
-		}
-		catch
-		{
-			self.print("")
-			self.final()
-		}
-
-		if(!self.postcheck())
-		{
-			self.print("postcheck failed")
-			return 0
-		}
-
-		// success
-		return 1
-	}
-
-	number undo(object self)
-	{
-		// public
-		// this method is intended to undo the sequence (if possible)
-		return 1
-	}
-
-	number final(object self)
-	{
-		// public
-		// this method always gets executed afterwards if something fails
-	}
-
-
-}
-
-
-class reseatSequenceDefault: transferSequence
-{
-
-	// implementation of transferSequence
-	// reseating procedure as of 2016-07-14
+	// timer numbers
+	number tick, tock
 
 	string _name
-	string _skeleton
+	object myWorkflow
 
 	void log(object self, number level, string text)
 	{
@@ -142,24 +38,133 @@ class reseatSequenceDefault: transferSequence
 
 	void init(object self, string name, object myWorkflow1)
 	{
-		// public
+		// public, static
 		// initialize with the transfer object
 		_name = name
-		_skeleton = 0
-		myWorkflow = myTransfer1
-		self.print("name regsitered as "+ _name)
+		myWorkflow = myWorkflow1
+		self.print("transfer "+name+" initialized")
 	}
 
-	number registered(object self)
+	number final(object self)
 	{
-		// return _skeleton, 1 if this class (ABS) is registered, 0 for real implementations
-		return _skeleton
+		// public, inheritable
+		// this method always gets executed afterwards if something fails
+		self.print("base method 'final' called")
+		return 1
 	}
 
 	number precheck(object self)
 	{
-		// public
+		// public, inheritable
 		// checks that have to be  in order for this sequence to be allowed to run
+		// otherwise, goes directly to final. only check state of subsystems, not states controlled by higher level controls (ie mystatemachine)
+		self.print("base method 'precheck' called")
+		return 1
+	}
+
+	number postcheck(object self)
+	{
+		// public, inheritable
+		// checks that have to be performed after sequence has completed
+		// gets executed after sequence
+		self.print("base method 'postcheck' called")
+		return 1
+	}
+
+	number do_actual(object self)
+	{
+		// public, inheritable
+		// must be inherited and populated
+		self.print("base method 'do_actual' called")
+	}
+
+	number do(object self)
+	{
+		// public, static
+		// performs actual transfer
+		// returns 1 when succesful, 0 when it fails
+		number returncode = 0
+
+		if (!self.precheck())
+		{
+			self.print("precheck failed")
+			return returncode
+		}
+
+		try
+		{
+			self.do_actual()
+			if(!self.postcheck())
+			{
+				self.print("postcheck failed")
+				return returncode
+			}
+
+			// success
+			returncode = 1
+		}
+		catch
+		{
+			self.print("exception caught in "+name+". msg = "+GetExceptionString()+". executing final and aborting")
+			self.final()
+			break so that flow continues
+		}
+
+		return returncode
+	}
+
+	number undo(object self)
+	{
+		// public, inheritable
+		// this method is intended to undo the sequence (if possible)
+		self.print("base method 'undo' called")
+		return 0
+	}
+
+}
+
+class testSequence: deviceSequence
+{
+	// test class that inherits transferSequence
+
+
+
+
+	number do_actual(object self)
+	{
+		result("do_actual called from child\n")
+		self.print("")
+		if (optiondown())
+	}
+
+	number undo(object self)
+	{
+		// public, inheritable
+		// this method is intended to undo the sequence (if possible)
+		self.print("undo called from child")
+		return 0
+	}
+
+}
+
+
+object aTestSequence = alloc(testSequence)
+aTestSequence.init("myTest",myWorkflow)
+aTestSequence.do()
+
+
+
+class reseatSequenceDefault: deviceSequence
+{
+
+	// implementation of transferSequence
+	// reseating procedure as of 2016-07-21
+
+
+	number precheck(object self)
+	{
+		// public
+		// no pre-check needed
 		return 1
 	}
 
@@ -167,14 +172,13 @@ class reseatSequenceDefault: transferSequence
 	{
 		// public
 		// checks that have to be performed after sequence has completed
+		// in this case there is no post-check needed
 		return 1
 	}
 
-	number do(object self)
+	number do_actual(object self)
 	{
 		// public
-		// performs actual transfer
-		// returns 1 when succesful, 0 when it fails
 		
 		// move sample out and into dovetail 
 		// use after sample transfer so that it will be in the same position as during transfer
@@ -252,51 +256,23 @@ class reseatSequenceDefault: transferSequence
 		return 0
 	}
 
+	number final(object self)
+	{
+		// public
+		// not needed in this case
+		return 1
+	}
 
 }
 
-class semtopecsSequenceDefault: object
+class semtopecsSequenceDefault: deviceSequence
 {
-	string _name
-	string _skeleton
 
-	void log(object self, number level, string text)
-	{
-		// log events in log files
-		LogEvent("sequence "+_name+" ", level, text)
-	}
-
-	void print(object self, string str1)
-	{
-		result("sequence "+_name+": "+str1+"\n")
-		self.log(2,str1)
-	}
-
-	string name(object self)
-	{
-		return _name
-	}
-
-	void init(object self, string name, object myWorkflow1)
-	{
-		// public
-		// initialize with the transfer object
-		_name = name
-		_skeleton = 0
-		myWorkflow = myTransfer1
-		self.print("name regsitered as "+ _name)
-	}
-
-	number registered(object self)
-	{
-		// return _skeleton, 1 if this class (ABS) is registered, 0 for real implementations
-		return _skeleton
-	}
 
 	number precheck(object self)
 	{
 		// public
-		// checks that have to be  in order for this sequence to be allowed to run
+		// no pre-check needed
 		return 1
 	}
 
@@ -304,17 +280,16 @@ class semtopecsSequenceDefault: object
 	{
 		// public
 		// checks that have to be performed after sequence has completed
+		// in this case there is no post-check needed
 		return 1
 	}
 
-	number do(object self)
+	number do_actual(object self)
 	{
 		// public
-		// performs actual transfer
-		// returns 1 when succesful, 0 when it fails
+		// performs actual transfer from SEM to PECS
 
-		// this method is part of speed improvements in the workflow. we try to get the sample as fast
-		// between the two points as a synchronous workflow allows. 
+		// we try to get the sample as fast between the two points as a synchronous workflow allows. 
 
 		// lockout PECS UI
 		myWorkflow.returnPecs().lockout()
@@ -330,6 +305,9 @@ class semtopecsSequenceDefault: object
 
 		// move SEM stage to clear point
 		myWorkflow.returnSEM().goToClear()
+
+		// hold dock in place to make sure it does not move down by itself as a result of spring force overcoming stepper drive
+		myWorkflow.returnSEMdock().hold()
 
 		// move SEM dock clamp up to release sample
 		myWorkflow.returnSEMdock().unclamp()
@@ -367,6 +345,13 @@ class semtopecsSequenceDefault: object
 			}
 		}
 
+		// intermediate point as not to trigger the torque limit
+		// #TODO: fix unneeded step
+		myWorkflow.returnTransfer().move("beforeGV")
+
+		// turn hold off again
+		myWorkflow.returnSEMdock().unhold()
+
 		// slide sample into dovetail
 		myWorkflow.returnTransfer().move("dropoff_pecs")
 
@@ -400,8 +385,6 @@ class semtopecsSequenceDefault: object
 		// unlock
 		myWorkflow.returnPecs().unlock()
 
-
-
 		return 1
 	}
 
@@ -413,51 +396,26 @@ class semtopecsSequenceDefault: object
 		return 0
 	}
 
+	number final(object self)
+	{
+		// public
+		// restore gas flow
+		myWorkflow.returnPecs().restoreArgonFlow()	
+		// turn hold off again
+		myWorkflowmySEMdock.unhold()
+		return 1
+	}
+
 
 }
 
-class pecstosemSequenceDefault: object
+class pecstosemSequenceDefault: deviceSequence
 {
-	string _name
-	string _skeleton
-
-	void log(object self, number level, string text)
-	{
-		// log events in log files
-		LogEvent("sequence "+_name+" ", level, text)
-	}
-
-	void print(object self, string str1)
-	{
-		result("sequence "+_name+": "+str1+"\n")
-		self.log(2,str1)
-	}
-
-	string name(object self)
-	{
-		return _name
-	}
-
-	void init(object self, string name, object myWorkflow1)
-	{
-		// public
-		// initialize with the transfer object
-		_name = name
-		_skeleton = 0
-		myWorkflow = myTransfer1
-		self.print("name regsitered as "+ _name)
-	}
-
-	number registered(object self)
-	{
-		// return _skeleton, 1 if this class (ABS) is registered, 0 for real implementations
-		return _skeleton
-	}
 
 	number precheck(object self)
 	{
 		// public
-		// checks that have to be  in order for this sequence to be allowed to run
+		// no pre-check needed
 		return 1
 	}
 
@@ -465,16 +423,16 @@ class pecstosemSequenceDefault: object
 	{
 		// public
 		// checks that have to be performed after sequence has completed
+		// in this case there is no post-check needed
 		return 1
 	}
 
-	number do(object self)
+	number do_actual(object self)
 	{
 		// public
-		// performs actual transfer
-		// returns 1 when succesful, 0 when it fails
+		// move the sample from PECS to SEM
 
-		// this method is part of speed improvements in the workflow. we try to get the sample as fast
+		// we try to get the sample as fast
 		// between the two points as a synchronous workflow allows. 
 
 		// lockout PECS UI
@@ -510,6 +468,9 @@ class pecstosemSequenceDefault: object
 
 		// move sem stage to clear point
 		myWorkflow.returnSEM().goToClear()
+
+		// hold dock in place to make sure it does not move down by itself as a result of spring force overcoming stepper drive
+		myWorkflow.returnSEMdock().hold()
 	
 		// move SEM dock up to allow sample to go in
 		myWorkflow.returnSEMdock().unclamp()
@@ -533,6 +494,19 @@ class pecstosemSequenceDefault: object
 		// gripper close
 		myWorkflow.returnGripper().close()
 	
+		// intermediate point as not to trigger the torque limit
+		// #TODO: fix unneeded step
+		myWorkflow.returnTransfer().move("beforeGV")
+
+		// SEM stage move to clear position
+		myWorkflow.returnSEM().goToClear()
+
+		// turn hold off again
+		myWorkflow.returnSEMdock().unhold()
+
+		// move SEM dock down to clamp
+		myWorkflow.returnSEMdock().clamp()
+
 		// parker move back to prehome
 		myWorkflow.returnTransfer().move("prehome")
 
@@ -544,12 +518,6 @@ class pecstosemSequenceDefault: object
 
 		// turn gas flow back on
 		myWorkflow.returnPecs().restoreArgonFlow()
-
-		// SEM stage move to clear position
-		myWorkflow.returnSEM().goToClear()
-
-		// move SEM dock down to clamp
-		myWorkflow.returnSEMdock().clamp()
 
 		if (GetTagValue("IPrep:simulation:samplechecker") == 1)
 		{
@@ -578,6 +546,31 @@ class pecstosemSequenceDefault: object
 		return 0
 	}
 
+	number final(object self)
+	{
+		// public
+		// restore gas flow
+		myWorkflow.returnPecs().restoreArgonFlow()	
+		// turn hold off again
+		myWorkflowmySEMdock.unhold()
+		return 1
+	}
+
 
 }
+
+class imageSequence: deviceSequence
+{
+
+}
+
+class millingSequence: deviceSequence
+{
+
+}
+
+
+
+
+
 

@@ -372,8 +372,9 @@ class parkerTransfer:object
 			self.sendCommand("X-"+setpoint)
 		}
 		else if (direction == 2)// go to setpoint in positive direction
-			self.sendCommand("X"+setpoint)
 		{
+			self.sendCommand("X"+setpoint)
+		}
 			
 		
 

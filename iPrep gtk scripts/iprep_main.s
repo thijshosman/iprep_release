@@ -723,8 +723,10 @@ number IPrep_init()
 	{
 		print("exception during init"+ GetExceptionString())
 		okdialog("exception during init"+ GetExceptionString())
-		return 0
+		break
+		
 	}
+	return 0
 }
 
 
@@ -796,6 +798,8 @@ number IPrep_toggle_planar_ebsd(string mode)
 
 		okdialog("dock test has succeeded. please pump down the system and recalibrate scribe mark")
 		print("done")
+		returncode = 1
+
 	}
 	catch
 	{
@@ -805,10 +809,9 @@ number IPrep_toggle_planar_ebsd(string mode)
 		returnDeadFlag().setDead(1, "mode", "mode change error: "+GetExceptionString())
 		// set unsafe
 		//returnDeadFlag().setSafety(0, "mode change error: "+GetExceptionString())
-		return returncode
+		break
 	}
 
-	returncode = 1
 
 	return returncode
 
@@ -1081,7 +1084,7 @@ Number IPrep_check()
 	// call this at the end of imaging step to check:
 	// -SEM status (ie emission current)
 	// -UPS status
-	// -consistency check
+	// -consistency check 
 	// -pecs vacuum and argon pressure
 	// -end condition met (number of slices)
 

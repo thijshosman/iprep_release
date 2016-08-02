@@ -1074,14 +1074,11 @@ class workflowStateMachine: object
 			myWorkflow.reseat() 
 			
 			/* new style
-			try
-			{
-				reseat_seq.do()
-			}
-			catch
+
+			if(!reseat_seq.do()) // check if it fails
 			{
 				// exception in transfer, see if we can undo
-				string exc = GetExceptionString()
+
 				self.print("exception during reseating: "+exc+", trying undo")
 				if (reseat_seq.undo()) // undo succesful, return to previous state
 				{
@@ -1091,7 +1088,7 @@ class workflowStateMachine: object
 				}
 				else // undo failed, throw original exception
 				{
-					throw("exception in reseat. cannot undo. mesg: "+exc)
+					throw("exception in reseat. cannot undo. read log")
 				}
 			}
 
