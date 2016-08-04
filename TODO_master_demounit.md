@@ -8,7 +8,7 @@ This file describes what all the todos are for the demounit master development b
 *** parkertransfer ***:
 
 - [x] allow homing to happen in the wrong direction. 
-- [] direction should be in a tag so that iprep can use it either way, also for normal positions
+- [x] direction should be in a tag so that iprep can use it either way, also for normal positions
 
 *** pecs ***:
 
@@ -20,7 +20,6 @@ This file describes what all the todos are for the demounit master development b
 
 *** SEM ***:
 
-- [] prevent sem from moving 
 - [] have a way to check that z-height is set (for example by moving 10 micron in z and seeing if it throws an exception?) -> checkFWDCoupling in sem
 - [] correct for drift in survey image, set maximum shift parameter and don't move but continue workflow if shift exceeds this
 
@@ -55,8 +54,9 @@ This file describes what all the todos are for the demounit master development b
 - [] do not give warnings for pecs stage in raised or lowered position; only argon
 - [] fix pressing resume after pressing pause before it actually pauses. this causes bug
 - [] if max slices is reached already and workflow has started, it still gets to running mode; needs a check
-- [] order if images in 3D stack is reversed
+- [] order of images in 3D stack is reversed
 - [] starting iprep_image from menu increases slice number. it is not supposed to do that
+- [] create factory class for image sequence for multiple ROIs
 
 *** UI ***
 

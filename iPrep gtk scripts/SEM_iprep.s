@@ -32,7 +32,6 @@ class SEM_IPrep: object
 	//object mySEMCoordManager
 
 	// coordinate objects
-	// TODO: store these in tags
 	//object reference
 	//object scribe_pos
 	//object fwdGrid
@@ -990,7 +989,7 @@ if (XYZZY)		self.setWDForImaging()
 	number checkFWDCoupling(object self, number active)
 	{
 		// check if FWD is coupled correctly
-		// -active check moves stage down to lowest point and verifies that 
+		// -active check moves stage down 5 micron to see if an exception is thrown
 		// that number is within a threshold
 		// -passive check just 
 
@@ -999,15 +998,29 @@ if (XYZZY)		self.setWDForImaging()
 		tol = GetTagValue("IPrep:limits:sem_z_tolerance")
 		pos = self.getZ()
 
+		number returnval = 0
 
 		if (active == 1)
 		{
+			
 
 			// active check
-
-			EMSetStageZ( 50000 ) // go all the way down
-			EMWaitUntilReady( )
 			number pos_down = self.getZ()
+
+			// move 10 micron
+			try
+			{
+				self.moveZAbs(pos_down+0.01,1)
+				returnval = 1
+			}
+			catch
+			{
+				self.print("error: FWD is not coupled. "+GetExceptionString())
+
+				break
+			}
+
+		/*	
 			if (pos_down > z_limit-tol && pos_down < z_limit+tol )
 			{	
 				self.print("Error: FWD is not coupled. (Z reading="+pos+")" )
@@ -1019,6 +1032,8 @@ if (XYZZY)		self.setWDForImaging()
 				self.moveZAbs(pos,1)
 				return 1
 			}
+		*/
+
 		}
 		else
 		{
@@ -1027,16 +1042,16 @@ if (XYZZY)		self.setWDForImaging()
 			if (pos > z_limit-tol && pos < z_limit+tol )
 			{	
 				self.print("Error: FWD is not coupled. (Z reading="+pos+")" )
-				return 0
+				returnval = 0
 			}
 			else
 			{
-				return 1
+				returnval = 1
 			}
 
-		
 		}	
 
+		return returnval
 
 
 	}
