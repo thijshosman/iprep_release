@@ -1561,7 +1561,14 @@ number IPrep_image()
 
 
 		// *** image ExtraROI using ROI digiscan parameters
-/*
+
+		// set mag (hardcoded for now)
+		if(returnROIEnables().mag())
+		{
+			print("IMAGE: magnification is: "+myExtraROI.getMag())
+			myWorkflow.returnSEM().setMag(myExtraROI.getMag())
+		}
+
 		//get digiscan parameters saved in ROI
 		taggroup dsp = myExtraROI.getDigiscanParam()
 
@@ -1580,9 +1587,18 @@ number IPrep_image()
 		// Close Digiscan image
 		imdoc = ImageGetOrCreateImageDocument(temp_slice_im_ExtraROI)
 		imdoc.ImageDocumentClose(0)
-*/
+
 
 		// *** image default ROI using default capture digiscan parameters
+
+
+		// mag
+		if(returnROIEnables().mag())
+		{
+			print("IMAGE: magnification is: "+myROI.getMag())
+			myWorkflow.returnSEM().setMag(myROI.getMag())
+		}
+
 		
 		image temp_slice_im
 

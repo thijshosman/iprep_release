@@ -87,6 +87,32 @@ taggroup GetTagGroup(string tagpath)
 
 }
 
+string GetTagStringFromSubtag(string tagpath, taggroup subtag)
+{
+	// check if tagpath exists, and if it does, retrieve the value and return it
+	string returnstring
+	//taggroup subtag = GetPersistentTagGroup()
+	if (TagGroupDoesTagExist(subtag,tagpath)) 
+		TagGroupGetTagAsString(subtag,tagpath,returnstring)
+	else
+		throw(tagpath+" does not exist!")
+
+	return returnstring
+}
+
+number GetTagValueFromSubtag(string tagpath, taggroup subtag)
+{
+	// check if tagpath exists, and if it does, retrieve the value and return it
+	number returnvalue
+	//taggroup subtag = GetPersistentTagGroup()
+	if (TagGroupDoesTagExist(subtag,tagpath)) 
+		TagGroupGetTagAsNumber(subtag,tagpath,returnvalue)
+	else
+		throw(tagpath+" does not exist!")
+
+	return returnvalue
+}
+
 //subtag.taggroupopenbrowserwindow(0)
 
 class persistentTag: object

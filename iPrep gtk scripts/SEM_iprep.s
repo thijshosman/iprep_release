@@ -131,14 +131,14 @@ class SEM_IPrep: object
 
 	void setMag(object self, number mag)
 	{
-		EMSetMagnification(mag)
+		EMSetMagnification(mag*1000)
 		EMUpdateCalibrationState()
-		self.print("mag set to: "+mag)
+		self.print("mag set to: "+mag*1000)
 	}
 
 	number measureMag(object self)
 	{
-		return EMGetMagnification()
+		return EMGetMagnification()/1000
 	}
 
 

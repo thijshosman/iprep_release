@@ -33,14 +33,15 @@ class digiscan_iprep : object
 	{
 		// constructor
 		configured = 0
+		// paramID is the id of the configuration used to acquire. 
+		paramID = 2	// capture ID
 
 	}
 
 	void config(object self)
 	{
-		// paramID is the id of the configuration used to acquire. 
+		// use parameters from capture as setup in DM
 		
-		paramID = 2	// capture ID
 		width = DSGetWidth( paramID )
 		height = DSGetHeight( paramID)
 		pixelTime = DSGetPixelTime( paramID )
@@ -53,9 +54,9 @@ class digiscan_iprep : object
 		signalIndex = 0		// Only 1 signal supported now - #TODO: fix
 		name = DSGetSignalName( signalIndex )
 
-	
+		// #TODO: we want this config function to set the required signals that are selected and call DSSetParameterSignal methods based on which of these are selected
 		
-		self.print("digiscan configured, height = "+height+", width = "+width+", dwell time = "+pixelTime)
+		self.print("digiscan configured using capture settings, height = "+height+", width = "+width+", dwell time = "+pixelTime)
 		configured = 1
 	}
 
@@ -63,26 +64,27 @@ class digiscan_iprep : object
 	{
 		// copy the parameters from DSParam taggroup
 
-		width = 100
-		height = 100
-		pixelTime = 4
-		lineSync = 0
-		rotation = 0
+
+		width = GetTagValueFromSubtag("Image Width",DSParam)
+		height = GetTagValueFromSubtag("Image Height",DSParam)
+		pixelTime = GetTagValueFromSubtag("Sample Time",DSParam)
+		lineSync = GetTagValueFromSubtag("Synchronize Lines",DSParam)
+		rotation = GetTagValueFromSubtag("Rotation",DSParam)
 
 		signed = 0	// Image has to be of type unsigned-integer
-		datatype = 2	// Currently this is hard coded - no way to read from DS plugin - #TODO: fix
 		
 		signalIndex = 0		// Only 1 signal supported now - #TODO: fix
+
+		datatype = 2	// Currently this is hard coded - no way to read from DS plugin - #TODO: fix
+		
 		name = "0"
 
-		// Copy all tags in the TagGroup 'sTG' into the TagGroup 'gTG' 
-		//taggroup subtag
-		//GetPersistentTagGroup().TagGroupGetTagAsTagGroup("Private:DigiScan:Faux:Setup:Record", subtag )
-		//subtag.TagGroupReplaceTagsWithCopy( DSParam )
-		// #TODO: this is not the correct digiscan tag
+		// self.config()
 		
-		self.config()
-		
+		// #TODO: we want this config function to set the required signals that are selected and call DSSetParameterSignal methods based on which of these are selected
+
+		self.print("digiscan configured using taggroup settings, height = "+height+", width = "+width+", dwell time = "+pixelTime)
+		configured = 1
 	}
 
 
