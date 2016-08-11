@@ -32,11 +32,14 @@ This file describes what all the todos are for the demounit master development b
 - [x] set holding torque during transfer when opens so that we don't have the thing close as it is picked up or the arm comes in (planar only for now)
 - [] allow chamberscope camera on/off -> needs hardware fix? 
 
-*** linearworkflow ***
+*** linearworkflow/state machine ***
 
-- [] make a class for 'transfers' and make an object for each transfer that defines it instead of hardcoding it in 
-- [] linearworkflow class. linearworkflow would invoke the 'do' method in this command-like pattern. this is more flexible than what we have now. we can lateron even go to a script-like 
-- [] migrate everything over to this class and create factory to create sequences
+- [x] make a class for 'transfers' and make an object for each transfer that defines it instead of hardcoding it in 
+- [x] linearworkflow class. linearworkflow would invoke the 'do' method in this command-like pattern. this is more flexible than what we have now. we can lateron even go to a script-like 
+- [x] migrate transfer stuff over to this class and create factory to create sequences
+- [] also migrate imaging/ebsd/eds to sequence class
+- [] migrate coating and etching to transfer sequence class
+- [] use return 0/1 instead of throwing exceptions from state machine. rewrite corresponding iprep_main methods. update ui to use dead/unsafe checks
 
 *** workflow ***
 

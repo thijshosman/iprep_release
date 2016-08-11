@@ -286,10 +286,6 @@ class workflow: object
 	}
 
 
-
-
-
-
 	void removeSampleFromSEM(object self)
 	{
 		// 1st step in SEM->PECS
@@ -956,7 +952,7 @@ class workflow: object
 class workflowStateMachine: object
 {
 	// manages state transfers in the workflow. only manages when state transfers can happen, 
-	//the specifics of a transfer is in the workflow class
+	// the specifics of a transfer is in the workflow class
 
 	object workflowStatePersistance
 	object lastCompletedStep
@@ -967,10 +963,11 @@ class workflowStateMachine: object
 	number Tick
 	number Tock
 
+	// default sequences in workflow
 	object PecsToSem_seq
 	object SemToPecs_seq
 	object reseat_seq
-	object custom_seq
+
 
 
 
@@ -982,18 +979,26 @@ class workflowStateMachine: object
 		result("StateMachine: "+str1+"\n")
 	}
 	
-	/*
+	
 	void initSequences(object self)
 	{
 		// public
 		// create sequence objects
 		
 		// reseat sequence, create and init with transfer devices
-		reseat = createSequence("reseat_default")
-		reseat.init("reseat",myworkflow)
+		reseat_seq = createSequence("reseat_default")
+		reseat_seq.init("reseat",myWorkflow)
+
+		// pecs to sem sequence, create and init with transfer devices
+		PecsToSem_seq = createSequence("pecsToSem_default")
+		PecsToSem_seq.init("pecsToSem",myWorkflow)
+
+		// Sem to pecs sequence, create and init with transfer devices
+		SemToPecs_seq = createSequence("semToPecs_default")
+		SemToPecs_seq.init("semToPecs",myWorkflow)
 
 	}
-	*/
+	
 
 
 	void workflowStateMachine(object self)
@@ -1053,9 +1058,11 @@ class workflowStateMachine: object
 		// get reference to the workflow of which the state will be managed
 		myWorkflow = workflow
 
-
 		// set state from tag
 		workflowState = workflowStatePersistance.getState()
+
+		// init sequences
+		self.initSequences()
 
 		// reset Tock 
 		Tock=0
@@ -1071,19 +1078,20 @@ class workflowStateMachine: object
 			self.changeWorkflowState("reseating")
 			
 			// old style
-			myWorkflow.reseat() 
+			//myWorkflow.reseat() 
 			
-			/* new style
+			// new style
 
 			if(!reseat_seq.do()) // check if it fails
 			{
 				// exception in transfer, see if we can undo
 
-				self.print("exception during reseating: "+exc+", trying undo")
+				self.print("exception during reseating, trying undo")
 				if (reseat_seq.undo()) // undo succesful, return to previous state
 				{
 					self.print("succesfully recovered")
 					self.changeWorkflowState("PECS")
+
 					return
 				}
 				else // undo failed, throw original exception
@@ -1092,7 +1100,7 @@ class workflowStateMachine: object
 				}
 			}
 
-			*/
+			
 			
 			self.changeWorkflowState("PECS")
 			lastCompletedStep.setState("RESEAT")
@@ -1111,13 +1119,31 @@ class workflowStateMachine: object
 			self.changeWorkflowState("onTheWayToSEM")
 			// pick up from PECS stage, drop off in SEM, retract transfer device
 
-				number tick = GetOSTickCount()
-				// fast, as fast as can be done synchronously
-				myWorkflow.fastPecsToSem()
+			number tick = GetOSTickCount()
+			// old style
+			//myWorkflow.fastPecsToSem()
 
-				
-				number tock = GetOSTickCount()
-				self.print("elapsed time PECS->SEM: "+(tock-tick)/1000+" s")
+			// new style
+			if(!PecsToSem_seq.do()) // check if it fails
+			{
+				// exception in transfer, see if we can undo
+
+				self.print("exception during reseating, trying undo")
+				if (PecsToSem_seq.undo()) // undo succesful, return to previous state
+				{
+					self.print("succesfully recovered")
+					self.changeWorkflowState("PECS")
+					return
+				}
+				else // undo failed, throw original exception
+				{
+					throw("exception in transfer pecs -> sem. cannot undo. read log")
+				}
+			}
+
+			
+			number tock = GetOSTickCount()
+			self.print("elapsed time PECS->SEM: "+(tock-tick)/1000+" s")
 
 			self.changeWorkflowState("SEM")
 			lastCompletedStep.setState("SEM")
@@ -1138,13 +1164,30 @@ class workflowStateMachine: object
 			self.changeWorkflowState("onTheWayToPECS")
 			// bring arm out, pick up from SEM stage, slide into dovetail mount on PECS stage, retract
 			
-				number tick = GetOSTickCount()
-				// fast, as fast as can be done synchronously
-				myWorkflow.fastSemToPecs()
+			number tick = GetOSTickCount()
+			// old style
+			//myWorkflow.fastSemToPecs()
 				
+			// new style
+			if(!SemToPecs_seq.do()) // check if it fails
+			{
+				// exception in transfer, see if we can undo
+
+				self.print("exception during reseating, trying undo")
+				if (SemToPecs_seq.undo()) // undo succesful, return to previous state
+				{
+					self.print("succesfully recovered")
+					self.changeWorkflowState("SEM")
+					return
+				}
+				else // undo failed, throw original exception
+				{
+					throw("exception in transfersem -> pecs. cannot undo. read log")
+				}
+			}
 				
-				number tock = GetOSTickCount()
-				self.print("elapsed time SEM->PECS: "+(tock-tick)/1000+" s")
+			number tock = GetOSTickCount()
+			self.print("elapsed time SEM->PECS: "+(tock-tick)/1000+" s")
 
 			self.changeWorkflowState("PECS")
 			lastCompletedStep.setState("PECS")

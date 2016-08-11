@@ -8,8 +8,11 @@ object createSequence(string type)
 		return alloc(semtopecsSequenceDefault)
 	else if (type == "pecsToSem_default")
 		return alloc(pecstosemSequenceDefault)
+	else if (type == "simulator")
+		return alloc(testSequence)
 	else
-		return alloc(transferSequence) // simulator
+		throw("trying to generate sequence that does not exist")
+		//return alloc(transferSequence) // simulator
 
 }
 

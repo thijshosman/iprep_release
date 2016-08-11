@@ -1,8 +1,8 @@
 // $BACKGROUND$
 
-object myWorkflow = returnWorkflow()
-object myStateMachine = returnStateMachine()
-object myMediator = returnMediator()
+//object myWorkflow = returnWorkflow()
+//object myStateMachine = returnStateMachine()
+//object myMediator = returnMediator()
 
 // this defines a transfer sequence: a series of moves by different subsystems. it will have a pre-check and a post-check and a do method. 
 
@@ -17,7 +17,6 @@ class deviceSequence: object
 	number tick, tock
 
 	string _name
-	object myWorkflow
 
 	void log(object self, number level, string text)
 	{
@@ -36,12 +35,11 @@ class deviceSequence: object
 		return _name
 	}
 
-	void init(object self, string name, object myWorkflow1)
+	void setname(object self, string name)
 	{
 		// public, static
 		// initialize with the transfer object
 		_name = name
-		myWorkflow = myWorkflow1
 		self.print("transfer "+name+" initialized")
 	}
 
@@ -105,9 +103,10 @@ class deviceSequence: object
 		}
 		catch
 		{
-			self.print("exception caught in "+name+". msg = "+GetExceptionString()+". executing final and aborting")
+			self.print("exception caught in "+_name+". msg = "+GetExceptionString()+". executing final and aborting")
 			self.final()
-			break so that flow continues
+			//break so that flow continues
+		
 		}
 
 		return returncode
@@ -127,14 +126,20 @@ class testSequence: deviceSequence
 {
 	// test class that inherits transferSequence
 
+	object myWorkflow
 
-
+	number init(object self, string name1, object workflow1)
+	{
+		self.setname(name1)
+		myWorkflow = workflow1
+	}
 
 	number do_actual(object self)
 	{
 		result("do_actual called from child\n")
-		self.print("")
-		if (optiondown())
+		//self.print("")
+		//if (optiondown())
+		return 1
 	}
 
 	number undo(object self)
@@ -148,9 +153,9 @@ class testSequence: deviceSequence
 }
 
 
-object aTestSequence = alloc(testSequence)
-aTestSequence.init("myTest",myWorkflow)
-aTestSequence.do()
+//object aTestSequence = alloc(testSequence)
+//aTestSequence.init("myTest",myWorkflow)
+//aTestSequence.do()
 
 
 
@@ -160,6 +165,14 @@ class reseatSequenceDefault: deviceSequence
 	// implementation of transferSequence
 	// reseating procedure as of 2016-07-21
 
+	// declare object since it is used below
+	object myWorkflow
+
+	number init(object self, string name1, object workflow1)
+	{
+		self.setname(name1)
+		myWorkflow = workflow1
+	}
 
 	number precheck(object self)
 	{
@@ -268,6 +281,14 @@ class reseatSequenceDefault: deviceSequence
 class semtopecsSequenceDefault: deviceSequence
 {
 
+	// declare object since it is used below
+	object myWorkflow
+
+	number init(object self, string name1, object workflow1)
+	{
+		self.setname(name1)
+		myWorkflow = workflow1
+	}
 
 	number precheck(object self)
 	{
@@ -402,7 +423,7 @@ class semtopecsSequenceDefault: deviceSequence
 		// restore gas flow
 		myWorkflow.returnPecs().restoreArgonFlow()	
 		// turn hold off again
-		myWorkflowmySEMdock.unhold()
+		myWorkflow.returnSEMdock().unhold()
 		return 1
 	}
 
@@ -411,6 +432,15 @@ class semtopecsSequenceDefault: deviceSequence
 
 class pecstosemSequenceDefault: deviceSequence
 {
+
+	// declare object since it is used below
+	object myWorkflow
+
+	number init(object self, string name1, object workflow1)
+	{
+		self.setname(name1)
+		myWorkflow = workflow1
+	}
 
 	number precheck(object self)
 	{
@@ -448,7 +478,7 @@ class pecstosemSequenceDefault: deviceSequence
 		myWorkflow.returnPecs().stageHome()
 	
 		// go to where gripper arms can safely open
-		myWorkflow.returnTransfer.move("open_pecs")
+		myWorkflow.returnTransfer().move("open_pecs")
 
 		// open gripper arms
 		myWorkflow.returnGripper().open()
@@ -552,7 +582,7 @@ class pecstosemSequenceDefault: deviceSequence
 		// restore gas flow
 		myWorkflow.returnPecs().restoreArgonFlow()	
 		// turn hold off again
-		myWorkflowmySEMdock.unhold()
+		myWorkflow.returnSEMdock().unhold()
 		return 1
 	}
 
