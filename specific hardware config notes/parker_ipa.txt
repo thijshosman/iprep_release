@@ -36,6 +36,7 @@ so ?S20 shows temperature of drive, ?C6 shows max drive temperature configuratio
 parameters: 
 torque: 
 not quite sure where the torque limit lives. it can be set by the configuration wizard and the program follows that value, but don't know what the parameters is or the command to set it. the status panel uses a "% of peek" value which is the signal output of the servo loop (P12319), but that is not it. ?C14 is also not it since it does not change. TLM is the command that the guide describes as setting the limit, ?P12328 for plus and ?P12329 for minus, which are now set to +0.4 (and -0.4). verified experimentally that 0.1 is too low. command: TLM AXIS0 0.3
+command to read: TLM AXIS0
 0.1: too low, fails on insertion
 0.4: works
 0.3: works
@@ -61,3 +62,4 @@ after swapping to different mount and back to original mount, we get problems. i
 0.200: extensive rebuilt of gripper and realignment, now operates smootly. 
 0.200: due to bing bug, stage was raised during transfer and hit the gripper when it was moving forward. didn't seem to cause damage, but did not operate smoothly until steppermotor current was changed from 20 to 25% of max, so now we need to lower limit 
 0.170: succesful transfer in air, now in vacuum.
+0.150: used to do 1000 transfers

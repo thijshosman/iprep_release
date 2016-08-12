@@ -735,10 +735,21 @@ class workflow: object
 
 		// move gripper back so that arms can close
 		myTransfer.move("open_pecs")
-		
+
 		// close gripper arms
 		myGripper.close()
-		
+
+//if (okcanceldialog("close gripper again?"))
+//{
+//	myGripper.close()
+//}
+
+		// close again if not closed all the way (bug 2016-08-12)
+		if (myGripper.getState() != "closed")
+		{
+			myGripper.close()
+		}
+
 		// go to prehome
 		myTransfer.move("prehome")
 

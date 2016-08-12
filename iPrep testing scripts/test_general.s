@@ -40,15 +40,38 @@ try
 	//myWorkflow.returnPecs().moveShutterIn()
 	//myWorkflow.returnPecs().moveShutterOut()
 	
-	// check state
-	//string value
-	//PIPS_GetPropertyDevice("subsystem_milling", "device_cpld", "bit_33", value)   //works set cpld bits individually
-	//result("TSO = " + value + "\n")
+	
+	
+	number j
+	string value1, value2, value3
+	for (j=0; j<5; j++)
+	{
+		number tick = GetOSTickCount()
+		
+		//GET check TSO
+		PIPS_GetPropertyDevice("subsystem_milling", "device_cpld", "bit_33", value1)   //works set cpld bits individually
+		//GET GV
+		PIPS_GetPropertyDevice("subsystem_milling", "device_cpld", "bit_38", value2)
+		// GET argon
+		PIPS_GetPropertyDevice("subsystem_pumping", "device_gasPressure", "read_pressure_status", value3)
+		//SET move shutter in
+		//PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_23", "1")
+		//SET move shutter out
+		//PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_23", "0")
+		//SET ilum on
+		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_24", "1")
+		number tock = GetOSTickCount()
+		result(j+": values: = " + value1+", "+value2+", "+value3 + ", time = "+(tock-tick)+" ms \n")
+		//sleep(1)
+		
+	}
+	
 	
 	
 	// *** gate valve ***
 	//myWorkflow.returnPecs().openGVandCheck()
 	//myWorkflow.returnPecs().closeGVandCheck()
+	
 	
 	//sleep(5)
 	
@@ -57,6 +80,7 @@ try
 	//myWorkflow.returnGripper().sendCommand("V300000L1400h0m25j64R")
 	//myWorkflow.returnGripper().setManualState("open")
 	//myWorkflow.returnGripper().setManualState("closed")
+	//myWorkflow.returnGripper().lookupState(1)
 	//myWorkflow.returnGripper().open()		
 	//myWorkflow.returnGripper().close()
 	
@@ -66,13 +90,13 @@ try
 /*
 number i
 
-for (i=0;i<50;i++)
+for (i=0;i<10;i++)
 {
 
 	myWorkflow.returnGripper().open()		
 	myWorkflow.returnGripper().close()
 	result("i: "+i+"\n")
-	sleep(5)
+	sleep(1)
 }
 */
 	
@@ -163,7 +187,7 @@ for (i=0;i<50;i++)
     //myWorkflow.returnTransfer().move("pickup_sem")  // location in where sample gets picked up
     //myWorkflow.returnTransfer().move("backoff_sem") // location where gripper arms can safely open/close in SEM chamber
     //myWorkflow.returnTransfer().move("dropoff_pecs") // location where sample gets dropped off in PECS
-  // myWorkflow.returnTransfer().move("dropoff_pecs_backoff") // location where sample gets dropped off in PECS
+   //myWorkflow.returnTransfer().move("dropoff_pecs_backoff") // location where sample gets dropped off in PECS
     //myWorkflow.returnTransfer().turnOff()  // turn off Parker to stop noise
     //myWorkflow.returnTransfer().move("test")  // test location from tags  
 	//result(MyWorkflow.returnTransfer().getCurrentPosition())

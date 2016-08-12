@@ -60,6 +60,7 @@ This file describes what all the todos are for the demounit master development b
 - [] do not give warnings for pecs stage in raised or lowered position; only argon
 - [] fix pressing resume after pressing pause before it actually pauses. this causes bug
 - [] if max slices is reached already and workflow has started, it still gets to running mode; needs a check
+- [] issue stop_milling command before starting workflow just to be safe. 
 
 *** imaging ***
 

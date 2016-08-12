@@ -236,8 +236,12 @@ class gripper:object
 			//self.sendCommand("gP10000R")
 
 			// 2016-06-29
+			//self.sendCommand("gP75000R")
+			//self.sendCommand("gD10000R")
+
+			// 2016-08-12
 			self.sendCommand("gP75000R")
-			self.sendCommand("gD10000R")
+			self.sendCommand("gD30000R")
 
 			self.setManualState("closed")
 			self.print("gripper closed succesfully")
