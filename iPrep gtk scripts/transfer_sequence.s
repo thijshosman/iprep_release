@@ -248,6 +248,12 @@ class reseatSequenceDefault: deviceSequence
 		// close gripper arms
 		myWorkflow.returnGripper().close()
 		
+		// close again if not closed all the way (bug 2016-08-12)
+		if (myWorkflow.returnGripper().getState() != "closed")
+		{
+			myWorkflow.returnGripper().close()
+		}
+
 		// go to prehome
 		myWorkflow.returnTransfer().move("prehome")
 
@@ -388,6 +394,12 @@ class semtopecsSequenceDefault: deviceSequence
 		// close gripper arms
 		myWorkflow.returnGripper().close()
 		
+		// close again if not closed all the way (bug 2016-08-12)
+		if (myWorkflow.returnGripper().getState() != "closed")
+		{
+			myWorkflow.returnGripper().close()
+		}		
+
 		// go to prehome
 		myWorkflow.returnTransfer().move("prehome")
 
@@ -524,6 +536,12 @@ class pecstosemSequenceDefault: deviceSequence
 		// gripper close
 		myWorkflow.returnGripper().close()
 	
+		// close again if not closed all the way (bug 2016-08-12)
+		if (myWorkflow.returnGripper().getState() != "closed")
+		{
+			myWorkflow.returnGripper().close()
+		}
+
 		// intermediate point as not to trigger the torque limit
 		// #TODO: fix unneeded step
 		myWorkflow.returnTransfer().move("beforeGV")

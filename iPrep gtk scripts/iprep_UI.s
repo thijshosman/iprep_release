@@ -244,7 +244,7 @@ void Set_autofocus_enable_dialog( void )
 void pecs_reseat(void)
 {
 	if (okcanceldialog("reseat the carrier in the PECS mount by moving it out and back in?"))
-		myStateMachine.reseat()
+		IPrep_reseat()
 }
 
 void pecs_raise(void)
