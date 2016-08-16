@@ -560,7 +560,10 @@ class ROIManager: object
 			return 1
 		}
 		else
-			return 0
+		{
+			self.print("ROI "+name+" does not exist!")
+			throw("ROIManager: ROI "+name+" does not exist!")
+		}
 
 
 	}

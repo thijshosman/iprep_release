@@ -1,6 +1,18 @@
 // $BACKGROUND$
 // general IPrep (helper) functions used in various scripts
 
+void logE(number level, string str1)
+{
+	// log events in log files
+	LogEvent("main", level, str1)
+}
+
+void print(string str1)
+{
+	result("main: "+datestamp()+": "+str1+"\n")
+	logE(2, str1)
+}
+
 class deadFlagObject:object
 {
 	// sets two flags:
@@ -315,6 +327,11 @@ class safetyMediator:object
 		return status // "clamped", "unclamped", or "inbetween"
 	}
 
+	object returnPW(object self)
+	{
+		return progresswindow
+	}
+
 	// *** actions ***
 	// experimental, not used yet
 
@@ -325,20 +342,7 @@ class safetyMediator:object
 		result("mediator: turning high tension off\n")
 	}
 
-	void updatePW(object self, string sliceN)
-	{
-		// update progress window
-
-		progresswindow.updatePW(sliceN)
-	}
-
-
-
-
 }
-
-
-
 
 class haltCheckObject:object
 {
@@ -377,24 +381,6 @@ class haltCheckObject:object
 	}
 
 }
-
-class safetyFlags: object
-{
-	// #TODO
-	// class has access to persistent tag group values
-	// protected flag
-	// scribemark_aligned flag
-	// more to come
-
-	object protected
-
-//	void safetyFlags(object self)
-//	{
-//		persistentTag
-//	}
-
-}
-
 
 number getProtectedModeFlag()
 {
@@ -481,8 +467,6 @@ object returnHaltFlag()
 	return haltFlag
 }
 
-
-
 class stopVar:object
 {
 	// used to catch/set stop event
@@ -504,8 +488,6 @@ class stopVar:object
 	}
 
 }
-
-
 
 class pauseVar:object
 {
@@ -572,6 +554,223 @@ class timer: object
 	}
 
 }
+
+
+
+string IPrep_rootSaveDir()
+{
+	// get the root save path from the tag that the UI dialog saves it in
+
+	string pointer
+	GetPersistentTagGroup().TagGroupGetTagAsString("IPrep:Record Settings:Base Filename", pointer)
+
+	print("root dir is: "+pointer+"\n")
+	return pointer
+}
+
+number IPrep_sliceNumber()
+{
+	Number nSlices
+	GetPersistentTagGroup().TagGroupGetTagAsLong("IPrep:Record Settings:Slice Number", nSlices)
+	print("N Slices = "+nSlices)
+	return nSlices
+}
+
+number IPrep_maxSliceNumber()
+{
+	string tagname = "IPrep:Record Settings:Number of Cycles"
+	number slices = 0
+	GetPersistentNumberNote( tagname, slices )
+	return slices
+}
+
+
+void IPrep_saveSEMImage(image &im, string subdir)
+{
+	// saves front image, used both for digiscan
+	
+	string DirPath = ""
+	DirPath = PathExtractDirectory(IPrep_rootSaveDir(), 0)
+
+	string FileNamePrefix = "IPREP_SEM"
+	string FileNamePostfix = "_slice_"+right("000"+IPrep_sliceNumber(),4)
+	
+	// check if dir exsits, create if not
+	if (!DoesDirectoryExist( dirPath + subdir))
+		CreateDirectory(dirPath + subdir)
+	
+	DirPath = DirPath + subdir + "\\"
+	string filename = DirPath+FileNamePrefix+FileNamePostfix
+	
+	SaveAsGatan(im,filename)
+
+	print("saved "+filename)
+}
+
+void IPrep_savePECSImage(image &im, string subdir)
+{
+	// saves front image, used both for pecs camera
+	
+	string DirPath = ""
+	DirPath = PathExtractDirectory(IPrep_rootSaveDir(), 0)
+
+	string FileNamePrefix = "IPREP_PECS"
+	string FileNamePostfix = "_slice_"+right("000"+IPrep_sliceNumber(),4)
+
+	// check if dir exsits, create if not
+	if (!DoesDirectoryExist( dirPath + subdir))
+		CreateDirectory(dirPath + subdir)
+	
+	DirPath = DirPath + subdir + "\\"
+	string filename = DirPath+FileNamePrefix+FileNamePostfix
+
+	SaveAsGatan(im,filename)
+	
+	print("saved "+filename)
+}
+
+
+void WorkaroundQuantaMagBug( void )
+// When there is a Z move on the Quanta and the FWD is different from the calibrated stage Z,
+// there is a bug where the Quanta miscalculates the actual magnification.  This work around
+// seems to be generic in fixing the issue.  You can see this bug by having the stageZ=30, fwd=7
+// (focused on the sample) and then changing Z to 60 and back.  The mag will be off by > 2x.
+{
+	result( datestamp()+": WorkaroundQuantaMagBug" )
+	number oldmag=emgetmagnification()
+
+	emsetmagnification( 50 )
+	emwaituntilready()
+
+	emsetmagnification( 100000 )
+	emwaituntilready()
+
+	emsetmagnification( oldmag )
+	result( ",done.\n")
+}
+
+void IPrep_autofocus()
+{
+	// wrapper for autofocus function in DM
+	// #todo: test, just copied from JH example; modified 20160701
+	
+	// Dear Thijs...you are going to hate this default focus mod. 
+
+	string s1="Private:AFS Parameters"
+	string s2="Focus accuracy"
+	string s3="Focus limit (lower)"
+	string s4="Focus limit (upper)"
+	string s5="Focus search range"
+	string s6="Stigmation enabled"
+	
+	string s7="Default focus"
+	number n2,n3,n4,n5,n6,n7
+
+	string str2 
+	number focus_range_fraction = .1
+	number focus = EMGetFocus()
+	result(datestamp()+": current focus value before autofocus: "+focus+"\n")
+	
+	///// CRAP CODE
+		str2 = s1+":"+s7
+		n7=9001
+		if (!GetPersistentNumberNote( str2, n7 ))
+			{
+				if ( !GetNumber( str2, n7, n7 ) ) 
+				{
+					n7 = 9000
+					result("  USING DEFAULT FOCUS OF 9000 microns\n")
+				}
+				
+				SetPersistentNumberNote( str2, n7 )
+			}
+			
+		number default_focus=n7
+
+
+		// number start_focus = EMGetFocus()
+		number start_focus = default_focus
+		EMSetFocus( start_focus )
+		focus=start_focus
+		result(datestamp()+": setting focus to (before AFS): "+start_focus+"\n")
+		result("\n"+datestamp()+": start WD = "+(start_focus/1000)+"\n")
+	///// END CRAP CODE
+	
+	
+	
+	number focus_range = focus_range_fraction*focus
+	number focus_res = .0025*focus
+	number useDialog = 0 
+	
+	number AF_do_stig = 1
+	
+	str2 = s1+":"+s2
+	GetPersistentNumberNote( str2, n2 )
+	n2 = focus_res
+	if ( useDialog) 
+		if (!GetNumber( str2, n2, n2 ) ) exit(0)
+		
+	SetPersistentNumberNote( str2, n2 )
+
+
+	str2 = s1+":"+s3
+	GetPersistentNumberNote( str2, n3 )
+	n3 = focus - focus * focus_range_fraction
+		if ( useDialog) 
+			if ( !GetNumber( str2, n3, n3 ) ) exit(0)
+	SetPersistentNumberNote( str2, n3 )
+
+	str2 = s1+":"+s4
+	GetPersistentNumberNote( str2, n4 )
+	n4 = focus + focus * focus_range_fraction
+	if ( useDialog) 
+		if ( !GetNumber( str2, n4, n4 ) ) exit(0)
+	SetPersistentNumberNote( str2, n4 )
+
+	str2 = s1+":"+s5
+	GetPersistentNumberNote( str2, n5 )
+	n5=focus_range
+	if ( useDialog) 
+		if ( !GetNumber( str2, n5, n5 ) ) exit(0)
+	SetPersistentNumberNote( str2, n5 )
+
+	str2 = s1+":"+s6
+	n6=AF_do_stig
+	GetPersistentNumberNote( str2, n6 )
+	if ( useDialog) 
+		if ( !GetNumber( str2, n6, n6 ) ) exit(0)
+	
+	SetPersistentNumberNote( str2, n6 )
+	AF_do_stig=n6
+	
+	if ( AF_do_stig )
+	{
+		result("  Autofocus enabled with stigmation\n")
+		AFS_Run()
+	}
+	 else
+	{
+		result("  Autofocus enabled without stigmation\n")
+		AF_Run()
+	}
+
+	while( AFS_IsBusy() )
+	{
+		sleep( 1 )
+		result(".")
+	}
+// WARNING  - more crap code
+	number end_focus = EMGetFocus()
+	
+	if ( abs(end_focus-default_focus) > 5000 )
+		okdialog( "WARNING: focus is not within 5mm of the default focus" )
+	
+	
+	result(datestamp()+": final WD = "+(end_focus/1000)+"\n")
+		result("  Change in focus = "+((start_focus-end_focus)/1000)+"\n")
+
+}
+
 
 
 // testing

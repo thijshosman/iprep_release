@@ -1,6 +1,11 @@
 // define helper functions that will be used throughout the program
 
-
+// define progress window
+object myPW = alloc(progressWindow)
+// convention for progresswindow:
+// A: sample status
+// B: operation
+// C: slice number
 
 // define mediator object
 object aMediator = alloc(SafetyMediator)
@@ -40,3 +45,8 @@ object returnROIEnables()
 {
 	return myROIEnables
 }
+
+// register progresswindow with mediator
+returnMediator().registerProgressWindow(myPW)
+
+

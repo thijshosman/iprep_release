@@ -7,15 +7,16 @@ number XYZZY = 0	// set to 1 to enable TH workflow
 
 object myWorkflow = returnWorkflow()
 object myStateMachine = returnStateMachine()
+object myPW = returnMediator().returnPW()
 
 
-object myPW = alloc(progressWindow) //#todo migrate to mediator
+//object myPW = alloc(progressWindow) //#todo migrate to mediator
 // convention for progresswindow:
 // A: sample status
 // B: operation
 // C: slice number
 
-//object myLoop
+
 
 // forward declare main loop
 interface I_IPrep_mainloop
@@ -62,38 +63,9 @@ object my3DvolumePECSafter
 */
 
 
-void logE(number level, string str1)
-{
-	// log events in log files
-	LogEvent("main", level, str1)
-}
 
-void print(string str1)
-{
-	result("main: "+datestamp()+": "+str1+"\n")
-	logE(2, str1)
-}
 
 // *** methods available for UI to call ***
-
-string IPrep_rootSaveDir()
-{
-	// get the root save path from the tag that the UI dialog saves it in
-
-	string pointer
-	GetPersistentTagGroup().TagGroupGetTagAsString("IPrep:Record Settings:Base Filename", pointer)
-
-	print("root dir is: "+pointer+"\n")
-	return pointer
-}
-
-number IPrep_sliceNumber()
-{
-	Number nSlices
-	GetPersistentTagGroup().TagGroupGetTagAsLong("IPrep:Record Settings:Slice Number", nSlices)
-	print("N Slices = "+nSlices)
-	return nSlices
-}
 
 void IPrep_setSliceNumber(number setSlice)
 {
@@ -101,201 +73,6 @@ void IPrep_setSliceNumber(number setSlice)
 	TagGroupSetTagAsNumber(GetPersistentTagGroup(),"IPrep:Record Settings:Slice Number",setSlice)
 	print("new #slices is: "+setSlice+"\n")
 	myPW.updateC("slice: "+IPrep_sliceNumber())
-}
-
-number IPrep_maxSliceNumber()
-{
-	string tagname = "IPrep:Record Settings:Number of Cycles"
-	number slices = 0
-	GetPersistentNumberNote( tagname, slices )
-	return slices
-}
-
-
-void IPrep_saveSEMImage(image &im, string subdir)
-{
-	// saves front image, used both for digiscan
-	
-	string DirPath = ""
-	DirPath = PathExtractDirectory(IPrep_rootSaveDir(), 0)
-
-	string FileNamePrefix = "IPREP_SEM"
-	string FileNamePostfix = "_slice_"+right("000"+IPrep_sliceNumber(),4)
-	
-	// check if dir exsits, create if not
-	if (!DoesDirectoryExist( dirPath + subdir))
-		CreateDirectory(dirPath + subdir)
-	
-	DirPath = DirPath + subdir + "\\"
-	string filename = DirPath+FileNamePrefix+FileNamePostfix
-	
-	SaveAsGatan(im,filename)
-
-	print("saved "+filename)
-}
-
-void IPrep_savePECSImage(image &im, string subdir)
-{
-	// saves front image, used both for pecs camera
-	
-	string DirPath = ""
-	DirPath = PathExtractDirectory(IPrep_rootSaveDir(), 0)
-
-	string FileNamePrefix = "IPREP_PECS"
-	string FileNamePostfix = "_slice_"+right("000"+IPrep_sliceNumber(),4)
-
-	// check if dir exsits, create if not
-	if (!DoesDirectoryExist( dirPath + subdir))
-		CreateDirectory(dirPath + subdir)
-	
-	DirPath = DirPath + subdir + "\\"
-	string filename = DirPath+FileNamePrefix+FileNamePostfix
-
-	SaveAsGatan(im,filename)
-	
-	print("saved "+filename)
-}
-
-
-void WorkaroundQuantaMagBug( void )
-// When there is a Z move on the Quanta and the FWD is different from the calibrated stage Z,
-// there is a bug where the Quanta miscalculates the actual magnification.  This work around
-// seems to be generic in fixing the issue.  You can see this bug by having the stageZ=30, fwd=7
-// (focused on the sample) and then changing Z to 60 and back.  The mag will be off by > 2x.
-{
-	result( datestamp()+": WorkaroundQuantaMagBug" )
-	number oldmag=emgetmagnification()
-
-	emsetmagnification( 50 )
-	emwaituntilready()
-
-	emsetmagnification( 100000 )
-	emwaituntilready()
-
-	emsetmagnification( oldmag )
-	result( ",done.\n")
-}
-
-void IPrep_autofocus()
-{
-	// wrapper for autofocus function in DM
-	// #todo: test, just copied from JH example; modified 20160701
-	
-	// Dear Thijs...you are going to hate this default focus mod. 
-
-	string s1="Private:AFS Parameters"
-	string s2="Focus accuracy"
-	string s3="Focus limit (lower)"
-	string s4="Focus limit (upper)"
-	string s5="Focus search range"
-	string s6="Stigmation enabled"
-	
-	string s7="Default focus"
-	number n2,n3,n4,n5,n6,n7
-
-	string str2 
-	number focus_range_fraction = .1
-	number focus = EMGetFocus()
-	result(datestamp()+": current focus value before autofocus: "+focus+"\n")
-	
-	///// CRAP CODE
-		str2 = s1+":"+s7
-		n7=9001
-		if (!GetPersistentNumberNote( str2, n7 ))
-			{
-				if ( !GetNumber( str2, n7, n7 ) ) 
-				{
-					n7 = 9000
-					result("  USING DEFAULT FOCUS OF 9000 microns\n")
-				}
-				
-				SetPersistentNumberNote( str2, n7 )
-			}
-			
-		number default_focus=n7
-
-
-		// number start_focus = EMGetFocus()
-		number start_focus = default_focus
-		EMSetFocus( start_focus )
-		focus=start_focus
-		result(datestamp()+": setting focus to (before AFS): "+start_focus+"\n")
-		result("\n"+datestamp()+": start WD = "+(start_focus/1000)+"\n")
-	///// END CRAP CODE
-	
-	
-	
-	number focus_range = focus_range_fraction*focus
-	number focus_res = .0025*focus
-	number useDialog = 0 
-	
-	number AF_do_stig = 1
-	
-	str2 = s1+":"+s2
-	GetPersistentNumberNote( str2, n2 )
-	n2 = focus_res
-	if ( useDialog) 
-		if (!GetNumber( str2, n2, n2 ) ) exit(0)
-		
-	SetPersistentNumberNote( str2, n2 )
-
-
-	str2 = s1+":"+s3
-	GetPersistentNumberNote( str2, n3 )
-	n3 = focus - focus * focus_range_fraction
-		if ( useDialog) 
-			if ( !GetNumber( str2, n3, n3 ) ) exit(0)
-	SetPersistentNumberNote( str2, n3 )
-
-	str2 = s1+":"+s4
-	GetPersistentNumberNote( str2, n4 )
-	n4 = focus + focus * focus_range_fraction
-	if ( useDialog) 
-		if ( !GetNumber( str2, n4, n4 ) ) exit(0)
-	SetPersistentNumberNote( str2, n4 )
-
-	str2 = s1+":"+s5
-	GetPersistentNumberNote( str2, n5 )
-	n5=focus_range
-	if ( useDialog) 
-		if ( !GetNumber( str2, n5, n5 ) ) exit(0)
-	SetPersistentNumberNote( str2, n5 )
-
-	str2 = s1+":"+s6
-	n6=AF_do_stig
-	GetPersistentNumberNote( str2, n6 )
-	if ( useDialog) 
-		if ( !GetNumber( str2, n6, n6 ) ) exit(0)
-	
-	SetPersistentNumberNote( str2, n6 )
-	AF_do_stig=n6
-	
-	if ( AF_do_stig )
-	{
-		result("  Autofocus enabled with stigmation\n")
-		AFS_Run()
-	}
-	 else
-	{
-		result("  Autofocus enabled without stigmation\n")
-		AF_Run()
-	}
-
-	while( AFS_IsBusy() )
-	{
-		sleep( 1 )
-		result(".")
-	}
-// WARNING  - more crap code
-	number end_focus = EMGetFocus()
-	
-	if ( abs(end_focus-default_focus) > 5000 )
-		okdialog( "WARNING: focus is not within 5mm of the default focus" )
-	
-	
-	result(datestamp()+": final WD = "+(end_focus/1000)+"\n")
-		result("  Change in focus = "+((start_focus-end_focus)/1000)+"\n")
-
 }
 
 void acquire_PECS_image( image &img )
@@ -342,7 +119,6 @@ void acquire_PECS_image( image &img )
 */
 }
 
-
 number IPrep_consistency_check()
 {
 	// run after DM restarts to make sure that:
@@ -350,201 +126,193 @@ number IPrep_consistency_check()
 	// -hardware classes have their states in tags synchronized with sensors
 	// if we detect an unsafe flag, we need manual intervention
 
-	try
+
+	print("iprep consistency check:")
+
+	// workflow state machine
+	print("current workflow state: "+myStateMachine.getCurrentWorkflowState())
+
+	// determine where workflow is. used in case of DM crash or powerfailure of system. will tell user
+	// where system was when it was still functioning
+	if (myStateMachine.getCurrentWorkflowState() == "onTheWayToPECS"  || myStateMachine.getCurrentWorkflowState() == "onTheWayToSEM")
+	{	
+		// system crashed when doing transfer. nothing we can do. contact service and do a manual recovery
+		print("DM terminated when system was "+myStateMachine.getCurrentWorkflowState()+", manual recovery needed")
+		returnDeadFlag().setDeadUnSafe()
+
+	}
+	else if (myStateMachine.getCurrentWorkflowState() == "PECS") // sample was in PECS
 	{
-
-		print("iprep consistency check:")
-
-		// workflow state machine
-		print("current workflow state: "+myStateMachine.getCurrentWorkflowState())
-
-		// determine where workflow is. used in case of DM crash or powerfailure of system. will tell user
-		// where system was when it was still functioning
-		if (myStateMachine.getCurrentWorkflowState() == "onTheWayToPECS"  || myStateMachine.getCurrentWorkflowState() == "onTheWayToSEM")
+		// system was last in PECS, but did milling finish
+		print("last finished step: "+myStateMachine.getLastCompletedStep())
+		if (myStateMachine.getLastCompletedStep() == "MILL") // did milling finish? 
 		{	
-			// system crashed when doing transfer. nothing we can do. contact service and do a manual recovery
-			print("DM terminated when system was "+myStateMachine.getCurrentWorkflowState()+", manual recovery needed")
-			returnDeadFlag().setDeadUnSafe()
 
+			print("milling was finished before DM terminated")
 		}
-		else if (myStateMachine.getCurrentWorkflowState() == "PECS") // sample was in PECS
-		{
-			// system was last in PECS, but did milling finish
-			print("last finished step: "+myStateMachine.getLastCompletedStep())
-			if (myStateMachine.getLastCompletedStep() == "MILL") // did milling finish? 
-			{	
-
-				print("milling was finished before DM terminated")
-			}
-			else if (myStateMachine.getLastCompletedStep() == "RESEAT")
-			{
-
-				print("reseating was finished before DM terminated")
-			}
-			else // milling did not finish
-			{
-
-				print("milling was not finished when workflow was aborted")
-			}
-		}
-		else if (myStateMachine.getCurrentWorkflowState() == "SEM") // sample was in SEM
-		{
-			print("last finished step: "+myStateMachine.getLastCompletedStep())
-			if (myStateMachine.getLastCompletedStep() == "IMAGE") // did imaging finish?
-			{	
-
-				print("imaging was finished before DM terminated")
-			}
-			else
-			{
-				
-				print("imaging was not finished when workflow was aborted")
-			}		
-		}
-		else
-		{
-			// workflow in unknown state, set dead unsafe. unlikely catch all state
-			print("DM crashed when system was "+myStateMachine.getCurrentWorkflowState()+", manual recovery needed")
-			returnDeadFlag().setDead(1, "state machine", "DM crashed when system was "+myStateMachine.getCurrentWorkflowState()+", manual recovery needed")
-			returnDeadFlag().setSafety(0, "current workflow state not known: "+myStateMachine.getCurrentWorkflowState())
-
-		}
-
-		// sample is either in SEM Dock or on PECS stage, so we can most likely recover
-		// figure out state of hardware one by one by running corresponding consistencychecks
-
-		// pips
-		// -check gate valve against sensor values
-		// -check stage state 
-		if (!myWorkflow.returnPecs().GVConsistencyCheck())
-		{
-			// GV is not nicely opened or closed
-			// system is now dead
-			print("GV:sensordata do not agree with previous save state. either caused by a malfunction or powerloss")
-			returnDeadFlag().setDead(1, "GV", "GV state unknown: manual recovery needed")
-			
-		}
-		else
-		{
-			print("GV state consistent")
-		}
-
-
-		if (!myWorkflow.returnPecs().StageConsistencyCheck())
-		{
-			if(!okcanceldialog("is the PECS stage in a known position?"))
-			{	
-				print("PECS stage:sensordata do not agree with previous save state. either caused by a malfunction, powerloss or argon pressure loss")
-				returnDeadFlag().setDead(1, "PECS", "pecs stage not in well defined position")
-			
-			}
-		}
-		else
-		{
-			print("PECS stage state consistent")
-		}
-
-
-		// transfer, is saved position similar to where it thinks it is?
-		if (myWorkflow.returnTransfer().consistencycheck() != 1)
-		{
-					
-			print("transfer controller: stage is not where system thinks it is. manual recovery needed")
-			returnDeadFlag().setDead(1, "TRANSFER", "transfer system not where system thinks it is. caused by faulted drive or powerloss while system was not at home")
-			
-			// set unsafe
-			returnDeadFlag().setSafety(0, "transfer system not where system thinks it is. caused by faulted drive or powerloss while system was not at home")
-
-		}
-		else
-		{
-			print("Transfer stage state consistent")
-		}
-
-		// check if the FWD is coupled right
-		//if (!returnMediator().checkFWDCoupling(0))
-		//{
-		//	print("FWD not correctly coupled")
-		//	returnDeadFlag().setDead(1, "SEM", "FWD not set")
-		//}
-
-		// semstage, check that current coordinates are consistent with the state 
-		if(!myWorkflow.returnSEM().checkStateConsistency())
+		else if (myStateMachine.getLastCompletedStep() == "RESEAT")
 		{
 
-			if (okcanceldialog("SEM stage not where it should be. home to clear? "))
-			{
-				print("homing SEM stage to clear")
-				myWorkflow.returnSEM().homeToClear()
-				
-			}
-			else
-			{
-				print("sem stage: stage coordinates are not consistent with what the state of the stage is")
-				returnDeadFlag().setDead(1, "SEM", "SEM stage in "+myWorkflow.returnSEM().getState()+", but not at state coordinates of that state")
-			
-				// set unsafe
-				//returnDeadFlag().setSafety(0, "SEM stage in "+myWorkflow.returnSEM().getState()+", but not at state coordinates of that state")
-			}
-		} 
-		else
-		{
-			print("SEM stage state consistent")
+			print("reseating was finished before DM terminated")
 		}
-
-		// dock mode
-		// check that new mode is consistent with readout of dock
-		if (getSystemMode() != returnMediator().detectMode())
+		else // milling did not finish
 		{
-			print(getSystemMode()+" dock not detected. detected dock is "+returnMediator().detectMode())
 
-			// give user option to ignore
-			if (!okcanceldialog("dock mode not detected. detected "+returnMediator().detectMode()+", but mode is set to "+getSystemMode()+". continue?"))
-			{
-				
-				returnDeadFlag().setDead(1, "DOCK", getSystemMode()+" dock not detected. detected dock is "+returnMediator().detectMode())
-			}
-			print("ignoring dock warning")
+			print("milling was not finished when workflow was aborted")
 		}
-		else
-		{
-			print("dock mode consistent: "+returnMediator().detectMode())
-		}
-
-		// dock state
-		// #todo
-
-		// gripper
-		// #todo: what if stuck in open position? go to unsafe, since gripper problems cannot be easily fixed!
-
-
-
-		// if dead, return 0
-		//if (returnDeadFlag().isDead())
-		//{
-		//	print("system is in dead mode, devices need to be manually put in correct state")	
-		//	okdialog("system is in dead mode, devices need to be manually put in correct state")	
-		//	return 0
-		//}
-
-
-		// if unsafe, there is nothing we can do without manually figuring this out
-		if (!returnDeadFlag().isSafe())
-		{
-			print("system is in unsafe mode, please contact Gatan service")	
-			okdialog("system is in unsafe mode, please contact Gatan service")	
-			return 0
-		}
-
-		// success,
-		print("consistency check finished!")
-		return 1
-
 	}
-	catch
+	else if (myStateMachine.getCurrentWorkflowState() == "SEM") // sample was in SEM
 	{
-		// #todo
+		print("last finished step: "+myStateMachine.getLastCompletedStep())
+		if (myStateMachine.getLastCompletedStep() == "IMAGE") // did imaging finish?
+		{	
+
+			print("imaging was finished before DM terminated")
+		}
+		else
+		{
+			
+			print("imaging was not finished when workflow was aborted")
+		}		
 	}
+	else
+	{
+		// workflow in unknown state, set dead unsafe. unlikely catch all state
+		print("DM crashed when system was "+myStateMachine.getCurrentWorkflowState()+", manual recovery needed")
+		returnDeadFlag().setDead(1, "state machine", "DM crashed when system was "+myStateMachine.getCurrentWorkflowState()+", manual recovery needed")
+		returnDeadFlag().setSafety(0, "current workflow state not known: "+myStateMachine.getCurrentWorkflowState())
+
+	}
+
+	// sample is either in SEM Dock or on PECS stage, so we can most likely recover
+	// figure out state of hardware one by one by running corresponding consistencychecks
+
+	// pips
+	// -check gate valve against sensor values
+	// -check stage state 
+	if (!myWorkflow.returnPecs().GVConsistencyCheck())
+	{
+		// GV is not nicely opened or closed
+		// system is now dead
+		print("GV:sensordata do not agree with previous save state. either caused by a malfunction or powerloss")
+		returnDeadFlag().setDead(1, "GV", "GV state unknown: manual recovery needed")
+		
+	}
+	else
+	{
+		print("GV state consistent")
+	}
+
+
+	if (!myWorkflow.returnPecs().StageConsistencyCheck())
+	{
+		if(!okcanceldialog("is the PECS stage in a known position?"))
+		{	
+			print("PECS stage:sensordata do not agree with previous save state. either caused by a malfunction, powerloss or argon pressure loss")
+			returnDeadFlag().setDead(1, "PECS", "pecs stage not in well defined position")
+		
+		}
+	}
+	else
+	{
+		print("PECS stage state consistent")
+	}
+
+
+	// transfer, is saved position similar to where it thinks it is?
+	if (myWorkflow.returnTransfer().consistencycheck() != 1)
+	{
+				
+		print("transfer controller: stage is not where system thinks it is. manual recovery needed")
+		returnDeadFlag().setDead(1, "TRANSFER", "transfer system not where system thinks it is. caused by faulted drive or powerloss while system was not at home")
+		
+		// set unsafe
+		returnDeadFlag().setSafety(0, "transfer system not where system thinks it is. caused by faulted drive or powerloss while system was not at home")
+
+	}
+	else
+	{
+		print("Transfer stage state consistent")
+	}
+
+	// check if the FWD is coupled right
+	//if (!returnMediator().checkFWDCoupling(0))
+	//{
+	//	print("FWD not correctly coupled")
+	//	returnDeadFlag().setDead(1, "SEM", "FWD not set")
+	//}
+
+	// semstage, check that current coordinates are consistent with the state 
+	if(!myWorkflow.returnSEM().checkStateConsistency())
+	{
+
+		if (okcanceldialog("SEM stage not where it should be. home to clear? "))
+		{
+			print("homing SEM stage to clear")
+			myWorkflow.returnSEM().homeToClear()
+			
+		}
+		else
+		{
+			print("sem stage: stage coordinates are not consistent with what the state of the stage is")
+			returnDeadFlag().setDead(1, "SEM", "SEM stage in "+myWorkflow.returnSEM().getState()+", but not at state coordinates of that state")
+		
+			// set unsafe
+			//returnDeadFlag().setSafety(0, "SEM stage in "+myWorkflow.returnSEM().getState()+", but not at state coordinates of that state")
+		}
+	} 
+	else
+	{
+		print("SEM stage state consistent")
+	}
+
+	// dock mode
+	// check that new mode is consistent with readout of dock
+	if (getSystemMode() != returnMediator().detectMode())
+	{
+		print(getSystemMode()+" dock not detected. detected dock is "+returnMediator().detectMode())
+
+		// give user option to ignore
+		if (!okcanceldialog("dock mode not detected. detected "+returnMediator().detectMode()+", but mode is set to "+getSystemMode()+". continue?"))
+		{
+			
+			returnDeadFlag().setDead(1, "DOCK", getSystemMode()+" dock not detected. detected dock is "+returnMediator().detectMode())
+		}
+		print("ignoring dock warning")
+	}
+	else
+	{
+		print("dock mode consistent: "+returnMediator().detectMode())
+	}
+
+	// dock state
+	// #todo
+
+	// gripper
+	// #todo: what if stuck in open position? go to unsafe, since gripper problems cannot be easily fixed!
+
+
+
+	// if dead, return 0
+	//if (returnDeadFlag().isDead())
+	//{
+	//	print("system is in dead mode, devices need to be manually put in correct state")	
+	//	okdialog("system is in dead mode, devices need to be manually put in correct state")	
+	//	return 0
+	//}
+
+
+	// if unsafe, there is nothing we can do without manually figuring this out
+	if (!returnDeadFlag().isSafe())
+	{
+		print("system is in unsafe mode, please contact Gatan service")	
+		okdialog("system is in unsafe mode, please contact Gatan service")	
+		return 0
+	}
+
+	// success,
+	print("consistency check finished!")
+	return 1
 
 }
 
@@ -711,7 +479,7 @@ number IPrep_init()
 		// #TODO: check dock against mode tag
 		// use okcanceldialog wrapper to choose to ignore this as warning or throw error
 
-
+		
 		print("current slice: "+IPrep_sliceNumber())
 		myPW.updateC("slice: "+IPrep_sliceNumber())
 		myPW.updateB("idle")
@@ -1018,30 +786,27 @@ Number IPrep_MoveToPECS_workflow()
 {
 	number returncode = 0
 
-	if (!returnDeadFlag().checkAliveAndSafe())
-		return returncode // to indicate error
-
 	print("IPrep_MoveToPECS")
-	try
+	myPW.updateA("sample: -> PECS")
+	number success = myStateMachine.SEM_to_PECS()
+	
+	if (success == 1)
 	{
-		print("iprep move to pecs")
-		myPW.updateA("sample: -> PECS")
-		myStateMachine.SEM_to_PECS()
+		returncode = 1 // to indicate success
 		myPW.updateA("sample: in PECS")
 		print("iprep move to pecs done")
-		returncode = 1 // to indicate success
 	}
-	catch
+	else if (success == -1)
 	{
-
-		// system caught unhandled exception and is now considered dead/unsafe
-		print(GetExceptionString()+", system now dead/unsafe")
-		returnDeadFlag().setDead(1, "movetopecs", GetExceptionString())
-		returnDeadFlag().setSafety(0, "IPrep_MoveToPECS failed")
 		returncode = 0 // irrecoverable error
-		//okdialog("not allowed. "+ GetExceptionString())
-		break // so that flow continues
-		
+		print("iprep encountered an irrecoverable error")
+		returnDeadFlag().setDead(1, "movetopecs", " ")
+		returnDeadFlag().setSafety(0, "IPrep_MoveToPECS failed")
+	}
+	else if (success == 0)
+	{
+		returncode = 0 // irrecoverable error (for now)
+		print("iprep encountered an error. cannot recover")
 	}
 
 	return returncode
@@ -1051,32 +816,69 @@ Number IPrep_MoveToSEM_workflow()
 {
 	number returncode = 0
 
-	if (!returnDeadFlag().checkAliveAndSafe())
-		return returncode // to indicate error
-
 	print("IPrep_MoveToSEM")
-	try
+	myPW.updateA("sample: -> SEM")
+	number success = myStateMachine.PECS_to_SEM()
+	
+	if (success == 1)
 	{
-		print("iprep move to sem")
-		myPW.updateA("sample: -> SEM")
-		myStateMachine.PECS_to_SEM()
+
 		myPW.updateA("sample: SEM")
 		print("iprep move to sem done")
 		returncode = 1 // to indicate success
 	}
-	catch
+	else if (success == -1)
 	{
-		// system caught unhandled exception and is now considered dead/unsafe
-		print(GetExceptionString()+", system now dead/unsafe")
-		returnDeadFlag().setDead(1, "movetosem", GetExceptionString())
-		returnDeadFlag().setSafety(0, "IPrep_MoveToSEM failed")
 		returncode = 0 // irrecoverable error
-		//okdialog("not allowed. "+ GetExceptionString())
-		break // so that flow continues
+		print("iprep encountered an irrecoverable error")
+		returnDeadFlag().setDead(1, "movetosem", " ")
+		returnDeadFlag().setSafety(0, "IPrep_MoveToSEM failed")
 	}
+	else if (success == 0)
+	{
+		returncode = 0 // irrecoverable error (for now)
+		print("iprep encountered an error. cannot recover")
+	}	
+
 	return returncode
 }
 
+Number IPrep_reseat()
+{
+	// used to pick up the sample from the PECS and put it back 
+	// use after sample vacuum transfer to make sure images taken in the PECS have the carrier 
+	// at the right location in the dovetail
+
+	// called manually from menu before workflow starts
+
+	number returncode = 0
+
+	print("IPrep_reseat")
+	myPW.updateA("sample: -> reseating")
+	number success = myStateMachine.reseat1()
+	
+	if (success == 1)	
+	{
+		myPW.updateA("sample: done reseating")
+		print("reseating done")
+		returncode = 1 // to indicate success
+	}
+	else if (success == -1)
+	{
+		returncode = 0 // irrecoverable error
+		print("iprep encountered an irrecoverable error")
+		returnDeadFlag().setDead(1, "reseating", " ")
+		returnDeadFlag().setSafety(0, "reseating failed")
+	}
+	else if (success == 0)
+	{
+		returncode = 0 // irrecoverable error (for now)
+		print("iprep encountered an error. cannot recover")
+	}	
+
+	return returncode
+	
+}
 
 
 Number IPrep_check()
@@ -1865,42 +1667,7 @@ Number IPrep_MoveToSEM()
 	return 1
 }
 
-Number IPrep_reseat()
-{
-	// used to pick up the sample from the PECS and put it back 
-	// use after sample vacuum transfer to make sure images taken in the PECS have the carrier 
-	// at the right location in the dovetail
 
-	// called manually from menu before workflow starts
-
-	number returncode = 0
-
-	if (!returnDeadFlag().checkAliveAndSafe())
-		return returncode // to indicate error
-
-	print("IPrep_reseat")
-	try
-	{
-		print("reseating sample")
-		myPW.updateA("sample: -> reseating")
-		myStateMachine.reseat()
-		myPW.updateA("sample: done reseating")
-		print("reseating done")
-		returncode = 1 // to indicate success
-	}
-	catch
-	{
-		// system caught unhandled exception and is now considered dead/unsafe
-		print(GetExceptionString()+", system now dead/unsafe")
-		returnDeadFlag().setDead(1, "", GetExceptionString())
-		returnDeadFlag().setSafety(0, "reseating failed")
-		returncode = 0 // irrecoverable error
-		okdialog("not allowed. "+ GetExceptionString())
-		break // so that flow contineus
-	}
-	return returncode
-
-}
 
 class IPrep_mainloop:thread
 {

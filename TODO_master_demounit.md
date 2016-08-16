@@ -39,7 +39,8 @@ This file describes what all the todos are for the demounit master development b
 - [x] migrate transfer stuff over to this class and create factory to create sequences
 - [] also migrate imaging/ebsd/eds to sequence class
 - [] migrate coating and etching to transfer sequence class
-- [] use return 0/1 instead of throwing exceptions from state machine. rewrite corresponding iprep_main methods. update ui to use dead/unsafe checks
+- [x] use return 0/1/-1 instead of throwing exceptions from state machine. rewrite corresponding iprep_main methods. update ui to use dead/unsafe checks
+- [] make sure that non-irrecoverable errors from state machine get processed in main in a different way than true irrecoverable errors. now they are treated the same
 
 *** workflow ***
 

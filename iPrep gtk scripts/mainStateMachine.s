@@ -3,6 +3,11 @@ class workflowStateMachine: object
 	// manages state transfers in the workflow. only manages when state transfers can happen, 
 	// the specifics of a transfer is in the workflow class
 
+	//  tranfer return options: 
+	// 1: step succeeded
+	// -1: irrecoverable error 
+	// 0: preconditions not met/not in right state/something went wrong but sucesfully undone
+
 	object workflowStatePersistance
 	object lastCompletedStep
 	number percentage
@@ -73,6 +78,13 @@ class workflowStateMachine: object
 
 	}
 
+	number checkFlags(object self)
+	{
+		// check for flags
+		if (returnDeadFlag().checkAliveAndSafe())
+		return 1 // to indicate ok state 
+	}
+
 	void changeWorkflowState(object self, string newstate)
 	{
 		// *** private ***
@@ -118,14 +130,24 @@ class workflowStateMachine: object
 
 	}
 
-	void reseat(object self)
+	number reseat1(object self)
 	{
 		// *** public ***
 		// uses workflow methods to reseat sample 
+				
+		number returnval = 0
+
+		if (!self.checkFlags())
+		{
+			self.print("cannot reseat, dead and/or unsafe flag set")
+			return returnval
+		}
+
 		if (workflowState == "PECS")
 		{
 			self.changeWorkflowState("reseating")
-			
+
+
 			// old style
 			//myWorkflow.reseat() 
 			
@@ -141,12 +163,18 @@ class workflowStateMachine: object
 					self.print("succesfully recovered")
 					self.changeWorkflowState("PECS")
 
-					return
+					returnval = 0
 				}
-				else // undo failed, throw original exception
+				else // undo failed
 				{
-					throw("exception in reseat. cannot undo. read log")
+					//throw("exception in reseat. cannot undo. read log")
+					// #TODO SET DEAD/UNSAFE
+					returnval = -1
 				}
+			}
+			else
+			{
+				returnval = 1
 			}
 
 			
@@ -155,13 +183,25 @@ class workflowStateMachine: object
 			lastCompletedStep.setState("RESEAT")
 		}
 		else
+		{
 			self.print("not allowed to reseat when not in PECS, remaining idle")
+			returnval = 0
+		}
+		return returnval
 	}
 
-	void PECS_to_SEM(object self)
+	number PECS_to_SEM(object self)
 	{
 		// *** public ***
 		// uses workflow methods to move sample from SEM to PECS and remembers state
+
+		number returnval = 0
+
+		if (!self.checkFlags())
+		{
+			self.print("cannot move to SEM, dead and/or unsafe flag set")
+			return returnval
+		}
 
 		if (workflowState == "PECS")
 		{
@@ -182,12 +222,18 @@ class workflowStateMachine: object
 				{
 					self.print("succesfully recovered")
 					self.changeWorkflowState("PECS")
-					return
+					returnval = 0
 				}
-				else // undo failed, throw original exception
+				else // undo failed
 				{
-					throw("exception in transfer pecs -> sem. cannot undo. read log")
+					//throw("exception in transfer pecs -> sem. cannot undo. read log")
+					// #TODO SET DEAD/UNSAFE
+					returnval = -1
 				}
+			}
+			else
+			{
+				returnval = 1
 			}
 
 			
@@ -200,13 +246,25 @@ class workflowStateMachine: object
 
 		}
 		else
+		{	
 			self.print("not allowed to transfer from PECS to SEM. current state is: "+workflowState+". remaining idle")
+			returnval = 1
+		}
+		return returnval
 	}
 
-	void SEM_to_PECS(object self)
+	number SEM_to_PECS(object self)
 	{
 		// *** public ***
 		// uses workflow methods to move sample from PECS to SEM and remembers state
+
+		number returnval = 0
+
+		if (!self.checkFlags())
+		{
+			self.print("cannot move to pecs, dead and/or unsafe flag set")
+			return returnval
+		}
 
 		if (workflowState == "SEM")
 		{
@@ -227,12 +285,18 @@ class workflowStateMachine: object
 				{
 					self.print("succesfully recovered")
 					self.changeWorkflowState("SEM")
-					return
+					returnval = 0
 				}
-				else // undo failed, throw original exception
+				else // undo failed
 				{
 					throw("exception in transfersem -> pecs. cannot undo. read log")
+					// #TODO SET DEAD/UNSAFE
+					returnval = -1
 				}
+			}
+			else
+			{
+				returnval = 1
 			}
 				
 			number tock = GetOSTickCount()
@@ -240,12 +304,13 @@ class workflowStateMachine: object
 
 			self.changeWorkflowState("PECS")
 			lastCompletedStep.setState("PECS")
-
-
 		}
 		else
+		{
 			self.print("not allowed to transfer from SEM to PECS. current state is: "+workflowState+". remaining idle")
-
+			returnval = 0
+		}
+		return returnval
 	}
 
 	void start_mill(object self, number simulation, number timeout)
