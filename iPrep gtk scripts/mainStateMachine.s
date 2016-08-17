@@ -17,28 +17,28 @@ class workflowStateMachine: object
 	number Tick
 	number Tock
 
-	// default sequences in workflow
+	// default sequences in workflow for transfering
 	object PecsToSem_seq
 	object SemToPecs_seq
 	object reseat_seq
 
-
-
-
-	// flag set when system is in weird state
-	object deadFlag
+	// default sequences in workflow for imaging and milling
+	object image_seq
+	object ebsd_seq // temporary
+	object mill_seq
+	object coat_seq
 
 	void print(object self, string str1)
 	{
 		result("StateMachine: "+str1+"\n")
 	}
 	
-	
 	void initSequences(object self)
 	{
 		// public
 		// create sequence objects
-		
+		// these can be dynamically updated
+
 		// reseat sequence, create and init with transfer devices
 		reseat_seq = createSequence("reseat_default")
 		reseat_seq.init("reseat",myWorkflow)
@@ -50,6 +50,22 @@ class workflowStateMachine: object
 		// Sem to pecs sequence, create and init with transfer devices
 		SemToPecs_seq = createSequence("semToPecs_default")
 		SemToPecs_seq.init("semToPecs",myWorkflow)
+
+		// image sequence, create and init
+		image_seq = createSequence("image_single")
+		image_seq.init("image",myWorkflow)
+
+		// have another image sequence for EBSD for backward compatibility
+		ebsd_seq = createSequence("EBSD_default")
+		ebsd_seq.init("ebsd",myWorkflow)
+
+		// milling sequence, create and init
+		mill_seq = createSequence("mill_default")
+		mill_seq.init("mill",myWorkflow)
+
+		// coating sequence, create and init
+		coat_seq = createSequence("coat_default")
+		coat_seq.init("coat",myWorkflow)
 
 	}
 	
@@ -217,7 +233,7 @@ class workflowStateMachine: object
 			{
 				// exception in transfer, see if we can undo
 
-				self.print("exception during reseating, trying undo")
+				self.print("exception during pecs->sem, trying undo")
 				if (PecsToSem_seq.undo()) // undo succesful, return to previous state
 				{
 					self.print("succesfully recovered")
@@ -280,7 +296,7 @@ class workflowStateMachine: object
 			{
 				// exception in transfer, see if we can undo
 
-				self.print("exception during reseating, trying undo")
+				self.print("exception during sem->pecs, trying undo")
 				if (SemToPecs_seq.undo()) // undo succesful, return to previous state
 				{
 					self.print("succesfully recovered")
@@ -289,7 +305,7 @@ class workflowStateMachine: object
 				}
 				else // undo failed
 				{
-					throw("exception in transfersem -> pecs. cannot undo. read log")
+					//throw("exception in transfersem -> pecs. cannot undo. read log")
 					// #TODO SET DEAD/UNSAFE
 					returnval = -1
 				}
@@ -313,6 +329,194 @@ class workflowStateMachine: object
 		return returnval
 	}
 
+
+	number image(object self)
+	{
+		// *** public ***
+		// start imaging and/or acquiring data in SEM in other ways (EBSD/EDS)
+		
+		number returnval = 0
+
+		if (!self.checkFlags())
+		{
+			self.print("cannot image, dead and/or unsafe flag set")
+			return returnval
+		}
+
+		if (workflowState == "SEM")
+		{
+
+			number tick = GetOSTickCount()
+				
+			// new style
+			if(!image_seq.do()) // check if it fails
+			{
+				// exception in transfer, see if we can undo
+
+				self.print("imaging failed")		
+
+				// #TODO if something fails, lets not set dead/unsafe. it's most likely not that serious when just imaging
+				returnval = 0
+				
+			}
+			else
+			{
+				returnval = 1
+			}
+				
+			number tock = GetOSTickCount()
+			self.print("elapsed time imaging: "+(tock-tick)/1000+" s")
+
+			lastCompletedStep.setState("IMAGE")
+		}
+		else
+		{
+			self.print("not allowed to image. current state is: "+workflowState+". remaining idle")
+			returnval = 0
+		}
+		return returnval
+
+	}
+
+	number ebsd(object self)
+	{
+		// *** public ***
+		// start imaging and/or acquiring data in SEM in other ways (EBSD/EDS)
+		
+		number returnval = 0
+
+		if (!self.checkFlags())
+		{
+			self.print("cannot acquire EBSD, dead and/or unsafe flag set")
+			return returnval
+		}
+
+		if (workflowState == "SEM")
+		{
+
+			number tick = GetOSTickCount()
+				
+			// new style
+			if(!ebsd_seq.do()) // check if it fails
+			{
+				// exception in transfer, see if we can undo
+
+				self.print("ebsd failed")		
+
+				// #TODO if something fails, lets not set dead/unsafe. it's most likely not that serious when just imaging
+				returnval = 0
+			}
+			else
+			{
+				returnval = 1
+			}
+				
+			number tock = GetOSTickCount()
+			self.print("elapsed time in EBSD: "+(tock-tick)/1000+" s")
+
+			lastCompletedStep.setState("EBSD")
+		}
+		else
+		{
+			self.print("not allowed to acquire EBSD. current state is: "+workflowState+". remaining idle")
+			returnval = 0
+		}
+		return returnval
+
+	}
+
+	number mill(object self)
+	{
+		// *** public ***
+		// start milling
+
+		number returnval = 0
+
+		if (!self.checkFlags())
+		{
+			self.print("cannot mill, dead and/or unsafe flag set")
+			return returnval
+		}
+
+		if (workflowState == "PECS")
+		{
+
+			number tick = GetOSTickCount()
+				
+			// new style
+			if(!mill_seq.do()) // check if it fails
+			{
+				// exception in transfer, see if we can undo
+
+				self.print("milling failed")		
+
+				// #TODO if something fails, lets not set dead/unsafe. it's most likely not that serious when just milling
+				returnval = 0
+			}
+			else
+			{
+				returnval = 1
+			}
+				
+			number tock = GetOSTickCount()
+			self.print("elapsed time milling: "+(tock-tick)/1000+" s")
+
+			lastCompletedStep.setState("MILL")
+		}
+		else
+		{
+			self.print("not allowed mill. current state is: "+workflowState+". remaining idle")
+			returnval = 0
+		}
+		return returnval
+	}
+
+	number coat(object self)
+	{
+		// *** public ***
+		// start coating
+		
+		number returnval = 0
+
+		if (!self.checkFlags())
+		{
+			self.print("cannot coat, dead and/or unsafe flag set")
+			return returnval
+		}
+
+		if (workflowState == "PECS")
+		{
+
+			number tick = GetOSTickCount()
+				
+			// new style
+			if(!coat_seq.do()) // check if it fails
+			{
+				// exception in transfer, see if we can undo
+
+				self.print("coating failed")		
+
+				// #TODO if something fails, lets not set dead/unsafe. it's most likely not that serious when just milling
+				returnval = 0
+			}
+			else
+			{
+				returnval = 1
+			}
+				
+			number tock = GetOSTickCount()
+			self.print("elapsed time coating: "+(tock-tick)/1000+" s")
+
+			lastCompletedStep.setState("COAT")
+		}
+		else
+		{
+			self.print("not allowed mill. current state is: "+workflowState+". remaining idle")
+			returnval = 0
+		}
+		return returnval
+	}
+
 	void start_mill(object self, number simulation, number timeout)
 	{
 		// *** public ***
@@ -326,7 +530,6 @@ class workflowStateMachine: object
 		}
 		else
 			self.print("commanded to perform milling step when sample is not in PECS, remaining idle")
-
 	}
 
 	void stop_mill(object self)
@@ -341,7 +544,6 @@ class workflowStateMachine: object
 		else
 			throw("commanded to perform stop milling step when sample is not in PECS")
 	}
-
 
 	void start_image(object self)
 	{

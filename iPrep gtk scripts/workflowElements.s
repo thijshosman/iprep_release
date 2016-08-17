@@ -19,6 +19,9 @@ class workflow: object
 	object myDigiscan
 	object myEBSD
 
+	// a 3D volume for SEM images
+	object my3DvolumeSEM
+
 	// haltflag used to interrupt workflow elements if set
 	object haltFlag
 
@@ -173,6 +176,11 @@ class workflow: object
 	{
 		return myEBSD
 	}
+	object return3DvolumeSEM(object self)
+	{
+		return my3DvolumeSEM
+	}
+
 
 	// *** testing ***
 

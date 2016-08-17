@@ -665,6 +665,7 @@ void iprep_InstallMenuItems( void )
 	AddScriptToMenu( "IPrep_MoveToPECS()", "Move sample to PECS", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_3 , 0)
 	AddScriptToMenu( "IPrep_Pecs_Image_beforemilling()", "Take PECS Camera image before milling", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_3 , 0)
 	AddScriptToMenu( "IPrep_mill()", "Run Milling step...", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_3 , 0)
+	AddScriptToMenu( "IPrep_coat()", "Run Coating step...", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_3 , 0)
 	AddScriptToMenu( "IPrep_Pecs_Image_aftermilling()", "Take PECS Camera image after milling", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_3 , 0)
 	AddScriptToMenu( "IPrep_MoveToSEM()", "Move sample to SEM", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_3 , 0)
 

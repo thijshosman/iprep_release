@@ -44,6 +44,7 @@ This file describes what all the todos are for the demounit master development b
 
 *** workflow ***
 
+- [] when a 'soft' error happens in workflow (ie milling precondition not met) system should pause workflow
 - [] we want to make sure that an error during the workflow, ie something that puts system in dead state, generates a popup dialog that user sees
 - [] right now iprep_image puts the lastcompleted step at image, think about if you want to do this. it does allow manipulation of where workflow picks up
 - [] consistencychecks should not be done by calling workflow object, but instead should be done through mediator

@@ -1246,7 +1246,7 @@ number IPrep_image_single()
 
 }
 
-number IPrep_image()
+number IPrep_image_2rois()
 {
 	// 2 ROIS, first new ROI
 
@@ -1461,10 +1461,69 @@ number IPrep_image()
 
 }
 
+number IPrep_image()
+{
+	number returncode = 0
+
+	print("IPrep_image")
+	myPW.updateA("imaging")
+	number success = myStateMachine.image()
+	
+	if (success == 1)	
+	{
+		myPW.updateA("sample: done imaging")
+		print("imaging done")
+		returncode = 1 // to indicate success
+	}
+	else if (success == -1)
+	{
+		returncode = 0 // irrecoverable error
+		print("iprep encountered an irrecoverable error")
+	}
+	else if (success == 0)
+	{
+		returncode = 0 // irrecoverable error (for now)
+		print("iprep encountered an error. cannot recover")
+		// #TODO: should pause system for user to fix whatever is wrong and continue
+	}	
+
+	return returncode
+
+}
 
 number IPrep_acquire_ebsd()
 {
+	number returncode = 0
+
 	print("IPrep_acquire_ebsd")
+	myPW.updateA("imaging")
+	number success = myStateMachine.ebsd()
+	
+	if (success == 1)	
+	{
+		myPW.updateA("sample: done imaging")
+		print("imaging done")
+		returncode = 1 // to indicate success
+	}
+	else if (success == -1)
+	{
+		returncode = 0 // irrecoverable error
+		print("iprep encountered an irrecoverable error")
+	}
+	else if (success == 0)
+	{
+		returncode = 0 // irrecoverable error (for now)
+		print("iprep encountered an error. cannot recover")
+		// #TODO: should pause system for user to fix whatever is wrong and continue
+	}	
+
+	return returncode
+
+
+
+	// old
+	/*
+	
 	number returncode = 0
 	try
 	{
@@ -1498,6 +1557,7 @@ number IPrep_acquire_ebsd()
 	}
 
 	return returncode
+	*/
 
 }
 
@@ -1569,10 +1629,39 @@ Number IPrep_Pecs_Image_aftermilling()
 
 
 
-Number IPrep_Mill()
+Number IPrep_mill_workflow()
 // Assumes sample is in PECS
 // Mills sample
 {
+	number returncode = 0
+
+	print("IPrep_mill")
+	myPW.updateA("milling")
+	number success = myStateMachine.mill()
+	
+	if (success == 1)	
+	{
+		myPW.updateA("sample: done milling")
+		print("milling done on slice number: "+IPrep_sliceNumber())
+		returncode = 1 // to indicate success
+	}
+	else if (success == -1)
+	{
+		returncode = 0 // irrecoverable error
+		print("iprep encountered an irrecoverable error")
+	}
+	else if (success == 0)
+	{
+		returncode = 0 // irrecoverable error (for now)
+		print("iprep encountered an error. cannot recover")
+		// #TODO: should pause system for user to fix whatever is wrong and continue
+	}	
+
+	return returncode
+
+
+	// old style
+	/*
 	number returncode = 0
 
 	if (!returnDeadFlag().checkAliveAndSafe())
@@ -1614,8 +1703,39 @@ Number IPrep_Mill()
 
 	}
 	return returncode
+	*/
 }
 
+Number IPrep_Coat_workflow()
+// Assumes sample is in PECS
+// coats sample
+{
+	number returncode = 0
+
+	print("IPrep_coat")
+	myPW.updateA("coating")
+	number success = myStateMachine.coat()
+	
+	if (success == 1)	
+	{
+		myPW.updateA("sample: done coating")
+		print("coating done on slice number: "+IPrep_sliceNumber())
+		returncode = 1 // to indicate success
+	}
+	else if (success == -1)
+	{
+		returncode = 0 // irrecoverable error
+		print("iprep encountered an irrecoverable error")
+	}
+	else if (success == 0)
+	{
+		returncode = 0 // irrecoverable error (for now)
+		print("iprep encountered an error. cannot recover")
+		// #TODO: should pause system for user to fix whatever is wrong and continue
+	}	
+
+	return returncode
+}
 
 
 
@@ -1643,11 +1763,12 @@ Number IPrep_RunPercentCompleted()
 }
 
 // *** methods manually called by UI/user ***
+// #TODO: these are called by buttons in the UI what look for these names. not ideal but ok for now. 
 
 Number IPrep_MoveToPECS()
 {
 		
-	if(!IPrep_MoveToPECS_workflow())
+	if(IPrep_MoveToPECS_workflow() != 1)
 	{
 		okdialog("Did not finish transfer to PECS. check log")
 	
@@ -1658,7 +1779,7 @@ Number IPrep_MoveToPECS()
 
 Number IPrep_MoveToSEM()
 {
-	if(!IPrep_MoveToSEM_workflow())
+	if(IPrep_MoveToSEM_workflow() != 1)
 	{
 		okdialog("Did not finish transfer to SEM. check log")
 	
@@ -1667,7 +1788,25 @@ Number IPrep_MoveToSEM()
 	return 1
 }
 
+Number IPrep_mill()
+{
+	if(IPrep_mill_workflow() != 1)
+	{
+		okdialog("did not finish milling. check log")
+	}
 
+	return 1
+}
+
+Number IPrep_coat()
+{
+	if(IPrep_coat_workflow() != 1)
+	{
+		okdialog("did not finish coating. check log")
+	}
+
+	return 1
+}
 
 class IPrep_mainloop:thread
 {
@@ -1912,7 +2051,7 @@ class IPrep_mainloop:thread
 				aStepTimer.tick("mill")
 
 				self.print("loop: i = 5, milling")
-				number returnval = IPrep_mill()
+				number returnval = IPrep_mill_workflow()
 				if (!self.process_response(returnval, 0)) // dont repeat for now
 					self.stop()	
 
