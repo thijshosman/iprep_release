@@ -59,7 +59,8 @@ try
 		//SET move shutter out
 		//PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_23", "0")
 		//SET ilum on
-		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_24", "1")
+		//PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_24", "1")
+		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcLeft", "set_gas_flow", "0.01")
 		number tock = GetOSTickCount()
 		result(j+": values: = " + value1+", "+value2+", "+value3 + ", time = "+(tock-tick)+" ms \n")
 		//sleep(1)
