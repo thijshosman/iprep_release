@@ -4,6 +4,8 @@ object myWorkflow = returnWorkflow()
 object myStateMachine = returnStateMachine()
 object myMediator = returnMediator()
 
+result("starting execution, idle\n\n")
+
 	// test etching
 	
 	void etching_test_routine()
@@ -23,7 +25,7 @@ object myMediator = returnMediator()
 	
 	void coating_test_routine()
 	{
-		myWorkflow.returnPecs().goToCoatMode() // moves stage
+		//myWorkflow.returnPecs().goToCoatMode() // moves stage
 		myWorkflow.returnPecs().startCoating() // start process
 		result("coating time remaining: "+myWorkflow.returnPecs().millingTimeRemaining()+"\n")
 		sleep(1)
@@ -35,6 +37,7 @@ object myMediator = returnMediator()
 
 try
 {
+
 	//myWorkflow.returnPecs().shutoffArgonFlow()
 	//myWorkflow.returnPecs().restoreArgonFlow()
 	
@@ -60,15 +63,15 @@ try
 	// 6. take shutter out
 
 	
-	//coating_test_routine()
+	coating_test_routine()
 	//etching_test_routine()
 	
 	//myWorkflow.returnPecs().stopMilling()
 	//myWorkflow.returnPecs().goToEtchMode()
 	//myWorkflow.returnPecs().goToCoatMode()
 	
-	result("milling status during coating: "+myWorkflow.returnPecs().getMillingStatus()+"\n") // 0 when idle
-	result("system status during coating: "+myWorkflow.returnPecs().getSystemStatus()+"\n") // 0 when idle
+	result("milling status: "+myWorkflow.returnPecs().getMillingStatus()+"\n") // 0 when idle
+	result("system status: "+myWorkflow.returnPecs().getSystemStatus()+"\n") // 0 when idle
 	
 	
 	

@@ -868,7 +868,7 @@ class image_single: deviceSequence
 		// blank
 		myWorkflow.returnSEM().blankOn()
 
-		return returncode
+		return 1
 	}
 
 	number undo(object self)
@@ -1111,6 +1111,7 @@ class mill_default: deviceSequence
 				
 			}
 
+			self.print("milling time remaining: "+myWorkflow.returnPecs().millingTimeRemaining())
 			sleep(1)
 			
 		}
@@ -1120,7 +1121,7 @@ class mill_default: deviceSequence
 		// take image (PECS)
 
 		myWorkflow.returnPecs().lockout()
-		self.print("debug: returncode: "+returncode)
+		//self.print("debug: returncode: "+returncode)
 		return returncode
 	}
 

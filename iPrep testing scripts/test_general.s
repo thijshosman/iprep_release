@@ -41,7 +41,7 @@ try
 	//myWorkflow.returnPecs().moveShutterOut()
 	
 	
-	
+	/*
 	number j
 	string value1, value2, value3
 	for (j=0; j<5; j++)
@@ -67,7 +67,7 @@ try
 		
 	}
 	
-	
+	*/
 	
 	// *** gate valve ***
 	//myWorkflow.returnPecs().openGVandCheck()
@@ -87,7 +87,9 @@ try
 	
 	//myWorkflow.returnGripper().sendCommand("P10000R") // close a bit (P)
 	//myWorkflow.returnGripper().sendCommand("D10000R")
-
+	
+	result("sensor number: "+myWorkflow.returnGripper().readSensor()+"\n")
+	myWorkflow.returnGripper().lookupState(1)
 /*
 number i
 
@@ -108,19 +110,29 @@ for (i=0;i<10;i++)
 	
 	// *** reseating test dovetail ***
 	
-/*
+
 	number i
 
-	for (i=0;i<10;i++)
+	for (i=0;i<300;i++)
 	{
 		if ((optiondown() && shiftdown()))
 			break
-
-		myStateMachine.reseat()
+			
+		if (IPrep_reseat() != 1)
+		{
+			debug("problem happened, stopping\n")
+			break
+		}
+		if (myWorkflow.returnTransfer().killSwitchEngaged())
+		{
+			debug("killswitch engaged\n")
+			break
+		}
+		
 		sleep(5)
 		debug("i: "+i+"\n")
 	}
-*/	
+	
 
 	
 	
@@ -194,7 +206,8 @@ for (i=0;i<10;i++)
 	//result(MyWorkflow.returnTransfer().getCurrentPosition())
 	//result(MyWorkflow.returnTransfer().returnParkerPositions().getCurrentPosition())
 	//myWorkflow.returnTransfer().resetKillSwitch()
-
+	//print("killswittch state: "+myWorkflow.returnTransfer().killSwitchEngaged()) // killswitch engaged
+		
 
     //result(myWorkflow.returnTransfer().getCurrentPosition())
 	//result(myWorkflow.returnTransfer().getCurrentState()+"\n")

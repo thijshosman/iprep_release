@@ -103,7 +103,7 @@ class gripper:object
 			state = "inbetween"
 
 		if (view == 1)
-			self.print("GRIPPER: current state is "+state+"; individual sensors: open: "+open+", close: "+close)
+			self.print("GRIPPER: bitstr: "+bitStr+", current state is "+state+"; individual sensors: open: "+open+", close: "+close)
 		
 	}
 
