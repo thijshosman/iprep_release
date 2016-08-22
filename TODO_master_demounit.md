@@ -17,33 +17,33 @@ This file describes what all the todos are for the demounit master development b
 - [x] check state shutter coating sensor
 - [x] tmp check can fail due to unterminated rs485. add redundancy
 - [x] set a flag that is used for shutoff gas flow to make sure it never gets executed twice and 0 gets remembered
+- [] get coating to work (requires work by MP)
 
 *** SEM ***:
 
 - [] have a way to check that z-height is set (for example by moving 10 micron in z and seeing if it throws an exception?) -> checkFWDCoupling in sem
 - [] correct for drift in survey image, set maximum shift parameter and don't move but continue workflow if shift exceeds this
 
-*** digiscan ***
-
-- [] make class compatible with acquiring 2 signals simultaneously by doing the parameter configuration in config method 
-
 *** dock ***:
 
 - [x] set holding torque during transfer when opens so that we don't have the thing close as it is picked up or the arm comes in (planar only for now)
 - [] allow chamberscope camera on/off -> needs hardware fix? 
 
-*** linearworkflow/state machine ***
+*** linearworkflow/state machine/device transfer sequences ***
 
 - [x] make a class for 'transfers' and make an object for each transfer that defines it instead of hardcoding it in 
 - [x] linearworkflow class. linearworkflow would invoke the 'do' method in this command-like pattern. this is more flexible than what we have now. we can lateron even go to a script-like 
 - [x] migrate transfer stuff over to this class and create factory to create sequences
-- [] also migrate imaging/ebsd/eds to sequence class
-- [] migrate coating and etching to transfer sequence class
+- [x] also migrate imaging/ebsd/eds to sequence class
+- [x] migrate coating and etching to transfer sequence class
 - [x] use return 0/1/-1 instead of throwing exceptions from state machine. rewrite corresponding iprep_main methods. update ui to use dead/unsafe checks
-- [] make sure that non-irrecoverable errors from state machine get processed in main in a different way than true irrecoverable errors. now they are treated the same
+- [x] make sure that non-irrecoverable errors from state machine get processed in main in a different way than true irrecoverable errors. now they are treated the same
+- [] migrate 2 ROI example to a proper sequence
 
-*** workflow ***
+*** workflow/main ***
 
+- [] pause the workflow in case of soft (0) error. 
+- [] NB: all dead/unsafe setting happens in main, not state machine. the state machine just returns values (0,1,-1). the main functions need some proper sculpting to now put the system in a dead/unsafe state needlessly
 - [] when a 'soft' error happens in workflow (ie milling precondition not met) system should pause workflow
 - [] we want to make sure that an error during the workflow, ie something that puts system in dead state, generates a popup dialog that user sees
 - [] right now iprep_image puts the lastcompleted step at image, think about if you want to do this. it does allow manipulation of where workflow picks up
@@ -63,13 +63,16 @@ This file describes what all the todos are for the demounit master development b
 - [] fix pressing resume after pressing pause before it actually pauses. this causes bug
 - [] if max slices is reached already and workflow has started, it still gets to running mode; needs a check
 - [] issue stop_milling command before starting workflow just to be safe. 
+- [] add method to dynamically load an image sequence and init it (in state machine). the others do not change as often so they can use the regular init if needed
 
 *** imaging ***
 
 - [] order of images in 3D stack is reversed
 - [] starting iprep_image from menu increases slice number. it is not supposed to do that
-- [] create factory class for image sequence for multiple ROIs
-- [] find a way to make sure that image step does not cause dead state when that is not really needed
+- [x] create factory class for image sequence for multiple ROIs
+- [x] find a way to make sure that image step does not cause dead state when that is not really needed
+- [] create a 3D volume stack manager that can be properly initialized and resumed
+- [] 
 
 *** UI ***
 
@@ -82,11 +85,12 @@ This file describes what all the todos are for the demounit master development b
 
 *** digiscan ***
 
-- [] find way to configure digiscan with parameters from ROI object. can be done both nicely and hacky. 
+- [x] find way to configure digiscan with parameters from ROI object. can be done both nicely and hacky. 
+- [] make class compatible with acquiring 2 signals simultaneously by doing the parameter configuration in config method 
 
 *** BING Bugs ***
 
-- [] we cannot read argon setpoint, only flow. this causes long term drift when setting it back after transfers. need fix
+- [x] we cannot read argon setpoint, only flow. this causes long term drift when setting it back after transfers. need fix
 - [x] go to etch does not work when having stage lowered manually beforehand. then it somehow uses coating parameters and messes up milling time remaining -(needs testing)
 
 
@@ -103,7 +107,7 @@ This file describes what all the todos are for the demounit master development b
 - all this goes to iprep_alignment.s, a different file
 - [] add a function to change ROI alignment by a standard vector (ie StoredImaging) due to crash
 
-- the 'default' values after calibration should be in tags, not hardcoded. now the current value used is stored in tags, but is overridden with what is in the code upon iprep_init runs
+- the 'default' values after calibration should be in tags, not hardcoded. now the current value used is stored in tags
 (1)- store calibration values for SEM (scribe_pos_ebsd, scribe_pos_planar, reference_ebsd, reference_planar) and parker (pickup_dropoff_ebsd, pickup_dropoff_planar) in (sem position and numeric) tags. these do NOT change except when alignment changes. 
 (2)- store vectors for SEM coordinates (ie where is highgridfront with respect to scribe_pos? where is clear with respect to reference?) in (sem position)tags. these get applied when IPrep calibration routines are ran
 (3)- store values used by workflow routines in tags. the workflow uses these and does not know of ebsd/planar. these tags do not get changed except by IPrep calibration routines. 
