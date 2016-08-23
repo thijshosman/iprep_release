@@ -113,7 +113,7 @@ for (i=0;i<10;i++)
 
 	number i
 
-	for (i=0;i<300;i++)
+	for (i=0;i<100;i++)
 	{
 		if ((optiondown() && shiftdown()))
 			break
