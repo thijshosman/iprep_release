@@ -138,7 +138,6 @@ class workflow: object
 		self.print("SEM dock current state: "+mySEMdock.getState())
 		self.print("PECS GVstate: "+myPecs.getGVstate())
 		self.print("--- hardware initialization complete---\n")
-
 	}
 
 
@@ -182,14 +181,9 @@ class workflow: object
 	}
 
 
-	// *** testing ***
-
-
-
-
 	// *** workflow items (old style) ***
 
-	void pickupFromPecsAndMoveToGV(object self)
+	void pickupFromPecsAndMoveToGV(object self) // # may be removed
 	{
 	
 		// 1st step in PECS-SEM
@@ -222,14 +216,10 @@ class workflow: object
 		// slide sample out and move towards gate valve
 		myTransfer.move("beforeGV")
 
-		//result("error in 1st PECS->SEM step: "+ GetExceptionString() + "\n" )
-
-	
+		//result("error in 1st PECS->SEM step: "+ GetExceptionString() + "\n" )	
 	}
 	
-	
-	
-	void insertIntoSEM(object self)
+	void insertIntoSEM(object self) // # may be removed
 	{
 		// SEM Stage assumed to be in clear position, but move there just in case
 
@@ -273,10 +263,9 @@ class workflow: object
 		mySEM.goToNominalImaging()
 
 		//result("error in 2nd PECS->SEM step: "+ GetExceptionString() + "\n" )
-
 	}
 
-	void retractArmAfterDropoff(object self)
+	void retractArmAfterDropoff(object self) // # may be removed
 	{
 		// 3rd step in PECS->SEM
 
@@ -290,11 +279,9 @@ class workflow: object
 		myPecs.closeGVandCheck()
 
 		//result("error in 3nd PECS->SEM step: "+ GetExceptionString() + "\n" )
-
 	}
 
-
-	void removeSampleFromSEM(object self)
+	void removeSampleFromSEM(object self) // # may be removed
 	{
 		// 1st step in SEM->PECS
 		
@@ -344,11 +331,9 @@ class workflow: object
 
 		// move SEM dock clamp down to safely move it around inside SEM
 		mySEMdock.clamp()
-
-
 	}
 
-	void insertSampleIntoPecsAndRetract(object self)
+	void insertSampleIntoPecsAndRetract(object self) // # may be removed
 	{
 		// 2nd step in SEM->PECS
 
@@ -375,7 +360,7 @@ class workflow: object
 		//result("error in 2nd SEM->PECS step: "+ GetExceptionString() + "\n" )
 	}
 
-	void WFtestroutine(object self)
+	void WFtestroutine(object self) // # may be removed
 	{
 		// test routine for error framework
 
@@ -400,12 +385,9 @@ class workflow: object
 
 		result("step 5")
 		sleep(1)
-
 	}
 
-
-
-	void PecsToSemAlign(object self)
+	void PecsToSemAlign(object self) // # may be removed
 	{
 
 		// used for alignment of sem transfer position
@@ -437,10 +419,9 @@ class workflow: object
 
 		// move to before GV
 		myTransfer.move("beforeGV")
-
 	}
 
-	void returnFromSEMAnywhereToPecs(object self)
+	void returnFromSEMAnywhereToPecs(object self) // # may be removed
 	{
 		// return a sample carrier from a point in the SEM to the PECS
 
@@ -469,13 +450,11 @@ class workflow: object
 
 		// turn transfer system off
 		myTransfer.turnOff()
-
-
 	}
 
 	// *** actual methods used by workflow following ***
 
-	void fastSemToPecs(object self)
+	void fastSemToPecs(object self) // # may be removed
 	{
 		// this method is part of speed improvements in the workflow. we try to get the sample as fast
 		// between the two points as a synchronous workflow allows. 
@@ -576,10 +555,9 @@ class workflow: object
 
 		// unlock
 		myPecs.unlock()
-
 	}
 
-	void fastPecsToSem(object self)
+	void fastPecsToSem(object self) // # may be removed
 	{
 		// this method is part of speed improvements in the workflow. we try to get the sample as fast
 		// between the two points as a synchronous workflow allows. 
@@ -688,10 +666,9 @@ class workflow: object
 
 		// unlock
 		myPecs.unlock()
-
 	}
 
-	void reseat(object self)
+	void reseat(object self) // # may be removed
 	{
 		// move sample out and into dovetail 
 		// use after sample transfer so that it will be in the same position as during transfer
@@ -747,10 +724,10 @@ class workflow: object
 		// close gripper arms
 		myGripper.close()
 
-//if (okcanceldialog("close gripper again?"))
-//{
-//	myGripper.close()
-//}
+		//if (okcanceldialog("close gripper again?"))
+		//{
+		//	myGripper.close()
+		//}
 
 		// close again if not closed all the way (bug 2016-08-12)
 		if (myGripper.getState() != "closed")
@@ -771,9 +748,7 @@ class workflow: object
 		myPecs.unlock()
 	}
 
-
-
-	void executeMillingStep(object self, number simulation, number timeout)
+	void executeMillingStep(object self, number simulation, number timeout) // # may be removed
 	{
 		self.print("milling started...")
 
@@ -829,11 +804,10 @@ class workflow: object
 			
 		}
 		self.print("elapsed time in milling: "+(tock-tick)/1000+" s")		
-		myPecs.lockout()
-		
+		myPecs.lockout()		
 	}	
 
-	void executeCoatingStep(object self, number timeout)
+	void executeCoatingStep(object self, number timeout) // # may be removed
 	{
 		self.print("coating started...")
 		// TODO: add timeout
@@ -873,10 +847,9 @@ class workflow: object
 			
 		}
 		self.print("elapsed time in coating: "+(tock-tick)/1000+" s")	
-
 	}
 
-	void preImaging(object self)
+	void preImaging(object self) // # may be removed
 	{
 		// prepares system for taking of image, like setting HV and WD settings and unblanking beam
 
@@ -885,7 +858,7 @@ class workflow: object
 		self.print("preimaging done")
 	}
 	
-	void postImaging(object self)
+	void postImaging(object self) // # may be removed
 	{
 		mySEM.blankOn()
 		
@@ -893,7 +866,7 @@ class workflow: object
 		self.print("postimaging done")
 	}
 
-	void executeEBSD(object self, number timeout)
+	void executeEBSD(object self, number timeout) // # may be removed
 	{
 		// send to SEM whatever needs to be sent to start EBSD acquisition
 		// then tell ebsd handshaker to start
@@ -930,11 +903,10 @@ class workflow: object
 		}
 		self.print("elapsed time in EBSD: "+(tock-tick)/1000+" s")	
 
-		self.print("EBSD done")
-		
+		self.print("EBSD done")	
 	}
 
-	void postEBSD(object self)
+	void postEBSD(object self) // # may be removed
 	{
 		//mySEM.blankOn()
 		// decouple FWD (in case oxford instruments coupled it)
@@ -945,7 +917,7 @@ class workflow: object
 
 	// *** additional testing methods ***
 
-	void insertAndRetractNTimes(object self, number numberOfTimes)
+	void insertAndRetractNTimes(object self, number numberOfTimes) // # may be removed
 	{
 		number index
 		for (index=0; index<numberOfTimes; index++)
@@ -956,7 +928,7 @@ class workflow: object
 		}
 	}
 
-	void openAndCloseNTimes(object self, number numberOfTimes)
+	void openAndCloseNTimes(object self, number numberOfTimes) // # may be removed
 	{
 		number index
 		for (index=0; index<numberOfTimes; index++)

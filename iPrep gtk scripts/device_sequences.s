@@ -344,7 +344,6 @@ class reseatSequenceDefault: deviceSequence
 		// not needed in this case
 		return 1
 	}
-
 }
 
 class semtopecsSequenceDefault: deviceSequence
@@ -501,8 +500,6 @@ class semtopecsSequenceDefault: deviceSequence
 		myWorkflow.returnSEMdock().unhold()
 		return 1
 	}
-
-
 }
 
 class pecstosemSequenceDefault: deviceSequence
@@ -666,8 +663,6 @@ class pecstosemSequenceDefault: deviceSequence
 		myWorkflow.returnSEMdock().unhold()
 		return 1
 	}
-
-
 }
 
 class image_single: deviceSequence
@@ -886,8 +881,430 @@ class image_single: deviceSequence
 		myWorkflow.returnSEM().blankOn()
 		return 1
 	}
+}
+
+class image_double: deviceSequence
+{
+	// declare object since it is used below
+	object myWorkflow
+
+	number init(object self, string name1, object workflow1)
+	{
+		self.setname(name1)
+		myWorkflow = workflow1
+	}
+
+	number precheck(object self)
+	{
+		// public
+		// #todo: define prechecks. SEM in right position? 
+
+		return 1
+	}
+
+	number postcheck(object self)
+	{
+		// public
+		// checks that have to be performed after sequence has completed
+		// in this case there is no post-check needed
+		return 1
+	}
+
+	number do_actual(object self)
+	{
+		// public
+		// performs 2 images
+		number returncode = 0
+
+		// *** general
+
+		// unblank
+		myWorkflow.returnSEM().blankOff()
+
+		// *** first roi
+
+		// get the ROI (default/StoredImaging in this case)
+		object myROI 
+		string name1 = "StoredImaging"
+		if (!returnROIManager().getROIAsObject(name1, myROI))
+		{
+			self.print("IMAGE: tag does not exist!")
+			return returncode
+		}
+
+		// go to ROI1
+		self.print("IMAGE: going to location: "+myROI.getName())
+		myWorkflow.returnSEM().goToImagingPosition(myROI.getName())
+		
+		// fix magnificationbug on Quanta
+		WorkaroundQuantaMagBug()
+
+		// focus
+		if (myROI.getAFMode() == 1) //autofocus on every slice
+		{
+			self.print("IMAGE: autofocusing")
+			IPrep_autofocus()
+			number afs_sleep = 1	// seconds of delay
+			sleep( afs_sleep )
+
+		}
+		else if (myROI.getAFMode() == 2) // no autofocus, use stored value
+		{
+			self.print("IMAGE: focus is: "+myROI.getFocus())
+			myWorkflow.returnSEM().setDesiredWD(myROI.getFocus()) // automatically sets it after storing it in object
+		}
+
+		// mag
+		if(returnROIEnables().mag())
+		{
+			self.print("IMAGE: magnification is: "+myROI.getMag())
+			myROI.getMag()
+		}
+
+		// digiscan acquire
+
+		// Acquire Digiscan image, use digiscan parameters saved in ROI
+		taggroup dsp = myROI.getDigiscanParam()
+
+		// can set digiscan parameter taggroup from this ROI to overwrite 'capture' settings
+		//myWorkflow.returnDigiscan().config(dsp)
+		// or use digiscan parameters as setup in the normal 'capture' at this moment
+		myWorkflow.returnDigiscan().config()
+		
+		// fix magnificationbug on Quanta
+		// second time, before imaging
+		WorkaroundQuantaMagBug()
+
+		image temp_slice_im
+		myWorkflow.returnDigiscan().acquire(temp_slice_im)
+
+		// Verify SEM is functioning properly - pause acquisition otherwise (might be better to do before AFS with a test scan, easier here)
+		// if tag exists
+		number pixel_threshold = 500
+		string tagname = "IPrep:SEM:Emission check threshold"
+		if(GetPersistentNumberNote( tagname, pixel_threshold ))
+		{
+			number avg = average( temp_slice_im )
+
+			if ( avg < pixel_threshold )
+			{
+				// average image value is less than threshold, assume SEM emission problem, pause acq
+				string str = datestamp()+": Average image value ("+avg+") is less than emission check threshold ("+pixel_threshold+")\n"
+				self.print(""+ str )
+				string str2 = "\nAcquisition has been paused.\n\nCheck SEM is working properly and press <Continue> to resume acquisition, or <Cancel> to stop."
+				string str3 = "\n\nNote: Threshold can be set at global tag: IPrep:SEM:Emission check threshold"
+				if ( !ContinueCancelDialog( str + str2 +str3 ) )
+				{
+						str = ": Acquisition terminated by user" 
+						self.print("IMAGE: "+str)	
+						return returncode	
+				}
+			}
+			else
+			{
+				self.print("IMAGE: Average image value ("+avg+") is greater than emission check threshold ("+pixel_threshold+"). SEM emission assumed OK." )	
+			}
+		}
+		
+		// Save Digiscan image
+		IPrep_saveSEMImage(temp_slice_im, "digiscan")
+
+		// Close Digiscan image
+		ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
+		imdoc.ImageDocumentClose(0)
+			
+		// add image to 3D volume and update 
+		// quietly ignore if stack is not initialized
+		try
+		{
+			object my3DvolumeSEM = myWorkflow.return3DvolumeSEM()
+			my3DvolumeSEM.addSlice(temp_slice_im)
+			my3DvolumeSEM.show()
+		}
+		catch
+		{
+			self.print("ignoring 3D volume stack")
+			break
+		}
+
+		// *** second ROI
+
+		object myExtraROI
+		string name2 = "ExtraROI"
+		returnROIManager().getROIAsObject(name2, myExtraROI)
+
+		// set mag (hardcoded for now)
+		if(returnROIEnables().mag())
+		{
+			print("IMAGE: magnification is: "+myExtraROI.getMag())
+			myWorkflow.returnSEM().setMag(myExtraROI.getMag())
+		}
+
+		//get digiscan parameters saved in ROI
+		taggroup dsp2 = myExtraROI.getDigiscanParam()
+
+		// create image
+		image temp_slice_im_ExtraROI
+		
+		// set up digiscan using settings from ROI
+		myWorkflow.returnDigiscan().config(dsp2)
+		
+		// acquire
+		myWorkflow.returnDigiscan().acquire(temp_slice_im_ExtraROI)
+
+		// Save Digiscan image
+		IPrep_saveSEMImage(temp_slice_im_ExtraROI, "digiscan_extraROI")
+
+		// Close Digiscan image
+		imdoc = ImageGetOrCreateImageDocument(temp_slice_im_ExtraROI)
+		imdoc.ImageDocumentClose(0)
 
 
+		// blank
+		myWorkflow.returnSEM().blankOn()
+
+		return 1
+	}
+
+	number undo(object self)
+	{
+		// public
+		// this method is intended to undo the sequence (if possible)
+		self.print("cannot undo this sequence")
+		return 0
+	}
+
+	number final(object self)
+	{
+		// public
+		// blank beam
+		myWorkflow.returnSEM().blankOn()
+		return 1
+	}
+}
+
+class image_iter: deviceSequence
+{
+	// declare object since it is used below
+	object myWorkflow
+
+	number init(object self, string name1, object workflow1)
+	{
+		self.setname(name1)
+		myWorkflow = workflow1
+	}
+
+	number precheck(object self)
+	{
+		// public
+		// #todo: define prechecks. SEM in right position? 
+
+		return 1
+	}
+
+	number postcheck(object self)
+	{
+		// public
+		// checks that have to be performed after sequence has completed
+		// in this case there is no post-check needed
+		return 1
+	}
+
+	number do_actual(object self)
+	{
+		// public
+		// runs through all ROIs that have the 'enabled' subtag set to 1
+		number returncode = 0
+
+		// *** general
+
+		// unblank
+		//myWorkflow.returnSEM().blankOff()
+
+		// *** go through ROIs
+		//taggroup tall_enabled = NewTagList()
+		taggroup tall_enabled = returnROIManager().getAllEnabled()
+		number count = tall_enabled.TagGroupCountTags( ) 
+		tall_enabled.TagGroupOpenBrowserWindow(0)
+		number i
+		taggroup subtag // temporary storage
+		string name
+	
+		for (i=0; i<count; i++)
+		{
+			// index the list and get single tag
+			tall_enabled.TagGroupGetIndexedTagAsTagGroup(i,subtag)
+			
+			// create a ROI object from this
+			object currentROI = alloc(IROI)
+			currentROI.initROIFromTag(subtag)
+
+			self.print("ROI: "+currentROI.getName())
+
+			currentROI.print()
+
+		}
+
+/*
+
+		// get the ROI (default/StoredImaging in this case)
+		object myROI 
+		string name1 = "StoredImaging"
+		if (!returnROIManager().getROIAsObject(name1, myROI))
+		{
+			self.print("IMAGE: tag does not exist!")
+			return returncode
+		}
+
+		// go to ROI1
+		self.print("IMAGE: going to location: "+myROI.getName())
+		myWorkflow.returnSEM().goToImagingPosition(myROI.getName())
+		
+		// fix magnificationbug on Quanta
+		WorkaroundQuantaMagBug()
+
+		// focus
+		if (myROI.getAFMode() == 1) //autofocus on every slice
+		{
+			self.print("IMAGE: autofocusing")
+			IPrep_autofocus()
+			number afs_sleep = 1	// seconds of delay
+			sleep( afs_sleep )
+
+		}
+		else if (myROI.getAFMode() == 2) // no autofocus, use stored value
+		{
+			self.print("IMAGE: focus is: "+myROI.getFocus())
+			myWorkflow.returnSEM().setDesiredWD(myROI.getFocus()) // automatically sets it after storing it in object
+		}
+
+		// mag
+		if(returnROIEnables().mag())
+		{
+			self.print("IMAGE: magnification is: "+myROI.getMag())
+			myROI.getMag()
+		}
+
+		// digiscan acquire
+
+		// Acquire Digiscan image, use digiscan parameters saved in ROI
+		taggroup dsp = myROI.getDigiscanParam()
+
+		// can set digiscan parameter taggroup from this ROI to overwrite 'capture' settings
+		//myWorkflow.returnDigiscan().config(dsp)
+		// or use digiscan parameters as setup in the normal 'capture' at this moment
+		myWorkflow.returnDigiscan().config()
+		
+		// fix magnificationbug on Quanta
+		// second time, before imaging
+		WorkaroundQuantaMagBug()
+
+		image temp_slice_im
+		myWorkflow.returnDigiscan().acquire(temp_slice_im)
+
+		// Verify SEM is functioning properly - pause acquisition otherwise (might be better to do before AFS with a test scan, easier here)
+		// if tag exists
+		number pixel_threshold = 500
+		string tagname = "IPrep:SEM:Emission check threshold"
+		if(GetPersistentNumberNote( tagname, pixel_threshold ))
+		{
+			number avg = average( temp_slice_im )
+
+			if ( avg < pixel_threshold )
+			{
+				// average image value is less than threshold, assume SEM emission problem, pause acq
+				string str = datestamp()+": Average image value ("+avg+") is less than emission check threshold ("+pixel_threshold+")\n"
+				self.print(""+ str )
+				string str2 = "\nAcquisition has been paused.\n\nCheck SEM is working properly and press <Continue> to resume acquisition, or <Cancel> to stop."
+				string str3 = "\n\nNote: Threshold can be set at global tag: IPrep:SEM:Emission check threshold"
+				if ( !ContinueCancelDialog( str + str2 +str3 ) )
+				{
+						str = ": Acquisition terminated by user" 
+						self.print("IMAGE: "+str)	
+						return returncode	
+				}
+			}
+			else
+			{
+				self.print("IMAGE: Average image value ("+avg+") is greater than emission check threshold ("+pixel_threshold+"). SEM emission assumed OK." )	
+			}
+		}
+		
+		// Save Digiscan image
+		IPrep_saveSEMImage(temp_slice_im, "digiscan")
+
+		// Close Digiscan image
+		ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
+		imdoc.ImageDocumentClose(0)
+			
+		// add image to 3D volume and update 
+		// quietly ignore if stack is not initialized
+		try
+		{
+			object my3DvolumeSEM = myWorkflow.return3DvolumeSEM()
+			my3DvolumeSEM.addSlice(temp_slice_im)
+			my3DvolumeSEM.show()
+		}
+		catch
+		{
+			self.print("ignoring 3D volume stack")
+			break
+		}
+
+		// *** second ROI
+
+		object myExtraROI
+		string name2 = "ExtraROI"
+		returnROIManager().getROIAsObject(name2, myExtraROI)
+
+		// set mag (hardcoded for now)
+		if(returnROIEnables().mag())
+		{
+			print("IMAGE: magnification is: "+myExtraROI.getMag())
+			myWorkflow.returnSEM().setMag(myExtraROI.getMag())
+		}
+
+		//get digiscan parameters saved in ROI
+		taggroup dsp2 = myExtraROI.getDigiscanParam()
+
+		// create image
+		image temp_slice_im_ExtraROI
+		
+		// set up digiscan using settings from ROI
+		myWorkflow.returnDigiscan().config(dsp2)
+		
+		// acquire
+		myWorkflow.returnDigiscan().acquire(temp_slice_im_ExtraROI)
+
+		// Save Digiscan image
+		IPrep_saveSEMImage(temp_slice_im_ExtraROI, "digiscan_extraROI")
+
+		// Close Digiscan image
+		imdoc = ImageGetOrCreateImageDocument(temp_slice_im_ExtraROI)
+		imdoc.ImageDocumentClose(0)
+
+
+		// blank
+		myWorkflow.returnSEM().blankOn()
+*/
+		return 1
+	}
+
+	number undo(object self)
+	{
+		// public
+		// this method is intended to undo the sequence (if possible)
+		self.print("cannot undo this sequence")
+		return 0
+	}
+
+	number final(object self)
+	{
+		// public
+		// blank beam
+		myWorkflow.returnSEM().blankOn()
+		return 1
+	}
 }
 
 class EBSD_default: deviceSequence
@@ -1048,6 +1465,10 @@ class mill_default: deviceSequence
 		// public
 
 		number returncode = 0
+
+		// raise the stage just in case (temp fix)
+		// #TODO: when all bugs in switching etch/coat mode have changed, this step becomes superfluous
+		myWorkflow.returnPecs().moveStageUp()
 
 		// go to etch mode (which should include raising stage)
 		myWorkflow.returnPecs().goToEtchMode()
@@ -1265,7 +1686,92 @@ class coat_default: deviceSequence
 	}
 }
 
+class PECSImageDefault: deviceSequence
+{
+	// declare object since it is used below
+	object myWorkflow
 
+	number init(object self, string name1, object workflow1)
+	{
+		self.setname(name1)
+		myWorkflow = workflow1
+	}
+
+	number precheck(object self)
+	{
+		// public
+		// no pre-check needed
+		return 1
+	}
+
+	number postcheck(object self)
+	{
+		// public
+		// checks that have to be performed after sequence has completed
+		// in this case there is no post-check needed
+		return 1
+	}
+
+	number do_actual(object self)
+	{
+		// public
+		// take image and save it in pecs dir
+
+		// raise stage to bring sample in focus
+		myWorkflow.returnPecs().moveStageUp()
+
+		// turn on illuminator
+		myWorkflow.returnPecs().ilumOn()
+		
+		image temp_slice_im
+
+		// acquire
+		myWorkflow.returnPECSCamera().acquire(temp_slice_im)
+
+		// turn off illuminator
+		myWorkflow.returnPecs().ilumOff()
+		
+		// save image
+		IPrep_savePECSImage(temp_slice_im, self.name())
+
+		// if something happens during DM handling of the image, quietly ignore it
+		try 
+		{
+
+			// show image
+			temp_slice_im.showimage() // only show if image is not a null image
+
+			// Close image
+			ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
+			imdoc.ImageDocumentClose(0)
+		}
+		catch
+		{
+			self.print("quietly ignoring exception: "+ GetExceptionString())
+			break // so that flow continues
+		}
+		
+
+		//
+
+		return 1
+	}
+
+	number undo(object self)
+	{
+		// public
+		// this method is intended to undo the sequence (if possible)
+		self.print("cannot undo this sequence")
+		return 0
+	}
+
+	number final(object self)
+	{
+		// public
+		// not needed in this case
+		return 1
+	}
+}
 
 
 

@@ -27,6 +27,8 @@ class workflowStateMachine: object
 	object ebsd_seq // temporary
 	object mill_seq
 	object coat_seq
+	object PECSImage_before_seq
+	object PECSImage_after_seq
 
 	void print(object self, string str1)
 	{
@@ -54,6 +56,14 @@ class workflowStateMachine: object
 		// image sequence, create and init
 		image_seq = createSequence("image_single")
 		image_seq.init("image",myWorkflow)
+
+		// PECS image sequence before milling, create and init
+		PECSImage_before_seq = createSequence("PECSImageDefault")
+		PECSImage_before_seq.init("pecs_camera_beforemilling",myWorkflow)
+
+		// PECS image sequence after milling, create and init
+		PECSImage_after_seq = createSequence("PECSImageDefault")
+		PECSImage_after_seq.init("pecs_camera_aftermilling",myWorkflow)
 
 		// have another image sequence for EBSD for backward compatibility
 		ebsd_seq = createSequence("EBSD_default")
@@ -372,6 +382,102 @@ class workflowStateMachine: object
 		else
 		{
 			self.print("not allowed to image. current state is: "+workflowState+". remaining idle")
+			returnval = 0
+		}
+		return returnval
+
+	}
+
+	number PECSImageAfter(object self)
+	{
+		// *** public ***
+		// image in PECS after milling
+		
+		number returnval = 0
+
+		if (!self.checkFlags())
+		{
+			self.print("cannot pecs image, dead and/or unsafe flag set")
+			return returnval
+		}
+
+		if (workflowState == "PECS")
+		{
+
+			number tick = GetOSTickCount()
+				
+			// new style
+			if(!PECSImage_after_seq.do()) // check if it fails
+			{
+				// exception in transfer, see if we can undo
+
+				self.print("pecs imaging failed")		
+
+				// #TODO if something fails, lets not set dead/unsafe. it's most likely not that serious when just imaging
+				returnval = 0
+				
+			}
+			else
+			{
+				returnval = 1
+			}
+				
+			number tock = GetOSTickCount()
+			self.print("elapsed time pecs imaging: "+(tock-tick)/1000+" s")
+
+			
+		}
+		else
+		{
+			self.print("not allowed to image in pecs. current state is: "+workflowState+". remaining idle")
+			returnval = 0
+		}
+		return returnval
+
+	}
+
+	number PECSImageBefore(object self)
+	{
+		// *** public ***
+		// image in PECS before milling
+		
+		number returnval = 0
+
+		if (!self.checkFlags())
+		{
+			self.print("cannot pecs image, dead and/or unsafe flag set")
+			return returnval
+		}
+
+		if (workflowState == "PECS")
+		{
+
+			number tick = GetOSTickCount()
+				
+			// new style
+			if(!PECSImage_before_seq.do()) // check if it fails
+			{
+				// exception in transfer, see if we can undo
+
+				self.print("pecs imaging failed")		
+
+				// #TODO if something fails, lets not set dead/unsafe. it's most likely not that serious when just imaging
+				returnval = 0
+				
+			}
+			else
+			{
+				returnval = 1
+			}
+				
+			number tock = GetOSTickCount()
+			self.print("elapsed time pecs imaging: "+(tock-tick)/1000+" s")
+
+			
+		}
+		else
+		{
+			self.print("not allowed to image in pecs. current state is: "+workflowState+". remaining idle")
 			returnval = 0
 		}
 		return returnval

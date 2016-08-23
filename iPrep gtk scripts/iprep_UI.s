@@ -33,9 +33,11 @@ void Save_imaging_XYZ_position( void )
 	string s1 = "Save SEM position\n("+x+","+y+","+z+")\nas default iPrep imaging location?"
 	string s2 = Datestamp()+": SEM position ("+x+","+y+","+z+") saved as default iPrep imaging location (storedImaging).\n"
 	if (OKCancelDialog(s1))
+	{
 		myWorkflow.returnSEM().saveCustomAsStoredImaging(x,y,z)
+		result(s2)	
+	}
 	
-	result(s2)	
 
 }
 
@@ -49,10 +51,10 @@ void Goto_nominal_imaging(void)
 
 	string s1 = "Nominal imaging position\n("+xx+","+yy+","+zz+")\n\nGo there now?"
 	if (OKCancelDialog(s1))
-		myWorkflow.returnSEM().goToNominalImaging()
-	
-	WorkaroundQuantaMagBug()
+	{	myWorkflow.returnSEM().goToNominalImaging()
+		WorkaroundQuantaMagBug()
 
+	}
 }
 
 
@@ -66,10 +68,11 @@ void Recall_imaging_XYZ_position( void )
 
 	string s1 = "Currently saved iPrep SEM imaging position (storedImaging)\n("+xx+","+yy+","+zz+")\n\nGo there now?"
 	if (OKCancelDialog(s1))
+	{	
 		myWorkflow.returnSEM().goToStoredImaging()
-	
-	WorkaroundQuantaMagBug()
-
+		WorkaroundQuantaMagBug()
+		//result(s1)
+	}
 }
 
 
@@ -524,19 +527,6 @@ void loadTagsFromFile(void)
 }
 
 
-/*
-void Set_autofocus_enable_dialog( void )
-{	
-// Set Autofocus tag
-	string tagname = "IPrep:SEM:AF:Enable"
-	number afs_enable = 0
-	GetPersistentNumberNote( tagname, afs_enable )
-	if (GetInteger( "Autofocus enable: "+afs_enable, afs_enable, afs_enable) )
-		SetPersistentNumberNote( tagname, afs_enable )
-
-}
-*/
-
 
 number IPrep_calibrate_transfer()
 {
@@ -545,7 +535,55 @@ number IPrep_calibrate_transfer()
 	//myWorkflow.calibrateForMode()
 }
 
+// Multi ROI functions
 
+void IPrep_addROI()
+{
+	// ask user for a new and store current SEM position as a new SEMPosition
+
+	string s0 = "an ROI with default values will be generated with entered name. it will default to an SEM position with the same name"
+	string s1 = "newregionname"
+	string newROIname = "testpositionui"
+
+	if (getstring(s0,s1,newROIname))
+	{
+		object myROI = ROIFactory(0,newROIname)
+		returnROIManager().addROI(myROI)
+		result("ROI created with name "+newROIname+"\n\n")
+		myROI.print()
+
+	}
+
+}
+
+void IPrep_addSEMPosition()
+{
+	// ask user for a new ROI name and add it with default settings
+
+	number x,y,z
+	x=myWorkflow.returnSEM().getX()
+	y=myWorkflow.returnSEM().getY()
+	z=myWorkflow.returnSEM().getZ()
+
+	string s0 = "Please enter a name. Current SEM location and focus will be saved as this position. existing names will be overwritten"
+	string s1 = "newposition"
+	string newROIname = "testpositionUI"
+	if (getstring(s0, s1, newROIname))
+	{
+		// #todo: get current focus value and save that too
+
+
+		object aCoord = alloc(SEMCoord)
+		aCoord.set(newROIname,x,y,z)
+		returnSEMCoordManager().addCoord(aCoord)
+		
+		result("saved position "+newROIname+"\n\n")
+		aCoord.print()
+	}
+
+
+	
+}
 
 
 
@@ -562,7 +600,7 @@ void iprep_InstallMenuItems( void )
 	string SS_SUB_MENU_2 = "PECS"
 	string SS_SUB_MENU_3 = "Recovery and Setup"
 	string SS_SUB_MENU_5 = "Loop Control"
-
+	string SS_SUB_MENU_6 = "ROI"
 
 	// workflow	
 	AddScriptToMenu( "Set_starting_slice_number()", "Set starting slice number...", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
@@ -576,7 +614,7 @@ void iprep_InstallMenuItems( void )
 	AddScriptToMenu( "beep()", "---", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
 
 	AddScriptToMenu( "Save_imaging_XYZ_position()", "Save imaging XYZ position (as stored imaging)...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
-	AddScriptToMenu( "Recall_imaging_XYZ_position()", "Recall imaging position (as stored imaging)...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
+	AddScriptToMenu( "Recall_imaging_XYZ_position()", "Recall current stored imaging position...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	
 	AddScriptToMenu( "beep()", "---", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
 
@@ -623,6 +661,9 @@ void iprep_InstallMenuItems( void )
 	AddScriptToMenu( "IPrep_calibrate_transfer()", "reinitialize all SEM stage and Parker calibrations from mode selection", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 	AddScriptToMenu( "IPrep_setScribeROI()", "calibrate scribe mark position after setting ROI", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 
+	// ROI
+	AddScriptToMenu( "IPrep_addSEMPosition()", "Add a new SEM coordinate", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
+	AddScriptToMenu( "IPrep_addROI()", "Add a ROI", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
 
 
 	// iprep loop control

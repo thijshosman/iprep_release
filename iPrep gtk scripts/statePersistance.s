@@ -403,6 +403,16 @@ class SEMCoord: object
 		df_valid = 1
 	}
 
+	void set(object self, string name1, number Xn, number Yn, number Zn)
+	{
+		name = name1
+		X = Xn
+		Y = Yn
+		Z = Zn
+		isSet = 1
+		df_valid = 0
+	}
+
 	void setX(object self, number X1)
 	{
 		X=X1

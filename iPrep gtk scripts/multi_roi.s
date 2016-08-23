@@ -203,6 +203,41 @@ class IROI: object
 	
 		return tg
 	}
+
+	void initROIFromTag(object self, taggroup subtag)
+	{
+		// initializes this ROI using subtag
+
+
+		subtag.TagGroupGetTagAsString("name",name)
+
+		subtag.TagGroupGetTagAsString("coordName",coordName)
+
+		subtag.TagGroupGetTagAsNumber("enabled",enabled)
+
+		subtag.TagGroupGetTagAsNumber("af_mode",af_mode)
+
+		subtag.TagGroupGetTagAsTaggroup("digiscan_param",digiscan_param)
+
+		subtag.TagGroupGetTagAsFloat("focus",focus)
+
+		subtag.TagGroupGetTagAsFloat("brightness",brightness)
+
+		subtag.TagGroupGetTagAsNumber("contrast",contrast)
+
+		subtag.TagGroupGetTagAsNumber("mag",mag)
+
+		subtag.TagGroupGetTagAsNumber("voltage",voltage)
+
+		subtag.TagGroupGetTagAsNumber("ss",ss)		
+
+		subtag.TagGroupGetTagAsNumber("stigx",stigx)
+
+		subtag.TagGroupGetTagAsNumber("stigy",stigy)
+
+		
+	}
+
 }
 
 object ROIFactory(number type, string name1)
@@ -333,8 +368,6 @@ class ROIEnables: object
 	{
 		return self.getAnEnable("stigy")
 	}
-
-
 }
 
 
@@ -593,6 +626,35 @@ class ROIManager: object
 		}
 
 	}
+
+	taggroup getAllEnabled(object self)
+	{
+		// returns taggroup with all enabled tags
+
+		taggroup tall =self.getROIList()
+		number count = tall.TagGroupCountTags()
+		self.print(""+count)
+		// create empty list and add enabled ROIs as we iterate
+		taggroup tall_enabled = NewTagList()
+		
+		taggroup subtag
+		number i
+		for (i=0; i<count; i++)
+		{
+			// index the list and get single tag
+			tall.TagGroupGetIndexedTagAsTagGroup(i,subtag)
+
+			object tmp = self.convertTagToROI(subtag)
+
+			self.print("i: "+i+" name: "+tmp.getName()+", enabled: "+tmp.getEnabled())
+			if (tmp.getEnabled()==1.0)
+				tall_enabled.TagGroupAddTagGroupAtEnd(subtag)
+
+		}
+		//tall_enabled.TagGroupOpenBrowserWindow(0)
+		return tall_enabled
+	}
+
 
 
 }

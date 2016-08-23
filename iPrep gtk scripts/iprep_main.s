@@ -69,54 +69,10 @@ object my3DvolumePECSafter
 
 void IPrep_setSliceNumber(number setSlice)
 {
-	// save the slice number in the tag
+	// save the slice number in the tag and update progress window
 	TagGroupSetTagAsNumber(GetPersistentTagGroup(),"IPrep:Record Settings:Slice Number",setSlice)
 	print("new #slices is: "+setSlice+"\n")
 	myPW.updateC("slice: "+IPrep_sliceNumber())
-}
-
-void acquire_PECS_image( image &img )
-// Use this routine to acquire a PECS image in any PECS stage position.
-// PECS should not be milling - this is not tested for
-// Uses default PECS camera acquire settings
-// Image is not displayed
-// Turns off illumination on exit
-{
-/*
-// Check if stage is up (needs to be up for imaging)
-	string first_stagepos = myWorkflow.returnPecs().getStageState()
-	if ( first_stagepos != "up" )
-	{
-		// If not up then raise it
-		print(": PECS stage in down position. Raising to up position" )
-		myWorkflow.returnPecs().moveStageUp()
-
-		string current_stagepos = myWorkflow.returnPecs().getStageState()
-		if ( current_stagepos != "up" )
-			throw( "Problem moving stage to up position. Currently at:"+current_stagepos )
-
-	}
-		//datestamp()
-		print("PECS stage in up position" )
-*/
-	// Light on, acquire, light off
-	myWorkflow.returnPecs().ilumOn()
-	myWorkflow.returnPECSCamera().acquire(img) // use correct method
-	myWorkflow.returnPecs().ilumOff()
-	
-	// If stage was originally down, then return stage to down position
-/*
-	if ( first_stagepos != "up" )
-	{
-		print("PECS stage in up position. Returning to down position")
-		myWorkflow.returnPecs().moveStageDown()
-		string current_stagepos = myWorkflow.returnPecs().getStageState()
-		if ( current_stagepos != "down" )
-			throw( "Problem moving stage back to down position. Currently at:"+current_stagepos )
-
-		print("PECS stage returned to down position" )
-	}
-*/
 }
 
 number IPrep_consistency_check()
@@ -313,7 +269,6 @@ number IPrep_consistency_check()
 	// success,
 	print("consistency check finished!")
 	return 1
-
 }
 
 number IPrep_recover_deadflag()
@@ -352,18 +307,15 @@ number IPrep_recover_deadflag()
 		print("consistency check passed. system no longer dead")
 		returnDeadFlag().setDead(0)
 	}
-
 }
 
 number IPrep_align_applyvectors()
 {
 	// apply vectors based on current mode (ebsd or planar) to calibration points
-
 }
 
 number IPrep_align_restoredefaults()
 {
-
 }
 
 number IPrep_align_planar_hack()
@@ -453,11 +405,7 @@ number IPrep_align_planar_hack()
 		returnSEMCoordManager().addCoord(highGridFront)
 		returnSEMCoordManager().addCoord(highGridBack)
 		returnSEMCoordManager().addCoord(lowerGrid)
-
-
-
 }
-
 
 number IPrep_init()
 {
@@ -496,7 +444,6 @@ number IPrep_init()
 	}
 	return 0
 }
-
 
 number IPrep_toggle_planar_ebsd(string mode)
 {
@@ -582,7 +529,6 @@ number IPrep_toggle_planar_ebsd(string mode)
 
 
 	return returncode
-
 }
 
 number IPrep_scribemarkVectorCorrection(number x_corr, number y_corr)
@@ -647,7 +593,6 @@ number IPrep_scribemarkVectorCorrection(number x_corr, number y_corr)
 	returnSEMCoordManager().addCoord(scribe_pos)
 
 	return 1
-
 }
 
 void IPrep_cleanup()
@@ -670,9 +615,6 @@ void IPrep_cleanup()
 	// unlock PECS UI
 	print("unlocking PECS")
 	myWorkflow.returnPECS().unlock()
-
-
-
 }
 
 Number IPrep_Setup_Imaging()
@@ -742,8 +684,6 @@ Number IPrep_Setup_Imaging()
 		break
 	}
 	return returncode
-
-
 }
 
 Number IPrep_foobar()
@@ -776,9 +716,6 @@ Number IPrep_foobar()
 
 	return returncode
 }
-
-
-
 
 // *** methods directly called by workflow ***
 
@@ -876,10 +813,8 @@ Number IPrep_reseat()
 		print("iprep encountered an error. cannot recover")
 	}	
 
-	return returncode
-	
+	return returncode	
 }
-
 
 Number IPrep_check()
 {
@@ -917,9 +852,6 @@ Number IPrep_check()
 	// UPS status
 
 	return 1
-
-
-
 }
 
 Number IPrep_StartRun()
@@ -927,15 +859,28 @@ Number IPrep_StartRun()
 	print("UI: IPrep_StartRun")
 	
 	number returncode = 0
+	string popuperror
 
 	if (!returnDeadFlag().checkAliveAndSafe())
-		return returncode // to indicate error
+		{
+			popuperror = "system dead and/or unsafe. cannot start"
+			okdialog(popuperror)
+			return returncode // to indicate error
+		}
 
 	if(!IPrep_consistency_check())
-		return returncode // to indicate error
+		{
+			popuperror = "consistency check failed, check log. cannot start"
+			okdialog(popuperror)
+			return returncode // to indicate error
+		}
 
 	if(!IPrep_check())
-		return returncode // to indicate error
+		{
+			popuperror = "check failed, check log. cannot start"
+			okdialog(popuperror)
+			return returncode // to indicate error
+		}
 
 
 	// #TODO: this routine needs to know where to start in case of DM crash. 
@@ -1042,7 +987,77 @@ Number IPrep_StopRun()
 	return 1
 }
 
-number IPrep_image_single()
+number IPrep_acquire_ebsd()
+{
+	number returncode = 0
+
+	print("IPrep_acquire_ebsd")
+	myPW.updateA("imaging")
+	number success = myStateMachine.ebsd()
+	
+	if (success == 1)	
+	{
+		myPW.updateA("sample: done imaging")
+		print("imaging done")
+		returncode = 1 // to indicate success
+	}
+	else if (success == -1)
+	{
+		returncode = 0 // irrecoverable error
+		print("iprep encountered an irrecoverable error")
+	}
+	else if (success == 0)
+	{
+		returncode = 0 // irrecoverable error (for now)
+		print("iprep encountered an error. cannot recover")
+		// #TODO: should pause system for user to fix whatever is wrong and continue
+	}	
+
+	return returncode
+
+
+
+	// old 
+	// #may be removed
+	/*
+	
+	number returncode = 0
+	try
+	{
+		if(getSystemMode() == "ebsd")
+		{
+			// tell state machine we want to start EBSD acquisition
+			myStateMachine.start_ebsd(8000) // timeout of 8000
+
+			// tell state machine we want to stop EBSD acquisition
+			myStateMachine.stop_ebsd()
+
+			returncode = 1
+		}
+		else
+		{
+			print("not in EBSD mode, skipping step..")
+			returncode = 1
+		}
+		
+	}
+	catch
+	{
+		// system caught unhandled exception
+		print("EBSD system generated exception: "+GetExceptionString())
+
+		// an exception in ebsd acquisition is most likely safe
+		returnDeadFlag().setDead(1, "DOCK", "EBSD system generated exception: "+GetExceptionString())
+		//returnDeadFlag().setDeadUnSafe()
+
+		break // so that flow continues
+	}
+
+	return returncode
+	*/
+}
+
+number IPrep_image_single() // #may be removed
 {
 	// supports multi ROI
 
@@ -1243,7 +1258,6 @@ number IPrep_image_single()
 	}
 
 	return returncode
-
 }
 
 number IPrep_image_2rois()
@@ -1458,10 +1472,9 @@ number IPrep_image_2rois()
 	}
 
 	return returncode
-
 }
 
-number IPrep_image()
+number IPrep_image() 
 {
 	number returncode = 0
 
@@ -1488,21 +1501,19 @@ number IPrep_image()
 	}	
 
 	return returncode
-
 }
 
-number IPrep_acquire_ebsd()
+Number IPrep_Pecs_Image_beforemilling()
+// take image of sample in PECS before milling
 {
 	number returncode = 0
 
-	print("IPrep_acquire_ebsd")
-	myPW.updateA("imaging")
-	number success = myStateMachine.ebsd()
+	print("IPrep_image_beforemilling")
+	number success = myStateMachine.PECSImageBefore()
 	
 	if (success == 1)	
 	{
-		myPW.updateA("sample: done imaging")
-		print("imaging done")
+		print("PECS image before milling taken of slice: "+IPrep_sliceNumber())
 		returncode = 1 // to indicate success
 	}
 	else if (success == -1)
@@ -1518,51 +1529,38 @@ number IPrep_acquire_ebsd()
 	}	
 
 	return returncode
-
-
-
-	// old
-	/*
-	
-	number returncode = 0
-	try
-	{
-		if(getSystemMode() == "ebsd")
-		{
-			// tell state machine we want to start EBSD acquisition
-			myStateMachine.start_ebsd(8000) // timeout of 8000
-
-			// tell state machine we want to stop EBSD acquisition
-			myStateMachine.stop_ebsd()
-
-			returncode = 1
-		}
-		else
-		{
-			print("not in EBSD mode, skipping step..")
-			returncode = 1
-		}
-		
-	}
-	catch
-	{
-		// system caught unhandled exception
-		print("EBSD system generated exception: "+GetExceptionString())
-
-		// an exception in ebsd acquisition is most likely safe
-		returnDeadFlag().setDead(1, "DOCK", "EBSD system generated exception: "+GetExceptionString())
-		//returnDeadFlag().setDeadUnSafe()
-
-		break // so that flow continues
-	}
-
-	return returncode
-	*/
-
 }
 
+Number IPrep_Pecs_Image_aftermilling()
+// take image of sample in PECS before milling
+{
+	number returncode = 0
 
-Number IPrep_Pecs_Image_beforemilling()
+	print("IPrep_image_aftermilling")
+	number success = myStateMachine.PECSImageAfter()
+	
+	if (success == 1)	
+	{
+		print("PECS image after milling taken of slice: "+IPrep_sliceNumber())
+		returncode = 1 // to indicate success
+	}
+	else if (success == -1)
+	{
+		returncode = 0 // irrecoverable error
+		print("iprep encountered an irrecoverable error")
+	}
+	else if (success == 0)
+	{
+		returncode = 0 // irrecoverable error (for now)
+		print("iprep encountered an error. cannot recover")
+		// #TODO: should pause system for user to fix whatever is wrong and continue
+	}	
+
+	return returncode
+}
+
+/*
+Number IPrep_Pecs_Image_beforemilling_old() // #may be removed
 {
 	// take image in PECS system before milling
 
@@ -1596,7 +1594,7 @@ Number IPrep_Pecs_Image_beforemilling()
 
 
 
-Number IPrep_Pecs_Image_aftermilling()
+Number IPrep_Pecs_Image_aftermilling_old() // #may be removed
 {
 	// take image in PECS system after milling
 
@@ -1626,7 +1624,7 @@ Number IPrep_Pecs_Image_aftermilling()
 
 	return returncode
 }
-
+*/
 
 
 Number IPrep_mill_workflow()
@@ -1737,8 +1735,6 @@ Number IPrep_Coat_workflow()
 	return returncode
 }
 
-
-
 Number IPrep_IncrementSliceNumber()
 {
 	// increment the slicenumber in the tag as experiment is going
@@ -1748,7 +1744,6 @@ Number IPrep_IncrementSliceNumber()
 	IPrep_setSliceNumber(nSlices)
 	return 1;
 }
-
 
 string IPrep_GetStatus()
 {
@@ -1771,7 +1766,6 @@ Number IPrep_MoveToPECS()
 	if(IPrep_MoveToPECS_workflow() != 1)
 	{
 		okdialog("Did not finish transfer to PECS. check log")
-	
 	}
 
 	return 1
@@ -1782,7 +1776,6 @@ Number IPrep_MoveToSEM()
 	if(IPrep_MoveToSEM_workflow() != 1)
 	{
 		okdialog("Did not finish transfer to SEM. check log")
-	
 	}
 
 	return 1
