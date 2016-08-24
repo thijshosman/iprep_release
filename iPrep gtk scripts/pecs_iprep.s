@@ -286,13 +286,13 @@ class pecs_iprep: object
 		PIPS_SetPropertyDevice("subsystem_milling", "device_stage", "set_rotate_mode", "7")  
 		
 		// wait
-		//sleep(1)
+		sleep(1)
 		
 		// now issue homing command
 		PIPS_SetPropertyDevice("subsystem_milling", "device_stage", "set_rotate_mode", "3")
 		
 		// wait 5 second in order for the stage to make sure it is at home
-		sleep(4)
+		sleep(5)
 
 		self.print("stage homed")
 	}
@@ -417,7 +417,7 @@ class pecs_iprep: object
 		PIPS_SetPropertyDevice("subsystem_pumping", "device_valveVacuum", "set_active", "0")
 		PIPS_SetPropertyDevice("subsystem_imaging", "device_illuminatorTop", "set_enable", "1")  
 		PIPS_SetPropertyDevice("subsystem_imaging", "device_illuminatorTop", "set_active", "1")  
-
+		sleep(1) // changed with faster commands
 		self.getStageState()
 		stagePersistance.setState("up")
 		
@@ -438,7 +438,7 @@ class pecs_iprep: object
 		PIPS_SetPropertyDevice("subsystem_pumping", "device_valveWhisperlok", "set_active", "1")
 		PIPS_SetPropertyDevice("subsystem_imaging", "device_illuminatorTop", "set_active", "0")  
 		sleep(3)
-		
+		sleep(1) // changed with faster commands
 		self.getStageState()
 		stagePersistance.setState("down")
 
@@ -479,7 +479,7 @@ class pecs_iprep: object
 
 		// turn off av2
 		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_22", "0")
-
+		sleep(3)
 		if (self.getGVState() == "open")
 		{
 			// success
@@ -518,7 +518,7 @@ class pecs_iprep: object
 
 		// turn on av2
 		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_22", "1")
-
+		sleep(3)
 		if (self.getGVState() == "closed")
 		{
 			// success

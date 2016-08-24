@@ -44,7 +44,7 @@ try
 	/*
 	number j
 	string value1, value2, value3
-	for (j=0; j<5; j++)
+	for (j=0; j<1; j++)
 	{
 		number tick = GetOSTickCount()
 		
@@ -55,11 +55,12 @@ try
 		// GET argon
 		PIPS_GetPropertyDevice("subsystem_pumping", "device_gasPressure", "read_pressure_status", value3)
 		//SET move shutter in
-		//PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_23", "1")
+		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_23", "1")
 		//SET move shutter out
-		//PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_23", "0")
+		sleep(1)
+		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_23", "0")
 		//SET ilum on
-		//PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_24", "1")
+		PIPS_SetPropertyDevice("subsystem_milling", "device_cpld", "bit_24", "1")
 		PIPS_SetPropertyDevice("subsystem_milling", "device_mfcLeft", "set_gas_flow", "0.01")
 		number tock = GetOSTickCount()
 		result(j+": values: = " + value1+", "+value2+", "+value3 + ", time = "+(tock-tick)+" ms \n")
@@ -88,8 +89,8 @@ try
 	//myWorkflow.returnGripper().sendCommand("P10000R") // close a bit (P)
 	//myWorkflow.returnGripper().sendCommand("D10000R")
 	
-	result("sensor number: "+myWorkflow.returnGripper().readSensor()+"\n")
-	myWorkflow.returnGripper().lookupState(1)
+	//result("sensor number: "+myWorkflow.returnGripper().readSensor()+"\n")
+	//myWorkflow.returnGripper().lookupState(1)
 /*
 number i
 
@@ -110,7 +111,7 @@ for (i=0;i<10;i++)
 	
 	// *** reseating test dovetail ***
 	
-
+/*
 	number i
 
 	for (i=0;i<100;i++)
@@ -133,7 +134,7 @@ for (i=0;i<10;i++)
 		debug("i: "+i+"\n")
 	}
 	
-
+*/
 	
 	
 	

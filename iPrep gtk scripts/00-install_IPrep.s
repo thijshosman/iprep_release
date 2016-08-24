@@ -72,7 +72,7 @@ InstallFile( PathConcatenate( gPath, "digiscan_simulator.s" ), package, 3 )
 
 InstallFile( PathConcatenate( gPath, "ebsd_simulator.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "ebsd_manual.s" ), package, 3 )
-InstallFile( PathConcatenate( gPath, "ebsd_oi_automatic.s" ), package, 3 )
+//InstallFile( PathConcatenate( gPath, "ebsd_oi_automatic.s" ), package, 3 )
 
 InstallFile( PathConcatenate( gPath, "workflowElements.s" ), package, 3 )
 
