@@ -1056,7 +1056,7 @@ number IPrep_acquire_ebsd()
 	return returncode
 	*/
 }
-
+/*
 number IPrep_image_single() // #may be removed
 {
 	// supports multi ROI
@@ -1259,7 +1259,8 @@ number IPrep_image_single() // #may be removed
 
 	return returncode
 }
-
+*/
+/*
 number IPrep_image_2rois()
 {
 	// 2 ROIS, first new ROI
@@ -1473,6 +1474,7 @@ number IPrep_image_2rois()
 
 	return returncode
 }
+*/
 
 number IPrep_image() 
 {
