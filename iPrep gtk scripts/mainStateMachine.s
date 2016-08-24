@@ -200,13 +200,14 @@ class workflowStateMachine: object
 			}
 			else
 			{
+				self.changeWorkflowState("PECS")
+				lastCompletedStep.setState("RESEAT")			
 				returnval = 1
 			}
 
 			
 			
-			self.changeWorkflowState("PECS")
-			lastCompletedStep.setState("RESEAT")
+
 		}
 		else
 		{
@@ -259,6 +260,8 @@ class workflowStateMachine: object
 			}
 			else
 			{
+				self.changeWorkflowState("SEM")
+				lastCompletedStep.setState("SEM")
 				returnval = 1
 			}
 
@@ -266,8 +269,7 @@ class workflowStateMachine: object
 			number tock = GetOSTickCount()
 			self.print("elapsed time PECS->SEM: "+(tock-tick)/1000+" s")
 
-			self.changeWorkflowState("SEM")
-			lastCompletedStep.setState("SEM")
+
 			
 
 		}
@@ -322,14 +324,14 @@ class workflowStateMachine: object
 			}
 			else
 			{
+				self.changeWorkflowState("PECS")
+				lastCompletedStep.setState("PECS")
 				returnval = 1
 			}
 				
 			number tock = GetOSTickCount()
 			self.print("elapsed time SEM->PECS: "+(tock-tick)/1000+" s")
 
-			self.changeWorkflowState("PECS")
-			lastCompletedStep.setState("PECS")
 		}
 		else
 		{
@@ -371,13 +373,13 @@ class workflowStateMachine: object
 			}
 			else
 			{
+				lastCompletedStep.setState("IMAGE")
 				returnval = 1
 			}
 				
 			number tock = GetOSTickCount()
 			self.print("elapsed time imaging: "+(tock-tick)/1000+" s")
-
-			lastCompletedStep.setState("IMAGE")
+			
 		}
 		else
 		{
@@ -514,13 +516,14 @@ class workflowStateMachine: object
 			}
 			else
 			{
+				lastCompletedStep.setState("EBSD")
 				returnval = 1
 			}
 				
 			number tock = GetOSTickCount()
 			self.print("elapsed time in EBSD: "+(tock-tick)/1000+" s")
 
-			lastCompletedStep.setState("EBSD")
+			
 		}
 		else
 		{
@@ -561,13 +564,13 @@ class workflowStateMachine: object
 			}
 			else
 			{
+				lastCompletedStep.setState("MILL")	
 				returnval = 1
 			}
 				
 			number tock = GetOSTickCount()
 			self.print("elapsed time milling: "+(tock-tick)/1000+" s")
 
-			lastCompletedStep.setState("MILL")
 		}
 		else
 		{
@@ -607,13 +610,13 @@ class workflowStateMachine: object
 			}
 			else
 			{
+				lastCompletedStep.setState("COAT")
 				returnval = 1
 			}
 				
 			number tock = GetOSTickCount()
 			self.print("elapsed time coating: "+(tock-tick)/1000+" s")
 
-			lastCompletedStep.setState("COAT")
 		}
 		else
 		{
@@ -621,101 +624,6 @@ class workflowStateMachine: object
 			returnval = 0
 		}
 		return returnval
-	}
-
-	void start_mill(object self, number simulation, number timeout)
-	{
-		// *** public ***
-		// start milling until manually canceled or timeout (in seconds) is passed
-
-		if (workflowState == "PECS")
-		{	
-
-				myWorkflow.executeMillingStep(simulation, timeout)
-
-		}
-		else
-			self.print("commanded to perform milling step when sample is not in PECS, remaining idle")
-	}
-
-	void stop_mill(object self)
-	{
-		// *** public ***
-		// stop milling	
-
-		if (workflowState == "PECS")
-		{	
-			lastCompletedStep.setState("MILL")
-		}
-		else
-			throw("commanded to perform stop milling step when sample is not in PECS")
-	}
-
-	void start_image(object self)
-	{
-		// *** public ***
-		// start imaging
-		
-		Tick = GetOSTickCount()
-
-		if (workflowState == "SEM")
-		{	
-
-			myWorkflow.preimaging()
-
-			// imaging itself is done one level up, in iprep_main
-
-		}
-		else
-			throw("wrong state: commanded to perform imaging step when sample is not in SEM")
-	}
-
-	void stop_image(object self)
-	{
-		// *** public ***
-		// stop imaging	
-
-		if (workflowState == "SEM")
-		{	
-			myWorkflow.postimaging()
-			lastCompletedStep.setState("IMAGE")
-			Tock = GetOSTickCount()
-			if(Tock > 0)
-				self.print("elapsed time in imaging: "+(Tock-Tick)/1000+" s")
-		}
-		else
-			throw("wrong state: commanded to stop imaging step when sample is not in SEM")
-	}
-
-	void start_ebsd(object self, number timeout)
-	{
-		// *** public ***
-		// start acquiring EBSD data
-		
-
-		if (workflowState == "SEM")
-		{	
-
-			myWorkflow.executeEBSD(timeout)
-
-		}
-		else
-			throw("wrong state: commanded to perform EBSD step when sample is not in SEM")
-	}
-
-	void stop_ebsd(object self)
-	{
-		// *** public ***
-		// stop acquiring EBSD data	
-
-		if (workflowState == "SEM")
-		{	
-			myWorkflow.postEBSD()
-
-			lastCompletedStep.setState("EBSD")
-		}
-		else
-			throw("wrong state: commanded to stop EBSD acquisition step when sample is not in SEM")
 	}
 
 	void SMtestroutine(object self)
@@ -728,13 +636,11 @@ class workflowStateMachine: object
 
 	}
 
-
 	number getPercentage(object self)
 	{
 		// deprecated
 		return percentage
 	}
-
 
 	string getCurrentWorkflowState(object self)
 	{
