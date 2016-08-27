@@ -1,6 +1,15 @@
 
 This file describes what all the todos are for the demounit master development branch. 
 
+*** bugs ***
+
+- [] when PECS has rebooted, check connection before starting workflow. now it still sort of runs but pops up messages in the meantime with that it failed to talk to PECS. can be dangerous
+- [] image sequence turns top illuminators off. this is probably wrong. 
+- [] rethink locking out the PECS UI at the end of milling vs at the beginning of transfer
+- [] adding sem image to 3d image stack broke
+- [] when changing capture settings in DM, you have to press 'capture' button before this becomes the capture setting returned by DSGetWidth( paramID ). iprep image sequence does not need initialization when settings change
+- [] when PECS reboots, we have a strange situation in which somehow the workflow still communications but still throws an exception somewhere that prevents it from continuing the workflow
+
 *** general/helper ***
 
 - [x] the persistance classes need to throw a readable exception when a tag is not found to facilitate easy fixes on systems that do not have all the tags. 
@@ -40,10 +49,10 @@ This file describes what all the todos are for the demounit master development b
 - [x] make sure that non-irrecoverable errors from state machine get processed in main in a different way than true irrecoverable errors. now they are treated the same
 - [x] migrate 2 ROI example to a proper sequence
 
+- [] create a way to manually/dynamically load sequences in state machine
 
 
-
-*** multi ROI
+*** multi ROI ***
 
 - [] we need a way to iterate over ROIs. the most logical thing would be to use the subtag for all ROIs that labels them as 'enabled'. the sequence method would then just iterate over all of them. 
 - [x] update roimanager to return all enabled rois

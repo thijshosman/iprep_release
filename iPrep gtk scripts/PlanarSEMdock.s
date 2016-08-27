@@ -325,7 +325,7 @@ class planarSEMdock : object
 	void camOn(object self)
 	{
 		// turn chamberscope camera and aillumination on
-		self.sendCommand("J4R")
+		self.sendCommand("J3R")
 		self.print("chamberscope turned ON")
 	}
 

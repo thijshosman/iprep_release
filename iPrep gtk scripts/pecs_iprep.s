@@ -119,6 +119,7 @@ class pecs_iprep: object
 		if (!self.argonCheck())
 			throw("argon pressure check failed, aborting")
 		PIPS_Execute("SETP_SUB0000,subsystem_milling,set_milling_variation,0")
+		sleep(10) // wait for PECS to set itself in the right position (move gun angles, etc) until start milling
 		PIPS_StartMilling()
 	}
 
@@ -413,7 +414,7 @@ class pecs_iprep: object
 		PIPS_SetPropertyDevice("subsystem_pumping", "device_valveLoadLock", "set_active", "0")
 		sleep(.25)
 		PIPS_SetPropertyDevice("subsystem_pumping", "device_valveVacuum", "set_active", "1")
-		sleep(5)
+		sleep(7)
 		PIPS_SetPropertyDevice("subsystem_pumping", "device_valveVacuum", "set_active", "0")
 		PIPS_SetPropertyDevice("subsystem_imaging", "device_illuminatorTop", "set_enable", "1")  
 		PIPS_SetPropertyDevice("subsystem_imaging", "device_illuminatorTop", "set_active", "1")  

@@ -160,6 +160,7 @@ number IPrep_consistency_check()
 	}
 
 
+	/*
 	if (!myWorkflow.returnPecs().StageConsistencyCheck())
 	{
 		if(!okcanceldialog("is the PECS stage in a known position?"))
@@ -173,7 +174,7 @@ number IPrep_consistency_check()
 	{
 		print("PECS stage state consistent")
 	}
-
+	*/
 
 	// transfer, is saved position similar to where it thinks it is?
 	if (myWorkflow.returnTransfer().consistencycheck() != 1)

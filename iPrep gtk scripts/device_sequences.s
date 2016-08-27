@@ -317,6 +317,16 @@ class reseatSequenceDefault: deviceSequence
 			myWorkflow.returnGripper().close()
 		}
 
+		//if (okcanceldialog("paused. press ok to continue"))
+		//{
+		//	return 1
+		//}
+
+		// open and close again to make sure it is actually closed
+		// (2016-08-24)
+		//myWorkflow.returnGripper().open()
+		//myWorkflow.returnGripper().close()
+
 		// go to prehome
 		myWorkflow.returnTransfer().move("prehome")
 
@@ -457,10 +467,15 @@ class semtopecsSequenceDefault: deviceSequence
 		myWorkflow.returnGripper().close()
 		
 		// close again if not closed all the way (bug 2016-08-12)
-		if (myWorkflow.returnGripper().getState() != "closed")
-		{
-			myWorkflow.returnGripper().close()
-		}		
+		//if (myWorkflow.returnGripper().getState() != "closed")
+		//{
+		//	myWorkflow.returnGripper().close()
+		//}		
+
+		// open and close again to make sure it is actually closed
+		// (2016-08-24)
+		//myWorkflow.returnGripper().open()
+		//myWorkflow.returnGripper().close()
 
 		// go to prehome
 		myWorkflow.returnTransfer().move("prehome")
@@ -597,10 +612,10 @@ class pecstosemSequenceDefault: deviceSequence
 		myWorkflow.returnGripper().close()
 	
 		// close again if not closed all the way (bug 2016-08-12)
-		if (myWorkflow.returnGripper().getState() != "closed")
-		{
-			myWorkflow.returnGripper().close()
-		}
+		//if (myWorkflow.returnGripper().getState() != "closed")
+		//{
+		//	myWorkflow.returnGripper().close()
+		//}
 
 		// intermediate point as not to trigger the torque limit
 		// #TODO: fix unneeded step
@@ -618,7 +633,7 @@ class pecstosemSequenceDefault: deviceSequence
 		// parker move back to prehome
 		myWorkflow.returnTransfer().move("prehome")
 
-		// parker home and turn off to prevent singing
+		// parker home 
 		myWorkflow.returnTransfer().home()
 
 		// close gate valve
@@ -698,6 +713,7 @@ class image_single: deviceSequence
 		// performs single image
 		number returncode = 0
 
+		self.print("executing dual ROI imaging step")
 
 		// unblank
 		myWorkflow.returnSEM().blankOff()
@@ -913,7 +929,14 @@ class image_double: deviceSequence
 	number do_actual(object self)
 	{
 		// public
-		// performs 2 images
+		// performs 2 image acquisitions
+		// first image default ROI with "capture" digiscan settings
+		// then image ROI with name "ExtraROI" using digiscan parameters as part of that ROI
+		// uses mag settings saved in tags and explicitly sets those before imaging
+		// extra ROI leaves focus alone
+
+		self.print("executing dual ROI imaging step")
+
 		number returncode = 0
 
 		// *** general
@@ -921,7 +944,8 @@ class image_double: deviceSequence
 		// unblank
 		myWorkflow.returnSEM().blankOff()
 
-		// *** first roi
+
+		// *** default ROI ***
 
 		// get the ROI (default/StoredImaging in this case)
 		object myROI 
@@ -957,8 +981,8 @@ class image_double: deviceSequence
 		// mag
 		if(returnROIEnables().mag())
 		{
-			self.print("IMAGE: magnification is: "+myROI.getMag())
-			myROI.getMag()
+			self.print("IMAGE: magnification for ROI "+name1+" is: "+myROI.getMag())
+			myWorkflow.returnSEM().setMag(myROI.getMag())
 		}
 
 		// digiscan acquire
@@ -1027,7 +1051,7 @@ class image_double: deviceSequence
 			break
 		}
 
-		// *** second ROI
+		// *** extra ROI ***
 
 		object myExtraROI
 		string name2 = "ExtraROI"
@@ -1036,7 +1060,7 @@ class image_double: deviceSequence
 		// set mag (hardcoded for now)
 		if(returnROIEnables().mag())
 		{
-			print("IMAGE: magnification is: "+myExtraROI.getMag())
+			print("IMAGE: magnification for ROI "+name2+" is: "+myExtraROI.getMag())
 			myWorkflow.returnSEM().setMag(myExtraROI.getMag())
 		}
 
@@ -1053,12 +1077,11 @@ class image_double: deviceSequence
 		myWorkflow.returnDigiscan().acquire(temp_slice_im_ExtraROI)
 
 		// Save Digiscan image
-		IPrep_saveSEMImage(temp_slice_im_ExtraROI, "digiscan_extraROI")
+		IPrep_saveSEMImage(temp_slice_im_ExtraROI, "digiscan_"+name2)
 
 		// Close Digiscan image
 		imdoc = ImageGetOrCreateImageDocument(temp_slice_im_ExtraROI)
 		imdoc.ImageDocumentClose(0)
-
 
 		// blank
 		myWorkflow.returnSEM().blankOn()
@@ -1486,8 +1509,9 @@ class mill_default: deviceSequence
 		self.print("Milling started. press option and shift to abort")
 
 		myWorkflow.returnPecs().startMilling()
+		sleep(1) // sleep some so that system has time to get to milling before we start querying
 
-		while (myWorkflow.returnPECS().getMillingStatus() != 0)
+		while (myWorkflow.returnPECS().getMillingStatus() == 1)
 		{
 			tock = GetOSTickCount()
 			if ((tock-tick)/1000 > timeout)

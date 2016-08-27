@@ -8,10 +8,10 @@ object createSequence(string type)
 		return alloc(semtopecsSequenceDefault)
 	else if (type == "pecsToSem_default")
 		return alloc(pecstosemSequenceDefault)
-	else if (type == "image_single")
+	else if (type == "image_single") // fixed single roi
 		return alloc(image_single)
-	//else if (type == "image_2_ROIs")
-	//	return alloc()		
+	else if (type == "image_double") // fixed double roi
+		return alloc(image_double)		
 	else if (type == "mill_default")
 		return alloc(mill_default)
 	else if (type == "coat_default")

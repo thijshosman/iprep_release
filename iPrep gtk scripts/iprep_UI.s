@@ -551,9 +551,7 @@ void IPrep_addROI()
 		returnROIManager().addROI(myROI)
 		result("ROI created with name "+newROIname+"\n\n")
 		myROI.print()
-
 	}
-
 }
 
 void IPrep_addSEMPosition()
@@ -580,12 +578,42 @@ void IPrep_addSEMPosition()
 		result("saved position "+newROIname+"\n\n")
 		aCoord.print()
 	}
-
-
-	
 }
 
+void IPrep_setSingleROIFocus()
+{
+	// set working distance to current measured working distance for default ROI
+	
+	string s0 = "Set working distance for default ROI to current measured working distance?"	
 
+	if (okcanceldialog(s0))
+	{
+		object myROI
+		string name1 = "StoredImaging"
+		if (!returnROIManager().getROIAsObject(name1, myROI))
+		{
+			print("defaultROI does not exist!")
+			return
+		}
+		number imagingWD = myWorkflow.returnSEM().measureWD()
+		myROI.setFocus(imagingWD)
+		print("Working Distance for defeault ROI set to: "+imagingWD)
+	}
+}
+
+void IPrep_setSingleROIMode()
+{
+	// load the single ROI image sequence into workflow
+	myStateMachine.loadCustomImageSequence("image_single")
+	print("single ROI mode loaded")
+}
+
+void IPrep_setDualROIMode()
+{
+	// load the fixed dual ROI image sequence
+	myStateMachine.loadCustomImageSequence("image_double")
+	print("dual ROI mode loaded")
+}
 
 
 /////////////////////
@@ -600,13 +628,16 @@ void iprep_InstallMenuItems( void )
 	string SS_SUB_MENU_2 = "PECS"
 	string SS_SUB_MENU_3 = "Recovery and Setup"
 	string SS_SUB_MENU_5 = "Loop Control"
-	string SS_SUB_MENU_6 = "ROI"
+	string SS_SUB_MENU_6 = "ROI Setup"
+	string SS_SUB_MENU_7 = "Single ROI"
 
 	// workflow	
 	AddScriptToMenu( "Set_starting_slice_number()", "Set starting slice number...", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
 	AddScriptToMenu( "iprep_setup_imaging()", "use current settings for imaging", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
 	AddScriptToMenu( "IPrep_acquire_ebsd()", "Run EBSD step", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
 	AddScriptToMenu( "IPrep_image()", "Run Image step", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
+	AddScriptToMenu( "IPrep_Pecs_Image_aftermilling()", "Run PECS Image After Milling step", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
+
 
 	// SEM
 	AddScriptToMenu( "homeSEMStageToClear()", "home SEM stage to clear", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
@@ -661,9 +692,15 @@ void iprep_InstallMenuItems( void )
 	AddScriptToMenu( "IPrep_calibrate_transfer()", "reinitialize all SEM stage and Parker calibrations from mode selection", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 	AddScriptToMenu( "IPrep_setScribeROI()", "calibrate scribe mark position after setting ROI", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 
-	// ROI
+	// ROI Setup
 	AddScriptToMenu( "IPrep_addSEMPosition()", "Add a new SEM coordinate", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
 	AddScriptToMenu( "IPrep_addROI()", "Add a ROI", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
+	AddScriptToMenu( "IPrep_setSingleROIMode()", "Setup system to use 1 ROI", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
+	AddScriptToMenu( "IPrep_setDualROIMode()", "Setup system to use 2 ROIs", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
+
+
+	// single ROI
+	AddScriptToMenu( "IPrep_setSingleROIFocus()", "set focus value for single ROI", SS_MENU_HEAD , SS_SUB_MENU_7 , 0)
 
 
 	// iprep loop control

@@ -39,7 +39,7 @@ class workflowStateMachine: object
 	{
 		// public
 		// create sequence objects
-		// these can be dynamically updated
+		// these can be dynamically updated later
 
 		// reseat sequence, create and init with transfer devices
 		reseat_seq = createSequence("reseat_default")
@@ -79,6 +79,26 @@ class workflowStateMachine: object
 
 	}
 	
+	void loadCustomImageSequence(object self, string sequencename)
+	{
+		// load Custom Image sequence from sequencefactory indicated by sequencename
+		
+		object image_seq_try 
+
+		try
+		{
+			image_seq_try = createSequence(sequencename)
+			image_seq_try.init("image",myWorkflow)
+		}
+		catch
+		{
+			self.print("problem initializing sequence: "+sequencename+", leaving old one in there")
+			break
+		}
+		
+		image_seq = image_seq_try
+		self.print("new image sequence "+sequencename+" loaded")
+	}
 
 
 	void workflowStateMachine(object self)

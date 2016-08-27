@@ -4,32 +4,51 @@ object myWorkflow = returnWorkflow()
 object myStateMachine = returnStateMachine()
 object myMediator = returnMediator()
 
+number j
+
 try
 {
 	// *** workflow ***
 	//myStateMachine.changeWorkflowState("SEM")
 	//myStateMachine.changeWorkflowState("PECS")
-	
 	//IPrep_init()
 	//IPrep_consistency_check()
-	
 	//IPrep_image()
 	//IPrep_incrementSliceNumber()
 	//IPrep_MoveToPECS()
-
-	//IPrep_Pecs_Image_beforemilling()
 	//IPrep_mill(1)
-	//IPrep_Pecs_Image_aftermilling()
-	
 	//IPrep_MoveToSEM()
-	
 	//IPrep_scribemarkVectorCorrection(-0.1,0)
-	
 	//myWorkflow.returnPECSCamera().liveView()
-	
-
 	//IPrep_cleanup()
 	
+	
+	// *** new style workflow
+	//IPrep_Pecs_Image_aftermilling()
+	
+	// test dovetail insertion repeatability pecs
+	/*
+	for (j=0; j<20; j++)
+	{
+	
+		if (IPrep_reseat()!= 1)
+		{	
+			debug("reseating failed, check log\n")
+			break
+		}
+		if(IPrep_Pecs_Image_aftermilling()!=1)
+		{	
+			debug("pecs imaging failed failed, check log\n")
+			break
+		}
+		IPrep_incrementSliceNumber()
+
+		debug("iteration: "+j+"\n")
+		sleep(2)
+		if (optiondown() && shiftdown())
+			break
+	}
+	*/
 	
 	// *** EBSD ***
 	//IPrep_acquire_ebsd()
@@ -94,6 +113,28 @@ try
 /*
 number i
 
+for (i=0;i<100;i++)
+{
+
+	try
+	{
+		//myWorkflow.returnGripper().close_once()	
+		myWorkflow.returnGripper().open()		
+		myWorkflow.returnGripper().close()
+		myWorkflow.returnGripper().lookupState(1)
+	}
+	catch
+	{
+		result( GetExceptionString() + "\n" )
+		break
+	}
+	result("i: "+i+"\n")
+	sleep(1)
+}
+*/
+/*
+number i
+
 for (i=0;i<10;i++)
 {
 
@@ -102,19 +143,29 @@ for (i=0;i<10;i++)
 	result("i: "+i+"\n")
 	sleep(1)
 }
-*/
+
 	
 	//myWorkflow.returnGripper().lookupState(1)
 	//sleep(5)
 
+//	number i
+/*
+	for (i=0;i<1000;i++)
+	{
+		myWorkflow.returnGripper().lookupState(1)
+		result("i: "+i+"\n")
+		sleep(1)
+		if (optiondown() && shiftdown())
+			break
+	}
 	
 	
 	// *** reseating test dovetail ***
-	
+*/	
 /*
 	number i
 
-	for (i=0;i<100;i++)
+	for (i=0;i<10;i++)
 	{
 		if ((optiondown() && shiftdown()))
 			break
@@ -130,11 +181,11 @@ for (i=0;i<10;i++)
 			break
 		}
 		
-		sleep(5)
+		//sleep(5)
 		debug("i: "+i+"\n")
 	}
-	
-*/
+*/	
+
 	
 	
 	
@@ -151,6 +202,8 @@ for (i=0;i<10;i++)
 	//myWorkflow.returnSEMDock().lookupState(1)
 	//result("sample present: "+myWorkflow.returnSEMDock().checkSamplePresent()+"\n")
 	// test dock clamping/unclamping
+	//myWorkflow.returnSEMDock().camOn()
+	//myWorkflow.returnSEMDock().camOff()
 	
 	/*
 	number i

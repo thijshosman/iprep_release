@@ -134,6 +134,11 @@ class gripper:object
 		self.sendCommand("s2T")
 		self.sendCommand("V300000L1400h0m25j64R")
 
+		// set all operating parameters
+		// new because of closing failure 2016-08-24
+		//self.sendCommand("s2T")
+		//self.sendCommand("V300000L1400h0m35j64R")
+
 		self.print("initialized")
 	}
 
@@ -145,7 +150,7 @@ class gripper:object
 		self.restoreState()
 		
 		address = 1 // change back, is 1 on Manchester system
-		timeout = 30
+		timeout = 10
 
 	}
 
@@ -165,7 +170,7 @@ class gripper:object
 				i++
 				//result("i: "+i+"\n")
 				self.lookupState(0)
-				sleep(1)
+				sleep(0.5)
 				if (i>timeout)
 				{
 					// send hard terminate
@@ -207,7 +212,7 @@ class gripper:object
 				i++
 				//result("i: "+i+"\n")
 				self.lookupState(0)
-				sleep(1)
+				sleep(0.5)
 				
 				//disable timeout, thijs 05/28
 				if (i>timeout)
