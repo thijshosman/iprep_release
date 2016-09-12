@@ -204,6 +204,7 @@ for (i=0;i<10;i++)
 	// test dock clamping/unclamping
 	//myWorkflow.returnSEMDock().camOn()
 	//myWorkflow.returnSEMDock().camOff()
+	//myWorkflow.returnSEMDock().unhold()
 	
 	/*
 	number i

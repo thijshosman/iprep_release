@@ -62,6 +62,7 @@ This file describes what all the todos are for the demounit master development b
 
 *** workflow/main ***
 
+- [] check that pecs is idle before a transfer to make sure we are not transfering during milling
 - [] NB: all dead/unsafe setting happens in main, not state machine. the state machine just returns values (0,1,-1). the main functions need some proper sculpting to now put the system in a dead/unsafe state needlessly
 - [] when a 'soft' error happens (ie return 0) in workflow (ie milling precondition not met) system should pause workflow
 - [] we want to make sure that an error during the workflow, ie something that puts system in dead state, generates a popup dialog that user sees
