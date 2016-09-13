@@ -46,9 +46,6 @@ class SEM_IPrep: object
 	number blankState
 	number HVState
 
-	// working distance used for imaging with digiscan
-	number imagingWD
-
 	// voltage to be use for imaging (in kv)
 	number kV
 
@@ -169,26 +166,13 @@ class SEM_IPrep: object
 		self.print("voltage set to: "+kV1)
 	}
 
-	void setkVForImaging(object self)
-	{
-		// *** public ***
-		// set the voltage of the microscope to previously determined version
-
-		if (kV == 0)
-			throw("voltage not setup")
-		else
-			self.setkV(kV)
-
-	}
-
 	void setWD(object self, number workingDistance)
 	{
 		// *** private ***
-		// set workingdistance (in mm)
+		// set workingdistance (in mm) to a value we can go back to
 
 		EMSetFocus(workingdistance*1000)
-		imagingWD = workingDistance
-		SEMWDPersistance.setNumber(imagingWD)
+		SEMWDPersistance.setNumber(workingDistance)
 		self.print("working distance set to: "+workingDistance)
 
 	}
@@ -196,7 +180,8 @@ class SEM_IPrep: object
 	void setWDForImaging(object self)
 	{
 		// set workingdistance to previously determined value
-		
+		number imagingWD = SEMWDPersistance.getNumber()
+
 		if (imagingWD == 0)
 			throw("imaging working distance not setup")
 		else
@@ -206,7 +191,7 @@ class SEM_IPrep: object
 	void setWDFromDFandScribePos(object self, number dF)
 	{
 		// set workingdistance to previously determined value
-		number actual_scribe_pos_focus = imagingWD
+		number actual_scribe_pos_focus = SEMWDPersistance.getNumber()
 		number new_focus_in_mm = actual_scribe_pos_focus + dF
 
 		if (new_focus_in_mm < 1)
@@ -221,7 +206,6 @@ class SEM_IPrep: object
 		// sets the working distance that is desired to do imaging and stores it in tag
 		// then sets it
 
-		imagingWD = WD1
 		SEMWDPersistance.setNumber(WD1)
 		self.setWDForImaging()
 		self.print("new desired working distance: "+WD1)
@@ -235,10 +219,12 @@ class SEM_IPrep: object
 		return EMGetFocus()/1000
 	}
 
-	number getWD(object self)
+	void setDesiredWDToCurrent(object self)
 	{
-		// returns working distance in mm as stored in tag
-		return imagingWD
+		// *** public ***
+		// measures the working distance and sets the desired value to that
+		number cur = self.measureWD()
+		self.setDesiredWD(cur)
 	}
 
 
@@ -310,28 +296,28 @@ class SEM_IPrep: object
 	{
 		// first update Z, most critical coordinate
 
-
-
-		
 		self.moveZAbs(Znew,1)	
 
 		self.moveXYabs(Xnew,Ynew, 1)
-		
-
-		
+	
 	}
 
 	void goToCoordsZLast(object self, number Xnew, number Ynew, number Znew)
 	{
 		// first update x,y, then update z, most critical coordinate
 
-
 		self.moveXYabs(Xnew,Ynew, 1)
 
 		self.moveZAbs(Znew,1)
 		
-		
+	}
 
+	void goToCoordsXY(object self, number Xnew, number Ynew)
+	{
+		// only move in XY to prevent messing up focus. 
+
+		self.moveXYabs(Xnew,Ynew, 1)
+		
 	}
 
 
@@ -462,6 +448,7 @@ class SEM_IPrep: object
 		else if (state == "imaging")
 		{
 			self.goToCoordsZLast(clear.getX(),clear.getY(),clear.getZ())
+
 		}
 		else
 			throw("not allowed to go to clear. current state is: " +state)
@@ -501,15 +488,12 @@ class SEM_IPrep: object
 		else
 			throw("not allowed to go to imaging point. current state: " +state)
 	
-		// update settings since they get reset after move
-if (XYZZY)		self.setkVForImaging()
-if (XYZZY)		self.setWDForImaging()
-		
-		object local = nominal_imaging
-		// #TODO: figure out why it does this
-		if ( local.getdfvalid() )
-			//self.setWDFromDFandScribePos( local.getdf() )	
+		// set the working distance to the previously saved value (quanta always changes wd to coupled value after z is moved)
+		self.setWDForImaging()
 
+		// old way of setting wd, deprecated
+		//if ( nominal_imaging.getdfvalid() )
+		//	self.setWDFromDFandScribePos( nominal_imaging.getdf() )	
 
 		self.printCoords()
 		self.setManualState("imaging")
@@ -531,18 +515,14 @@ if (XYZZY)		self.setWDForImaging()
 		
 		if (state == "imaging")
 		{
-			self.goToCoordsZFirst(highGridFront.getX(),highGridFront.getY(),highGridFront.getZ())
+			self.goToCoordsXY(highGridFront.getX(),highGridFront.getY())
 		}
 		else
 			throw("not allowed to go to imaging point. current state: " +state)
 		
-		// update settings since they get reset after move
-if (XYZZY)		self.setkVForImaging()
-if (XYZZY)		self.setWDForImaging()
-
-		object local = highGridFront
-		if ( local.getdfvalid() )
-			self.setWDFromDFandScribePos( local.getdf() )	
+		//object local = highGridFront
+		//if ( local.getdfvalid() )
+		//	self.setWDFromDFandScribePos( local.getdf() )	
 
 		
 		self.printCoords()
@@ -565,18 +545,15 @@ if (XYZZY)		self.setWDForImaging()
 		
 		if (state == "imaging")
 		{
-			self.goToCoordsZFirst(highGridBack.getX(),highGridBack.getY(),highGridBack.getZ())
+			self.goToCoordsXY(highGridBack.getX(),highGridBack.getY())
 		}
 		else
 			throw("not allowed to go to imaging point. current state: " +state)
 		
-		// update settings since they get reset after move
-		if (XYZZY)		self.setkVForImaging()
-		if (XYZZY)		self.setWDForImaging()
 		
-		object local = highGridBack
-		if ( local.getdfvalid() )
-			self.setWDFromDFandScribePos( local.getdf() )	
+		//object local = highGridBack
+		//if ( local.getdfvalid() )
+		//	self.setWDFromDFandScribePos( local.getdf() )	
 
 		self.printCoords()
 		self.setManualState("imaging")
@@ -599,18 +576,14 @@ if (XYZZY)		self.setWDForImaging()
 		
 		if (state == "imaging")
 		{
-			self.goToCoordsZFirst(scribe_pos.getX(),scribe_pos.getY(),scribe_pos.getZ())
+			self.goToCoordsXY(scribe_pos.getX(),scribe_pos.getY())
 		}
 		else
 			throw("not allowed to go to imaging point. current state: " +state)
 		
-		// update settings since they get reset after move
-		if (XYZZY)		self.setkVForImaging()
-		if (XYZZY)		self.setWDForImaging()
-		
-		object local = scribe_pos
-		if ( local.getdfvalid() )
-			self.setWDFromDFandScribePos( local.getdf() )	
+		//object local = scribe_pos
+		//if ( local.getdfvalid() )
+		//	self.setWDFromDFandScribePos( local.getdf() )	
 
 		self.printCoords()
 		self.setManualState("imaging")
@@ -632,19 +605,14 @@ if (XYZZY)		self.setWDForImaging()
 
 		if (state == "imaging")
 		{
-			self.goToCoordsZFirst(lowerGrid.getX(),lowerGrid.getY(),lowerGrid.getZ())
+			self.goToCoordsXY(lowerGrid.getX(),lowerGrid.getY())
 		}
 		else
 			throw("not allowed to go to imaging point. current state: " +state)
-		
-		// update settings since they get reset after move
-		if (XYZZY)		self.setkVForImaging()
-		if (XYZZY)		self.setWDForImaging()
 
-		object local = lowerGrid
-		if ( local.getdfvalid() )
-			self.setWDFromDFandScribePos( local.getdf() )	
-
+		//object local = lowerGrid
+		//if ( local.getdfvalid() )
+		//	self.setWDFromDFandScribePos( local.getdf() )	
 	
 		self.printCoords()
 		self.setManualState("imaging")
@@ -666,20 +634,15 @@ if (XYZZY)		self.setWDForImaging()
 
 		if (state == "imaging")
 		{
-			self.goToCoordsZFirst(fwdGrid.getX(),fwdGrid.getY(),fwdGrid.getZ())
+			self.goToCoordsXY(fwdGrid.getX(),fwdGrid.getY())
 		}
 		else
 			throw("not allowed to go to imaging point. current state: " +state)
-		
-		// update settings since they get reset after move
-		if (XYZZY)		self.setkVForImaging()
-		if (XYZZY)		self.setWDForImaging()
 
-		object local = fwdGrid
-		if ( local.getdfvalid() )
-			self.setWDFromDFandScribePos( local.getdf() )	
+		//object local = fwdGrid
+		//if ( local.getdfvalid() )
+		//	self.setWDFromDFandScribePos( local.getdf() )	
 
-	
 		self.printCoords()
 		self.setManualState("imaging")
 
@@ -704,20 +667,15 @@ if (XYZZY)		self.setWDForImaging()
 
 		if (state == "imaging")
 		{
-			self.goToCoordsZFirst(StoredImaging.getX(),StoredImaging.getY(),StoredImaging.getZ()) // #TODO: change to real coordinates that can be set
+			self.goToCoordsXY(StoredImaging.getX(),StoredImaging.getY()) 
 			self.print("at stored imaging point")
 		}
 		else 
 			throw("not allowed to go to stored imaging state coming from state: " +state)
 
-		// update settings since they get reset after move
-		if (XYZZY)		self.setkVForImaging()
-		if (XYZZY)		self.setWDForImaging()
-
-		object local = StoredImaging
-		if ( local.getdfvalid() )
-			self.setWDFromDFandScribePos( local.getdf() )	
-
+		//object local = StoredImaging
+		//if ( local.getdfvalid() )
+		//	self.setWDFromDFandScribePos( local.getdf() )	
 
 		self.printCoords()
 	}
@@ -749,7 +707,7 @@ if (XYZZY)		self.setWDForImaging()
 		// make sure we are in the imaging state
 		if (state == "imaging")
 		{
-			self.goToCoordsZFirst(imagingCoord.getX(),imagingCoord.getY(),imagingCoord.getZ()) 
+			self.goToCoordsXY(imagingCoord.getX(),imagingCoord.getY()) 
 			self.print("at "+imagingCoord.getName())
 		}
 		else 
@@ -859,20 +817,6 @@ if (XYZZY)		self.setWDForImaging()
 		Z = 0
 		state = "unknown"
 		
-		// allocate SEM coordinates
-		// DEPRECATED: now coming from SEMCoordManager
-		//scribe_pos = alloc(SEMCoord)
-		//reference = alloc(SEMCoord)
-		//pickup_dropoff = alloc(SEMCoord)
-		//clear = alloc(SEMCoord)
-		//nominal_imaging = alloc(SEMCoord)
-		//StoredImaging = alloc(SEMCoord)
-		//highGridFront = alloc(SEMCoord)
-		//highGridBack = alloc(SEMCoord)
-		//lowerGrid = alloc(SEMCoord)
-		//fwdGrid = alloc(SEMCoord)
-		imagingWD = 0
-		kV = 0
 		self.print("constructor called")
 
 	}
@@ -893,7 +837,6 @@ if (XYZZY)		self.setWDForImaging()
 		SEMStagePersistance.init("SEMstage")
 		SEMkVPersistance.init("SEM:kV") // deprecate
 		SEMWDPersistance.init("SEM:WD") // deprecate
-		imagingWD = SEMWDPersistance.getNumber() // deprecate
 
 		self.zeroShift()
 		self.Update()
@@ -916,8 +859,8 @@ if (XYZZY)		self.setWDForImaging()
 		}
 */
 
-		self.print("init sem voltage: " +kV)
-		self.print("init sem working distance: " +imagingWD)
+
+
 		self.print("init sem stage. starting state: " +state)
 
 	}
@@ -955,10 +898,6 @@ if (XYZZY)		self.setWDForImaging()
 	{
 		// save last known stage position to tag
 		self.setManualState(state)
-
-		// make sure these values are saved as numeric
-		SEMkVPersistance.setNumber(kV)
-		SEMWDPersistance.setNumber(imagingWD)
 	}
 
 	string getSEMState(object self)

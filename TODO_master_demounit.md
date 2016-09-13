@@ -34,7 +34,8 @@ This file describes what all the todos are for the demounit master development b
 - [] have a way to check that z-height is set (for example by moving 10 micron in z and seeing if it throws an exception?) -> checkFWDCoupling in sem
 - [] correct for drift in survey image, set maximum shift parameter and don't move but continue workflow if shift exceeds this
 - [] migrate quanta bug fix to SEM class as generic fix
-- [] check that focusing after transfer stays 
+- [x] change the way we keep in focus after a transfer. now we explicitly set the focus after going to a coord in some coords 
+- [x] change going to coords from an xyz movement into only an xy movement so that focus stays the same. 
 
 *** dock ***:
 
@@ -61,7 +62,6 @@ This file describes what all the todos are for the demounit master development b
 - [x] replace ROImanager convertTagToROI with initROIFromTag in ROI object. much cleaner
 - [x] find a way to put order in ROI and have ROI manager order them when returning them
 - [x] ability to autofocus every x slices, and always autofocus when start is pressed
-- [] check that when moving z the focus is not reset. if so we need a way to capture this
 
 *** workflow/main ***
 

@@ -757,6 +757,7 @@ class image_single: deviceSequence
 				number saved_focus = myROI.getFocus()
 				number change = current_focus - saved_focus
 				self.print("IMAGE: Autofocus changed focus value by "+change+" mm")
+				myWorkflow.returnSEM().setDesiredWDToCurrent()
 			}
 			else
 			self.print("skipping autofocus this slice")
@@ -1163,6 +1164,7 @@ class image_iter: deviceSequence
 					number saved_focus = myROI.getFocus()
 					number change = current_focus - saved_focus
 					self.print("IMAGE: Autofocus changed focus value by "+change+" mm")
+					myWorkflow.returnSEM().setDesiredWDToCurrent()
 				}
 				else
 				self.print("skipping autofocus this slice, leaving focus alone")

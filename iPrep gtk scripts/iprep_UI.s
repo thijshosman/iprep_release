@@ -610,19 +610,25 @@ void IPrep_setROIMode()
 	string oldSequence= getTagString("IPrep:workflowSequences:imaging")
 	string newImagingSequenceName = "image_single"
 
+	// see if user cancels
+
 	// test if we can load this
-	if (getstring(q,oldSequence,newImagingSequenceName))
+
+	number s1 = getstring(q,oldSequence,newImagingSequenceName)
+	number s2 = myStateMachine.loadCustomImageSequence(newImagingSequenceName)
+	if (s2 && s1)
 	{
-		myStateMachine.loadCustomImageSequence(""+newImagingSequenceName)
 		print("imaging sequence "+newImagingSequenceName+" loaded")
 		// now make it the active one in case we reinitialize
-		 overwriteTag(getpersistenttaggroup(), "IPrep:workflowSequences:imaging", newImagingSequenceName)
+		overwriteTag(getpersistenttaggroup(), "IPrep:workflowSequences:imaging", newImagingSequenceName)
 	}
 	else
 	{
 		// if not, we can now revert back
 		myStateMachine.loadCustomImageSequence(oldSequence)
 		print("imaging sequence "+oldSequence+" loaded")
+
+		okdialog(newImagingSequenceName+"not loaded. leaving "+oldSequence+"in there")
 	}
 
 	
