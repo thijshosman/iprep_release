@@ -9,6 +9,7 @@ This file describes what all the todos are for the demounit master development b
 - [] adding sem image to 3d image stack broke
 - [] when changing capture settings in DM, you have to press 'capture' button before this becomes the capture setting returned by DSGetWidth( paramID ). iprep image sequence does not need initialization when settings change
 - [] when PECS reboots, we have a strange situation in which somehow the workflow still communications but still throws an exception somewhere that prevents it from continuing the workflow
+- [] some commands lock the UI thread in DM (gripper etc), no logic behind it that is oberservable. needs to be fixed
 
 *** general/helper ***
 
@@ -32,6 +33,8 @@ This file describes what all the todos are for the demounit master development b
 
 - [] have a way to check that z-height is set (for example by moving 10 micron in z and seeing if it throws an exception?) -> checkFWDCoupling in sem
 - [] correct for drift in survey image, set maximum shift parameter and don't move but continue workflow if shift exceeds this
+- [] migrate quanta bug fix to SEM class as generic fix
+- [] check that focusing after transfer stays 
 
 *** dock ***:
 
@@ -48,44 +51,44 @@ This file describes what all the todos are for the demounit master development b
 - [x] use return 0/1/-1 instead of throwing exceptions from state machine. rewrite corresponding iprep_main methods. update ui to use dead/unsafe checks
 - [x] make sure that non-irrecoverable errors from state machine get processed in main in a different way than true irrecoverable errors. now they are treated the same
 - [x] migrate 2 ROI example to a proper sequence
-
-- [] create a way to manually/dynamically load sequences in state machine
-
+- [x] create a way to manually/dynamically load sequences in state machine. right now state machine loads default sequences and menu items can change them. it would be better if there were a way to dynamically load a sequence defined by a tag when the state machine initializes and a menu item that loads the tag and reinits the state machine
 
 *** multi ROI ***
 
-- [] we need a way to iterate over ROIs. the most logical thing would be to use the subtag for all ROIs that labels them as 'enabled'. the sequence method would then just iterate over all of them. 
+- [x] we need a way to iterate over ROIs. the most logical thing would be to use the subtag for all ROIs that labels them as 'enabled'. the sequence method would then just iterate over all of them. use example robin. 
 - [x] update roimanager to return all enabled rois
-- [] put a little more thought into autofocusing. every ROI needs a 'autofocus every n slices' number and query the active slice number to see if it needs to trigger that. if so, for now it is the image sequences responsibility to visit this ROI to actually do it. add this subtag to the ROI/ROImanager class
-- [] replace ROImanager convertTagToROI with initROIFromTag in ROI object. much cleaner
-- [] find a way to put order in ROI and have ROI manager order them when returning them
+- [x] put a little more thought into autofocusing. every ROI needs a 'autofocus every n slices' number and query the active slice number to see if it needs to trigger that. if so, for now it is the image sequences responsibility to visit this ROI to actually do it. add this subtag to the ROI/ROImanager class
+- [x] replace ROImanager convertTagToROI with initROIFromTag in ROI object. much cleaner
+- [x] find a way to put order in ROI and have ROI manager order them when returning them
+- [x] ability to autofocus every x slices, and always autofocus when start is pressed
+- [] check that when moving z the focus is not reset. if so we need a way to capture this
 
 *** workflow/main ***
 
-- [] check that pecs is idle before a transfer to make sure we are not transfering during milling
-- [] NB: all dead/unsafe setting happens in main, not state machine. the state machine just returns values (0,1,-1). the main functions need some proper sculpting to now put the system in a dead/unsafe state needlessly
-- [] when a 'soft' error happens (ie return 0) in workflow (ie milling precondition not met) system should pause workflow
-- [] we want to make sure that an error during the workflow, ie something that puts system in dead state, generates a popup dialog that user sees
-- [] right now iprep_image puts the lastcompleted step at image, think about if you want to do this. it does allow manipulation of where workflow picks up
-- [] consistencychecks should not be done by calling workflow object, but instead should be done through mediator
+- [x] make sure that pecs is idle before a transfer to make sure we are not transfering during milling
 - [x] don't check dock mode at iprep_init as this prevents dock swap when dm is offline
 - [x] when a dock is no present, iprep_init throws exception and does not fully load
 - [x] beam does not blank
 - [x] beam does not focus on storedimaging after transfer
 - [x] af_mode is set by setup_imaging to 2 so that workflow uses the fixed value. for autofocus, this needs to be 1. 
-- [] ability to autofocus every x slices
 - [x] when pausing during milling, it pauses, but then when resuming it mills again
 - [x] do we really want the state machine to throw exceptions when asked to go start milling/ebsd/etc when that is prohibited? think about it. 
 - [x] when a transfer starts, check for consistency beforehand
+- [x] do not give warnings for pecs stage in raised or lowered position; only argon/tmp issues
+
 - [] home SEM stage to clear as part of workflow to prevent problems after pressing start button
 - [] after dock swap, set a flag that does not allow movement until iprep_scribemarkervectorcorrection has been run
-- [x] do not give warnings for pecs stage in raised or lowered position; only argon
 - [] fix pressing resume after pressing pause before it actually pauses. this causes bug
 - [] if max slices is reached already and workflow has started, it still gets to running mode; needs a check
 - [] issue stop_milling command before starting workflow just to be safe. 
 - [] add method to dynamically load an image sequence and init it (in state machine). the others do not change as often so they can use the regular init if needed
 - [] how can we run custom methods on a particular sequence to set it up? pecs imaging is going to use the name of the object as initialized as the folder to save pecs images in
-- [] add a sequence class image_allROI that iterates over all enabled ROIs
+- [] NB: all dead/unsafe setting happens in main, not state machine. the state machine just returns values (0,1,-1). the main functions need some proper sculpting to now put the system in a dead/unsafe state needlessly
+- [] when a 'soft' error happens (ie return 0) in workflow (ie milling precondition not met) system should pause workflow. may require change to how DM handles pause/start/stop events
+- [] we want to make sure that an error during the workflow, ie something that puts system in dead state, generates a popup dialog that user sees
+- [] right now iprep_image puts the lastcompleted step at image, think about if you want to do this. it does allow manipulation of where workflow picks up
+- [] consistencychecks should not be done by calling workflow object, but instead should be done through mediator
+
 
 *** imaging ***
 
@@ -94,12 +97,11 @@ This file describes what all the todos are for the demounit master development b
 - [x] create factory class for image sequence for multiple ROIs
 - [x] find a way to make sure that image step does not cause dead state when that is not really needed
 - [] create a 3D volume stack manager that can be properly initialized and resumed
-- [] 
 
 *** UI ***
 
-- [] move long function implementations from iprep_ui; these belong un iprep_main
 - [x] add iprep autofocus as a menu item
+- [] move long function implementations from iprep_ui; these belong un iprep_main
 - [] add function that gives a string popup and asks user to save current SEM position under given name
 - [] list all current SEM positions
 - [] list all current ROIs
@@ -126,11 +128,10 @@ This file describes what all the todos are for the demounit master development b
 *** SW DM IPrep Bugs ***
 
 - [] changing directory where data gets saved does not affect running process
-- [] no longer trigger on max slices to stop workflow
+- [] we no longer want to trigger on max slices to stop workflow
 - [] make sure to grey out stop/pause after it is pressed so that we cannot resume before the actual pause has happened. this now causes problems since it calls script functions that are not supposed to be called until system is idle. 
 
 *** alignment ***
-
 
 - all this goes to iprep_alignment.s, a different file
 - [] add a function to change ROI alignment by a standard vector (ie StoredImaging) due to crash
@@ -143,6 +144,8 @@ notes:
 - no values are hardcoded in code; the vectors (2) can change manually, the calibration values can change (1), but (3) is always found by applying (2) to (1) in a controlled routine that can be ran as often as needed
 - the vectors (2) and the calibration values (1) have default values that can be set by running a function. 
 
+
+*** legacy ***
 
 general improvements that are scheduled to be done in this branch:
 (dock/gripper)-send allmotion configuration

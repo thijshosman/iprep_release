@@ -40,7 +40,7 @@ class deviceSequence: object
 		// public, static
 		// initialize with the transfer object
 		_name = name
-		self.print("transfer "+name+" initialized")
+		self.print(name+" initialized")
 	}
 
 	number final(object self)
@@ -259,6 +259,8 @@ class reseatSequenceDefault: deviceSequence
 		// move sample out and into dovetail 
 		// use after sample transfer so that it will be in the same position as during transfer
 
+		// stop milling if milling
+		myWorkflow.returnPecs().stopMilling()
 
 		// lockout PECS UI
 		myWorkflow.returnPecs().lockout()
@@ -389,6 +391,9 @@ class semtopecsSequenceDefault: deviceSequence
 		// performs actual transfer from SEM to PECS
 
 		// we try to get the sample as fast between the two points as a synchronous workflow allows. 
+
+		// stop milling if milling
+		myWorkflow.returnPecs().stopMilling()
 
 		// lockout PECS UI
 		myWorkflow.returnPecs().lockout()
@@ -551,6 +556,9 @@ class pecstosemSequenceDefault: deviceSequence
 
 		// we try to get the sample as fast
 		// between the two points as a synchronous workflow allows. 
+
+		// stop milling if milling
+		myWorkflow.returnPecs().stopMilling()
 
 		// lockout PECS UI
 		myWorkflow.returnPecs().lockout()
@@ -735,18 +743,23 @@ class image_single: deviceSequence
 		WorkaroundQuantaMagBug()
 
 		// focus
-		if (myROI.getAFMode() == 1) //autofocus on every slice
+		if (myROI.getAFMode() == 1) //autofocus on every nth slice
 		{
-			self.print("IMAGE: autofocusing")
-			IPrep_autofocus()
-			number afs_sleep = 1	// seconds of delay
-			sleep( afs_sleep )
+			if (IPrep_sliceNumber() % myROI.getAFnSlice() == 0 )
+			{
 
-			number current_focus = myWorkflow.returnSEM().measureWD()	
-			number saved_focus = myROI.getFocus()
-			number change = current_focus - saved_focus
-			self.print("IMAGE: Autofocus changed focus value by "+change+" mm")
+				self.print("IMAGE: autofocusing")
+				IPrep_autofocus()
+				number afs_sleep = 1	// seconds of delay
+				sleep( afs_sleep )
 
+				number current_focus = myWorkflow.returnSEM().measureWD()	
+				number saved_focus = myROI.getFocus()
+				number change = current_focus - saved_focus
+				self.print("IMAGE: Autofocus changed focus value by "+change+" mm")
+			}
+			else
+			self.print("skipping autofocus this slice")
 		}
 		else if (myROI.getAFMode() == 2) // no autofocus, use stored value
 		{
@@ -773,34 +786,6 @@ class image_single: deviceSequence
 		{
 			self.print("IMAGE: magnification is: "+myROI.getMag())
 			myROI.getMag()
-		}
-
-		// voltage
-		if(returnROIEnables().voltage())
-		{
-			self.print("IMAGE: voltage is: "+myROI.getVoltage())
-			myROI.getVoltage()
-		}
-
-		// ss
-		if(returnROIEnables().ss())
-		{
-			self.print("IMAGE: spot size is: "+myROI.getss())
-			myROI.getss()
-		}	
-
-		// stigx
-		if(returnROIEnables().stigx())
-		{
-			self.print("IMAGE: stigmation in X is: "+myROI.getStigx())
-			myROI.getStigx()
-		}
-
-		// stigy
-		if(returnROIEnables().stigy())
-		{
-			self.print("IMAGE: stigmation in Y is: "+myROI.getStigy())
-			myROI.getStigy()
 		}
 
 		// Acquire Digiscan image, use digiscan parameters saved in ROI
@@ -1136,37 +1121,143 @@ class image_iter: deviceSequence
 	number do_actual(object self)
 	{
 		// public
-		// runs through all ROIs that have the 'enabled' subtag set to 1
+		// runs through all ROIs that have the 'enabled' subtag set to 1 in ascending order of "order" subtag
 		number returncode = 0
 
 		// *** general
 
-		// unblank
-		//myWorkflow.returnSEM().blankOff()
-
 		// *** go through ROIs
 		//taggroup tall_enabled = NewTagList()
-		taggroup tall_enabled = returnROIManager().getAllEnabled()
-		number count = tall_enabled.TagGroupCountTags( ) 
-		tall_enabled.TagGroupOpenBrowserWindow(0)
-		number i
-		taggroup subtag // temporary storage
-		string name
+		object tall_enabled = returnROIManager().getAllEnabledROIList()
 	
-		for (i=0; i<count; i++)
+		foreach(object myROI; tall_enabled)
 		{
-			// index the list and get single tag
-			tall_enabled.TagGroupGetIndexedTagAsTagGroup(i,subtag)
+
+			self.print("current ROI: "+myROI.getName())
+			myROI.print()
+
+			// go to ROI1
+			self.print("IMAGE: going to location: "+myROI.getName())
+			myWorkflow.returnSEM().goToImagingPosition(myROI.getName())
 			
-			// create a ROI object from this
-			object currentROI = alloc(IROI)
-			currentROI.initROIFromTag(subtag)
+			// fix magnificationbug on Quanta
+			WorkaroundQuantaMagBug()
 
-			self.print("ROI: "+currentROI.getName())
+			// unblank
+			myWorkflow.returnSEM().blankOff()
 
-			currentROI.print()
+			// focus
+			if (myROI.getAFMode() == 1) //autofocus on every nth slice
+			{
+
+				//#todo: also add the option of doing this when start is pressed again
+				if (IPrep_sliceNumber() % myROI.getAFnSlice() == 0 )
+				{
+
+					self.print("IMAGE: autofocusing")
+					IPrep_autofocus()
+					number afs_sleep = 1	// seconds of delay
+					sleep( afs_sleep )
+
+					number current_focus = myWorkflow.returnSEM().measureWD()	
+					number saved_focus = myROI.getFocus()
+					number change = current_focus - saved_focus
+					self.print("IMAGE: Autofocus changed focus value by "+change+" mm")
+				}
+				else
+				self.print("skipping autofocus this slice, leaving focus alone")
+			}
+			else if (myROI.getAFMode() == 2) // no autofocus, use stored value
+			{
+				self.print("IMAGE: focus is: "+myROI.getFocus())
+				myWorkflow.returnSEM().setDesiredWD(myROI.getFocus()) // automatically sets it after storing it in object
+			}
+
+			// mag
+			if(returnROIEnables().mag())
+			{
+	
+				self.print("IMAGE: magnification for ROI "+myROI.getName()+" is: "+myROI.getMag())
+				myWorkflow.returnSEM().setMag(myROI.getMag())
+			}
+
+			// Acquire Digiscan image, use digiscan parameters saved in ROI
+			
+			taggroup dsp = myROI.getDigiscanParam()
+
+			image temp_slice_im
+			
+			// digiscan
+
+			// use digiscan parameters as setup in the normal 'capture' at this moment
+			myWorkflow.returnDigiscan().config()
+			
+			// fix magnificationbug on Quanta
+			// second time, before imaging
+			WorkaroundQuantaMagBug()
+
+			myWorkflow.returnDigiscan().acquire(temp_slice_im)
+
+			// Verify SEM is functioning properly - pause acquisition otherwise (might be better to do before AFS with a test scan, easier here)
+			// if tag exists
+			number pixel_threshold = 500
+			string tagname = "IPrep:SEM:Emission check threshold"
+			if(GetPersistentNumberNote( tagname, pixel_threshold ))
+			{
+				number avg = average( temp_slice_im )
+
+				if ( avg < pixel_threshold )
+				{
+					// average image value is less than threshold, assume SEM emission problem, pause acq
+					string str = datestamp()+": Average image value ("+avg+") is less than emission check threshold ("+pixel_threshold+")\n"
+					self.print(""+ str )
+					string str2 = "\nAcquisition has been paused.\n\nCheck SEM is working properly and press <Continue> to resume acquisition, or <Cancel> to stop."
+					string str3 = "\n\nNote: Threshold can be set at global tag: IPrep:SEM:Emission check threshold"
+					if ( !ContinueCancelDialog( str + str2 +str3 ) )
+					{
+							str = ": Acquisition terminated by user" 
+							self.print("IMAGE: "+str)	
+							return returncode	
+					}
+				}
+				else
+				{
+					self.print("IMAGE: Average image value ("+avg+") is greater than emission check threshold ("+pixel_threshold+"). SEM emission assumed OK." )	
+				}
+
+			}
+			
+
+			// Save Digiscan image
+			IPrep_saveSEMImage(temp_slice_im, myROI.getName()+"digiscan")
+
+			// Close Digiscan image
+			ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
+			imdoc.ImageDocumentClose(0)
+				
+			// add image to 3D volume and update 
+			// quietly ignore if stack is not initialized
+			try
+			{
+				object my3DvolumeSEM = myWorkflow.return3DvolumeSEM()
+				my3DvolumeSEM.addSlice(temp_slice_im)
+				my3DvolumeSEM.show()
+			}
+			catch
+			{
+				self.print("ignoring 3D volume stack")
+				break
+			}
+
+			// blank
+			myWorkflow.returnSEM().blankOn()
+
+			return 1
 
 		}
+
+
+
 
 /*
 

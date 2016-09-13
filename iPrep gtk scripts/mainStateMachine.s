@@ -42,44 +42,53 @@ class workflowStateMachine: object
 		// these can be dynamically updated later
 
 		// reseat sequence, create and init with transfer devices
-		reseat_seq = createSequence("reseat_default")
+		reseat_seq = createSequence(GetTagString("IPrep:workflowSequences:reseat"))
+		//"reseat_default"
 		reseat_seq.init("reseat",myWorkflow)
 
 		// pecs to sem sequence, create and init with transfer devices
-		PecsToSem_seq = createSequence("pecsToSem_default")
+		PecsToSem_seq = createSequence(GetTagString("IPrep:workflowSequences:pecstosem"))
+		//"pecsToSem_default"
 		PecsToSem_seq.init("pecsToSem",myWorkflow)
 
 		// Sem to pecs sequence, create and init with transfer devices
-		SemToPecs_seq = createSequence("semToPecs_default")
+		SemToPecs_seq = createSequence(GetTagString("IPrep:workflowSequences:semtopecs"))
+		//"semToPecs_default"
 		SemToPecs_seq.init("semToPecs",myWorkflow)
 
 		// image sequence, create and init
-		image_seq = createSequence("image_single")
+		image_seq = createSequence(GetTagString("IPrep:workflowSequences:imaging"))
+		//"image_single"
 		image_seq.init("image",myWorkflow)
 
-		// PECS image sequence before milling, create and init
-		PECSImage_before_seq = createSequence("PECSImageDefault")
+		// PECS image sequence before milling, create and init 
+		//PECSImageDefault
+		PECSImage_before_seq = createSequence(GetTagString("IPrep:workflowSequences:pecsimaging"))
 		PECSImage_before_seq.init("pecs_camera_beforemilling",myWorkflow)
 
 		// PECS image sequence after milling, create and init
-		PECSImage_after_seq = createSequence("PECSImageDefault")
+		//"PECSImageDefault"
+		PECSImage_after_seq = createSequence(GetTagString("IPrep:workflowSequences:pecsimaging"))
 		PECSImage_after_seq.init("pecs_camera_aftermilling",myWorkflow)
 
 		// have another image sequence for EBSD for backward compatibility
-		ebsd_seq = createSequence("EBSD_default")
+		//"EBSD_default"
+		ebsd_seq = createSequence(GetTagString("IPrep:workflowSequences:ebsd"))
 		ebsd_seq.init("ebsd",myWorkflow)
 
 		// milling sequence, create and init
-		mill_seq = createSequence("mill_default")
+		mill_seq = createSequence(GetTagString("IPrep:workflowSequences:milling"))
+		//"mill_default"
 		mill_seq.init("mill",myWorkflow)
 
 		// coating sequence, create and init
-		coat_seq = createSequence("coat_default")
+		coat_seq = createSequence(GetTagString("IPrep:workflowSequences:coating"))
+		//"coat_default"
 		coat_seq.init("coat",myWorkflow)
 
 	}
 	
-	void loadCustomImageSequence(object self, string sequencename)
+	number loadCustomImageSequence(object self, string sequencename)
 	{
 		// load Custom Image sequence from sequencefactory indicated by sequencename
 		
@@ -93,11 +102,13 @@ class workflowStateMachine: object
 		catch
 		{
 			self.print("problem initializing sequence: "+sequencename+", leaving old one in there")
+			return 0
 			break
 		}
 		
 		image_seq = image_seq_try
 		self.print("new image sequence "+sequencename+" loaded")
+		return 1
 	}
 
 

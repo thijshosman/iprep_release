@@ -6,6 +6,7 @@ number AddTag( TagGroup tg, string tagName, number tagValue )
 {
 	number index = tg.TagGroupCreateNewLabeledTag( tagName ) 
 	tg.TagGroupSetIndexedTagAsFloat( index, tagValue ) 
+	ApplicationSavePreferences()
 	return index
 }
 
@@ -13,6 +14,7 @@ number AddTagAsFloat( TagGroup tg, string tagName, number tagValue )
 {
 	number index = tg.TagGroupCreateNewLabeledTag( tagName ) 
 	tg.TagGroupSetIndexedTagAsFloat( index, tagValue ) 
+	ApplicationSavePreferences()
 	return index
 }
 
@@ -20,6 +22,7 @@ number AddTag( TagGroup tg, string tagName, string tagValue )
 {
 	number index = tg.TagGroupCreateNewLabeledTag( tagName ) 
 	tg.TagGroupSetIndexedTagAsString( index, tagValue ) 
+	ApplicationSavePreferences()
 	return index
 }
 
@@ -27,6 +30,7 @@ number AddTag( TagGroup tg, string tagName, number tagValue1, number tagValue2 )
 {
 	number index = tg.TagGroupCreateNewLabeledTag( tagName ) 
 	tg.TagGroupSetIndexedTagAsFloatPoint( index, tagValue1, tagValue2 ) 
+	ApplicationSavePreferences()
 	return index
 }
 
@@ -34,14 +38,26 @@ void AddTagGroup(taggroup tg, taggroup child, string path, string label)
 {
 	// creates taggroup with name label at path and copies child into it
 	tg.TagGroupSetTagAsTagGroup(path+":"+label, child ) 
-
+	ApplicationSavePreferences()
 }
 
 void AddTagGroup(taggroup tg, taggroup child, string path)
 {
 	// creates taggroup with name label at path and copies child into it
 	tg.TagGroupSetTagAsTagGroup(path, child ) 
+	ApplicationSavePreferences()
+}
 
+void overwriteTag(taggroup tg, string path, string name)
+{
+	TagGroupSetTagAsString(getpersistenttaggroup(), path, name)
+	ApplicationSavePreferences()
+}
+
+void overwriteTag(taggroup tg, string path, number value)
+{
+	TagGroupSetTagAsFloat(getpersistenttaggroup(), path, value)
+	ApplicationSavePreferences()
 }
 
 number GetTagValue(string tagpath)

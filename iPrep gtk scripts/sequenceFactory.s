@@ -25,8 +25,11 @@ object createSequence(string type)
 	else if (type == "simulator")
 		return alloc(testSequence)
 	else
-		throw("trying to generate sequence "+type+" that does not exist")
-		//return alloc(transferSequence) // simulator
+		// alloc one with this standard name and see if it works
+		return alloc(""+type)
+
+	//throw("trying to generate sequence "+type+" that does not exist")
+	//return alloc(transferSequence) // simulator
 
 }
 

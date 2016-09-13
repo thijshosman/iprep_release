@@ -601,19 +601,36 @@ void IPrep_setSingleROIFocus()
 	}
 }
 
-void IPrep_setSingleROIMode()
+void IPrep_setROIMode()
 {
-	// load the single ROI image sequence into workflow
-	myStateMachine.loadCustomImageSequence("image_single")
-	print("single ROI mode loaded")
+	// load a custom image sequence into workflow
+
+
+	string q = "Which image sequence do you want to use? image_single is default single ROI with name StoredImaging"
+	string oldSequence= getTagString("IPrep:workflowSequences:imaging")
+	string newImagingSequenceName = "image_single"
+
+	// test if we can load this
+	if (getstring(q,oldSequence,newImagingSequenceName))
+	{
+		myStateMachine.loadCustomImageSequence(""+newImagingSequenceName)
+		print("imaging sequence "+newImagingSequenceName+" loaded")
+		// now make it the active one in case we reinitialize
+		 overwriteTag(getpersistenttaggroup(), "IPrep:workflowSequences:imaging", newImagingSequenceName)
+	}
+	else
+	{
+		// if not, we can now revert back
+		myStateMachine.loadCustomImageSequence(oldSequence)
+		print("imaging sequence "+oldSequence+" loaded")
+	}
+
+	
+	
+
 }
 
-void IPrep_setDualROIMode()
-{
-	// load the fixed dual ROI image sequence
-	myStateMachine.loadCustomImageSequence("image_double")
-	print("dual ROI mode loaded")
-}
+
 
 
 /////////////////////
@@ -695,8 +712,8 @@ void iprep_InstallMenuItems( void )
 	// ROI Setup
 	AddScriptToMenu( "IPrep_addSEMPosition()", "Add a new SEM coordinate", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
 	AddScriptToMenu( "IPrep_addROI()", "Add a ROI", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
-	AddScriptToMenu( "IPrep_setSingleROIMode()", "Setup system to use 1 ROI", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
-	AddScriptToMenu( "IPrep_setDualROIMode()", "Setup system to use 2 ROIs", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
+	AddScriptToMenu( "IPrep_setROIMode()", "Setup system to use custom image sequence", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
+	
 
 
 	// single ROI

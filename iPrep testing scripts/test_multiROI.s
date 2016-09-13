@@ -10,8 +10,39 @@ object myMediator = returnMediator()
 //myROI.print()
 
 // create a ROI and add it (overwrite if it isnt there)
-//object myROI2 = ROIFactory(0,"ExtraROI")
-//returnROIManager().addROI(myROI2)
+object myROI = ROIFactory(0,"aTestROI2")
+myROI.setOrder(2)
+returnROIManager().addROI(myROI)
+myROI.print()
+
+myROI = ROIFactory(0,"aTestROI4")
+myROI.setOrder(4)
+returnROIManager().addROI(myROI)
+myROI.print()
+
+myROI = ROIFactory(0,"aTestROI3")
+myROI.setOrder(3)
+returnROIManager().addROI(myROI)
+myROI.print()
+
+// return as object list
+//object list = returnROIManager().getROIObjectList()
+
+// or enabled list
+object list = returnROIManager().getAllEnabledROIList()
+
+// print each ROI
+foreach(object item; list)
+{
+	item.print()
+	result("order: "+item.getOrder()+"\n")
+}
+
+// check that tag exists
+if (!returnROIManager().checkROIExistence("aTestROI2"))
+	okdialog("not found")
+
+
 
 // get attributes of ROI
 //myROI.getAFMode()
@@ -27,7 +58,7 @@ object myMediator = returnMediator()
 
 //returnROIManager().getAllEnabled().taggroupopenbrowserwindow(0)
 
-object multiROIseq = createSequence("image_iter")
-multiROIseq.init("image_iter",myWorkflow)
+//object multiROIseq = createSequence("image_iter")
+//multiROIseq.init("image_iter",myWorkflow)
 
-multiROIseq.do_actual()
+//multiROIseq.do_actual()
