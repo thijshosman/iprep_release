@@ -129,10 +129,8 @@ class pecs_iprep: object
 
 		if (!self.argonCheck())
 			throw("argon pressure check failed, aborting")
-		
 		PIPS_Execute("SETP_SUB0000,subsystem_milling,set_milling_variation,1")
 		PIPS_StartMilling()	
-
 	}
 
 	void stopMilling(object self)
@@ -153,7 +151,8 @@ class pecs_iprep: object
 	void goToCoatMode(object self)
 	{
 		// go to coating mode
-		PIPS_Execute("STRTPROC0000,process_movetocoat")
+		PIPS_Execute("STRTPROC0000,process_movetocoat") // includes lowering stage
+		sleep(5) // need some time to move stages etch
 		PIPS_Execute("SETP_SUB0000,subsystem_milling,set_milling_variation,1")
 		self.print("now in coating mode")
 	}
@@ -161,7 +160,8 @@ class pecs_iprep: object
 	void goToEtchMode(object self)
 	{
 		// go to etching mode
-		PIPS_Execute("STRTPROC0000,process_movetoetch")
+		PIPS_Execute("STRTPROC0000,process_movetoetch") // includes raising stage
+		sleep(5) // need some time to move stages etch
 		PIPS_Execute("SETP_SUB0000,subsystem_milling,set_milling_variation,0")
 		self.print("now in etching mode")
 	}

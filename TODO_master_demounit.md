@@ -2,7 +2,6 @@
 This file describes what all the todos are for the demounit master development branch. 
 
 *** bugs ***
-
 - [] when PECS has rebooted, check connection before starting workflow. now it still sort of runs but pops up messages in the meantime with that it failed to talk to PECS. can be dangerous
 - [] image sequence turns top illuminators off. this is probably wrong. 
 - [] rethink locking out the PECS UI at the end of milling vs at the beginning of transfer
@@ -12,16 +11,13 @@ This file describes what all the todos are for the demounit master development b
 - [] some commands lock the UI thread in DM (gripper etc), no logic behind it that is oberservable. needs to be fixed
 
 *** general/helper ***
-
 - [x] the persistance classes need to throw a readable exception when a tag is not found to facilitate easy fixes on systems that do not have all the tags. 
 
 *** parkertransfer ***:
-
 - [x] allow homing to happen in the wrong direction. 
 - [x] direction should be in a tag so that iprep can use it either way, also for normal positions
 
 *** pecs ***:
-
 - [x] add new shutter and argon functions to simulator
 - [x] gate valve: check sensors before issuing open/close to speed up workflow
 - [x] check state shutter coating sensor
@@ -30,7 +26,6 @@ This file describes what all the todos are for the demounit master development b
 - [] get coating to work (requires work by MP)
 
 *** SEM ***:
-
 - [] have a way to check that z-height is set (for example by moving 10 micron in z and seeing if it throws an exception?) -> checkFWDCoupling in sem
 - [] correct for drift in survey image, set maximum shift parameter and don't move but continue workflow if shift exceeds this
 - [] migrate quanta bug fix to SEM class as generic fix
@@ -38,12 +33,10 @@ This file describes what all the todos are for the demounit master development b
 - [x] change going to coords from an xyz movement into only an xy movement so that focus stays the same. 
 
 *** dock ***:
-
 - [x] set holding torque during transfer when opens so that we don't have the thing close as it is picked up or the arm comes in (planar only for now)
 - [] allow chamberscope camera on/off -> needs hardware fix? 
 
 *** linearworkflow/state machine/device transfer sequences ***
-
 - [x] make a class for 'transfers' and make an object for each transfer that defines it instead of hardcoding it in 
 - [x] linearworkflow class. linearworkflow would invoke the 'do' method in this command-like pattern. this is more flexible than what we have now. we can lateron even go to a script-like 
 - [x] migrate transfer stuff over to this class and create factory to create sequences
@@ -53,9 +46,13 @@ This file describes what all the todos are for the demounit master development b
 - [x] make sure that non-irrecoverable errors from state machine get processed in main in a different way than true irrecoverable errors. now they are treated the same
 - [x] migrate 2 ROI example to a proper sequence
 - [x] create a way to manually/dynamically load sequences in state machine. right now state machine loads default sequences and menu items can change them. it would be better if there were a way to dynamically load a sequence defined by a tag when the state machine initializes and a menu item that loads the tag and reinits the state machine
+- [] add a precondition that the sem is in 'clear' state and if not, ask user if he wants to home it. check unsafe/dead flags first
+- [] add a precondition that imaging point exists
+
+*** setup ***
+- [] stop using IPrep_Setup_Imaging(), is now redundant
 
 *** multi ROI ***
-
 - [x] we need a way to iterate over ROIs. the most logical thing would be to use the subtag for all ROIs that labels them as 'enabled'. the sequence method would then just iterate over all of them. use example robin. 
 - [x] update roimanager to return all enabled rois
 - [x] put a little more thought into autofocusing. every ROI needs a 'autofocus every n slices' number and query the active slice number to see if it needs to trigger that. if so, for now it is the image sequences responsibility to visit this ROI to actually do it. add this subtag to the ROI/ROImanager class
@@ -64,7 +61,6 @@ This file describes what all the todos are for the demounit master development b
 - [x] ability to autofocus every x slices, and always autofocus when start is pressed
 
 *** workflow/main ***
-
 - [x] make sure that pecs is idle before a transfer to make sure we are not transfering during milling
 - [x] don't check dock mode at iprep_init as this prevents dock swap when dm is offline
 - [x] when a dock is no present, iprep_init throws exception and does not fully load
@@ -75,7 +71,6 @@ This file describes what all the todos are for the demounit master development b
 - [x] do we really want the state machine to throw exceptions when asked to go start milling/ebsd/etc when that is prohibited? think about it. 
 - [x] when a transfer starts, check for consistency beforehand
 - [x] do not give warnings for pecs stage in raised or lowered position; only argon/tmp issues
-
 - [] home SEM stage to clear as part of workflow to prevent problems after pressing start button
 - [] after dock swap, set a flag that does not allow movement until iprep_scribemarkervectorcorrection has been run
 - [] fix pressing resume after pressing pause before it actually pauses. this causes bug
@@ -91,7 +86,6 @@ This file describes what all the todos are for the demounit master development b
 
 
 *** imaging ***
-
 - [] order of images in 3D stack is reversed
 - [] starting iprep_image from menu increases slice number. it is not supposed to do that
 - [x] create factory class for image sequence for multiple ROIs
@@ -99,25 +93,21 @@ This file describes what all the todos are for the demounit master development b
 - [] create a 3D volume stack manager that can be properly initialized and resumed
 
 *** UI ***
-
 - [x] add iprep autofocus as a menu item
 - [] move long function implementations from iprep_ui; these belong un iprep_main
-- [] add function that gives a string popup and asks user to save current SEM position under given name
+- [x] add function that gives a string popup and asks user to save current SEM position under given name
 - [] list all current SEM positions
-- [] list all current ROIs
+- [x] list all current ROIs
 
 
 *** gripper ***
-
 - [] fix bug in open/close once: if gripper does not move, it won't work this way
 
 *** digiscan ***
-
 - [x] find way to configure digiscan with parameters from ROI object. can be done both nicely and hacky. 
 - [] make class compatible with acquiring 2 signals simultaneously by doing the parameter configuration in config method 
 
 *** BING Bugs ***
-
 - [x] we cannot read argon setpoint, only flow. this causes long term drift when setting it back after transfers. need fix
 - [x] go to etch does not work when having stage lowered manually beforehand. then it somehow uses coating parameters and messes up milling time remaining -(needs testing)
 - [] there are still problems with go to etch/go to coat. stage does not always move and guns do not always go to right angle
@@ -126,16 +116,13 @@ This file describes what all the todos are for the demounit master development b
 
 
 *** SW DM IPrep Bugs ***
-
 - [] changing directory where data gets saved does not affect running process
 - [] we no longer want to trigger on max slices to stop workflow
 - [] make sure to grey out stop/pause after it is pressed so that we cannot resume before the actual pause has happened. this now causes problems since it calls script functions that are not supposed to be called until system is idle. 
 
 *** alignment ***
-
 - all this goes to iprep_alignment.s, a different file
 - [] add a function to change ROI alignment by a standard vector (ie StoredImaging) due to crash
-
 - the 'default' values after calibration should be in tags, not hardcoded. now the current value used is stored in tags
 (1)- store calibration values for SEM (scribe_pos_ebsd, scribe_pos_planar, reference_ebsd, reference_planar) and parker (pickup_dropoff_ebsd, pickup_dropoff_planar) in (sem position and numeric) tags. these do NOT change except when alignment changes. 
 (2)- store vectors for SEM coordinates (ie where is highgridfront with respect to scribe_pos? where is clear with respect to reference?) in (sem position)tags. these get applied when IPrep calibration routines are ran
@@ -146,7 +133,6 @@ notes:
 
 
 *** legacy ***
-
 general improvements that are scheduled to be done in this branch:
 (dock/gripper)-send allmotion configuration
 (workflow)-changing tags during transfer creates consistency problems

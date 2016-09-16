@@ -22,45 +22,40 @@ try
 	//myWorkflow.returnPECSCamera().liveView()
 	//IPrep_cleanup()
 	
-	
-	// *** new style workflow
-	//IPrep_Pecs_Image_aftermilling()
+////////////////////	
+// *** TESTS *** ///
+////////////////////
 	
 	// test dovetail insertion repeatability pecs
-	/*
+/*	
 	for (j=0; j<20; j++)
 	{
+
+		if(IPrep_Pecs_Image_aftermilling()!=1)
+		{	
+			debug("pecs imaging failed failed, check log\n")
+			break
+		}
+		
+		IPrep_incrementSliceNumber()
 	
 		if (IPrep_reseat()!= 1)
 		{	
 			debug("reseating failed, check log\n")
 			break
 		}
-		if(IPrep_Pecs_Image_aftermilling()!=1)
-		{	
-			debug("pecs imaging failed failed, check log\n")
-			break
-		}
-		IPrep_incrementSliceNumber()
+
 
 		debug("iteration: "+j+"\n")
 		sleep(2)
 		if (optiondown() && shiftdown())
 			break
 	}
-	*/
+*/
+
+	// test communication with PECS/BING
 	
-	// *** EBSD ***
-	//IPrep_acquire_ebsd()
-	
-	
-	
-	// *** shutter ***
-	//myWorkflow.returnPecs().moveShutterIn()
-	//myWorkflow.returnPecs().moveShutterOut()
-	
-	
-	/*
+/*
 	number j
 	string value1, value2, value3
 	for (j=0; j<1; j++)
@@ -87,81 +82,37 @@ try
 		
 	}
 	
-	*/
-	
-	// *** gate valve ***
-	//myWorkflow.returnPecs().openGVandCheck()
-	//myWorkflow.returnPecs().closeGVandCheck()
-	
-	
-	//sleep(5)
-	
-	// *** gripper ***
-	//myWorkflow.returnGripper().init()
-	//myWorkflow.returnGripper().sendCommand("V300000L1400h0m25j64R")
-	//myWorkflow.returnGripper().setManualState("open")
-	//myWorkflow.returnGripper().setManualState("closed")
-	//myWorkflow.returnGripper().lookupState(1)
-	//myWorkflow.returnGripper().open()		
-	//myWorkflow.returnGripper().close()
-	
-	//myWorkflow.returnGripper().sendCommand("P10000R") // close a bit (P)
-	//myWorkflow.returnGripper().sendCommand("D10000R")
-	
-	//result("sensor number: "+myWorkflow.returnGripper().readSensor()+"\n")
-	//myWorkflow.returnGripper().lookupState(1)
-/*
-number i
-
-for (i=0;i<100;i++)
-{
-
-	try
-	{
-		//myWorkflow.returnGripper().close_once()	
-		myWorkflow.returnGripper().open()		
-		myWorkflow.returnGripper().close()
-		myWorkflow.returnGripper().lookupState(1)
-	}
-	catch
-	{
-		result( GetExceptionString() + "\n" )
-		break
-	}
-	result("i: "+i+"\n")
-	sleep(1)
-}
 */
+
+	// test gripper functionality
 /*
-number i
+	number i
 
-for (i=0;i<10;i++)
-{
-
-	myWorkflow.returnGripper().open()		
-	myWorkflow.returnGripper().close()
-	result("i: "+i+"\n")
-	sleep(1)
-}
-
-	
-	//myWorkflow.returnGripper().lookupState(1)
-	//sleep(5)
-
-//	number i
-/*
-	for (i=0;i<1000;i++)
+	for (i=0;i<100;i++)
 	{
-		myWorkflow.returnGripper().lookupState(1)
+
+		try
+		{
+			//myWorkflow.returnGripper().close_once()	
+			myWorkflow.returnGripper().open()		
+			myWorkflow.returnGripper().close()
+			myWorkflow.returnGripper().lookupState(1)
+		}
+		catch
+		{
+			result( GetExceptionString() + "\n" )
+			break
+		}
 		result("i: "+i+"\n")
 		sleep(1)
-		if (optiondown() && shiftdown())
-			break
 	}
+*/
+
+
+
 	
-	
-	// *** reseating test dovetail ***
-*/	
+	// reseating test dovetail
+
 /*
 	number i
 
@@ -186,11 +137,121 @@ for (i=0;i<10;i++)
 	}
 */	
 
+	// dock clamping/unclamping
+
+/*
+	number i
+	for (i=0;i<20;i++)
+	{
+		myWorkflow.returnSEMDock().unclamp()	//disengaged
+		result("arrived at unclamped position, waiting..\n")
+		sleep(3)
+		myWorkflow.returnSEMDock().clamp()   //engaged
+		result("i: "+i+"\n")
+	}
+*/
+
+	// test how well focus is kept when moving z
+	// setup
+/*
 	
+	// NB: make sure to load the "image_test" imaging sequence and set the sem position to the right coordinates	
+	// add sem position with name "testImagingRepeat"
+	//IPrep_addSEMPosition()
 	
+	// save focus
+	// autofocus
+
+	myWorkflow.returnSEM().goToImagingPosition("testImagingRepeat")
 	
+	myWorkflow.returnSEM().blankOff()
+	IPrep_autofocus()
+	myWorkflow.returnSEM().blankOn()
 	
+	myWorkflow.returnSEM().setDesiredWDToCurrent()
+*/	
+/*
+	// loop
+	number i
+	for (i=0;i<10;i++)
+	{
+		
 	
+		// restore focus
+		//myWorkflow.returnSEM().setWDForImaging()
+		
+		// take image
+		IPrep_image()
+		
+		// increment slice number 
+		IPrep_incrementSliceNumber()
+		
+		// move z by going to clear
+		myWorkflow.returnSEM().goToClear()
+		
+		// go to nominal imaging
+		myWorkflow.returnSEM().goToNominalImaging()
+		
+
+		debug("i: "+i+"\n")
+		sleep(2)
+		if (optiondown() && shiftdown())
+			break
+	}
+
+*/
+
+
+	// test PECS etching/coating
+/*
+	// go to etch
+	myWorkflow.returnPECS().goToEtchMode()
+	okdialog("system should be in ETCH mode. continue?")
+
+	// go to coat
+	myWorkflow.returnPECS().goToCoatMode()
+	okdialog("system should be in COAT mode. continue?")
+
+	// go to etch
+	myWorkflow.returnPECS().goToEtchMode()
+	okdialog("system should be in ETCH mode. continue?")
+
+*/
+
+
+
+/////////////////////////////	
+// *** Workflow Items *** ///
+/////////////////////////////
+
+	
+	// *** gate valve ***
+	//myWorkflow.returnPecs().openGVandCheck()
+	//myWorkflow.returnPecs().closeGVandCheck()
+
+	// *** EBSD ***
+	//IPrep_acquire_ebsd()
+	
+	// *** shutter ***
+	//myWorkflow.returnPecs().moveShutterIn()
+	//myWorkflow.returnPecs().moveShutterOut()
+		
+	// *** gripper ***
+	//myWorkflow.returnGripper().init()
+	//myWorkflow.returnGripper().sendCommand("V300000L1400h0m25j64R")
+	//myWorkflow.returnGripper().setManualState("open")
+	//myWorkflow.returnGripper().setManualState("closed")
+	//myWorkflow.returnGripper().lookupState(1)
+	//myWorkflow.returnGripper().open()		
+	//myWorkflow.returnGripper().close()
+	
+	//myWorkflow.returnGripper().sendCommand("P10000R") // close a bit (P)
+	//myWorkflow.returnGripper().sendCommand("D10000R")
+	
+	//result("sensor number: "+myWorkflow.returnGripper().readSensor()+"\n")
+	//myWorkflow.returnGripper().lookupState(1)
+
+
 	
 	// *** dock ***
 	//myWorkflow.returnSEMDock().setManualState("clamped")
@@ -206,17 +267,6 @@ for (i=0;i<10;i++)
 	//myWorkflow.returnSEMDock().camOff()
 	//myWorkflow.returnSEMDock().unhold()
 	
-	/*
-	number i
-	for (i=0;i<20;i++)
-	{
-		myWorkflow.returnSEMDock().unclamp()	//disengaged
-		result("arrived at unclamped position, waiting..\n")
-		sleep(3)
-		myWorkflow.returnSEMDock().clamp()   //engaged
-		result("i: "+i+"\n")
-	}
-	*/
 	
 	// *** pecs ***
 	//myWorkflow.returnPecs().moveStageUp()
@@ -304,31 +354,38 @@ for (i=0;i<10;i++)
 	//myWorkflow.returnSEM().goToLowerGrid()
 	//myWorkflow.returnSEM().goToScribeMark()
 	
+	//myWorkflow.returnSEM().uncoupleFWD() // doesn't work on quanta, works on nova
+	//myWorkflow.returnSEM().coupleFWD()
+
+	print("current mag: "+myWorkflow.returnSEM().measureMag())
+	
+
+
 	// check consistency
 	//result("wposition accuracy: "+myWorkflow.returnSEM().checkPositionConsistency("pickup_dropoff")+"\n")
 	//result("state consistency: "+myWorkflow.returnSEM().checkStateConsistency()+"\n")
 	
 	
 	// *** imaging ***
-//	myStateMachine.start_image()
-/*	object myROI 
-		string name1 = "StoredImaging"
-		if (!returnROIManager().getROIAsObject(name1, myROI))
-		{
-			print("IMAGE: tag does not exist!")
-			
-		}
-*/
+	//	myStateMachine.start_image()
+	/*	object myROI 
+			string name1 = "StoredImaging"
+			if (!returnROIManager().getROIAsObject(name1, myROI))
+			{
+				print("IMAGE: tag does not exist!")
+				
+			}
+	*/
 		// Update GMS status bar - SEM imaging started
 
 	//myWorkflow.returnSEM().goToImagingPosition(myROI.getName())
 	
 
-//	image temp_slice_im2
-//	myWorkflow.returnDigiscan().config()
-//	myWorkflow.returnDigiscan().acquire(temp_slice_im2)
-//	showimage(temp_slice_im2)
-//	myStateMachine.stop_image()  
+	//	image temp_slice_im2
+	//	myWorkflow.returnDigiscan().config()
+	//	myWorkflow.returnDigiscan().acquire(temp_slice_im2)
+	//	showimage(temp_slice_im2)
+
 	
 	
 	// *** alignment of SEM dropoff/pickup point for parker and sem stage ***

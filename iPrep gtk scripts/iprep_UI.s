@@ -22,6 +22,7 @@ object myStateMachine = returnStateMachine()
 // Initial functions
 /////////////////////
 
+// *** sem functions ***
 
 void Save_imaging_XYZ_position( void )
 {
@@ -112,6 +113,30 @@ void Recall_imaging_position_focus( void )
 	}
 	
 	WorkaroundQuantaMagBug()
+}
+
+void GoToSpecifiedCoord(void)
+{
+	string s0 = "Please enter a coord name. "
+	string s1 = "StoredImaging"
+	string enterdValue = "StoredImaging"
+	if (getstring(s0, s1, enterdValue))
+	{
+		if (returnSEMCoordManager().checkCoordExistence(enterdValue))
+		{
+		myWorkflow.returnSEM().goToImagingPosition(enterdValue)
+
+		}
+		else 
+		{
+			// coord not found
+			string s2 = "coord "+enterdValue+" not found!"
+			result(s2+"\n")
+			okdialog(s2)
+		}
+	}
+
+
 }
 
 void Goto_alignment_grid( void ) // not needed in Nova
@@ -240,6 +265,7 @@ void Set_autofocus_enable_dialog( void )
 
 	result("Autofocus mode set to "+af_mode+"\n")
 }
+
 
 
 // PECS functions
@@ -539,18 +565,47 @@ number IPrep_calibrate_transfer()
 
 void IPrep_addROI()
 {
-	// ask user for a new and store current SEM position as a new SEMPosition
+	// create a ROI. ask user for name and store current SEM position as a new SEMPosition under that ROI with current wd and mag
 
-	string s0 = "an ROI with default values will be generated with entered name. it will default to an SEM position with the same name"
+	string s0 = "an ROI with default values will be generated with entered name. it will default to an SEM position with the same name and current location"
 	string s1 = "newregionname"
 	string newROIname = "testpositionui"
 
 	if (getstring(s0,s1,newROIname))
 	{
+		// create the ROI
 		object myROI = ROIFactory(0,newROIname)
+		
+		// set mag
+		myROI.setMag(myWorkflow.returnSEM().measureMag())
+		
+		// set focus
+		myROI.setFocus(myWorkflow.returnSEM().measureWD())
+
+		// add the ROI
 		returnROIManager().addROI(myROI)
 		result("ROI created with name "+newROIname+"\n\n")
 		myROI.print()
+
+		// now add SEM position with same name
+		number x,y,z
+		x=myWorkflow.returnSEM().getX()
+		y=myWorkflow.returnSEM().getY()
+		z=myWorkflow.returnSEM().getZ()
+
+		// create new coord
+		object aCoord = alloc(SEMCoord)
+		
+		// set position
+		aCoord.set(newROIname,x,y,z)
+
+		// add the coord
+		returnSEMCoordManager().addCoord(aCoord)
+
+		result("saved position "+newROIname+"\n\n")
+		aCoord.print()
+
+
 	}
 }
 
@@ -568,7 +623,7 @@ void IPrep_addSEMPosition()
 	string newROIname = "testpositionUI"
 	if (getstring(s0, s1, newROIname))
 	{
-		// #todo: get current focus value and save that too
+		// #todo: get current focus value and save that too, but doesn't matter since we save focus in ROI now, not coord
 
 
 		object aCoord = alloc(SEMCoord)
@@ -580,28 +635,26 @@ void IPrep_addSEMPosition()
 	}
 }
 
-void IPrep_setSingleROIFocus()
-{
-	// set working distance to current measured working distance for default ROI
-	
-	string s0 = "Set working distance for default ROI to current measured working distance?"	
 
-	if (okcanceldialog(s0))
-	{
-		object myROI
-		string name1 = "StoredImaging"
-		if (!returnROIManager().getROIAsObject(name1, myROI))
+
+void IPrep_printEnabledROIs()
+{
+	// print a list of all enabled ROIS in order
+
+	object tall_enabled = returnROIManager().getAllEnabledROIList()
+	number count = tall_enabled.SizeOfList()
+	
+	result("found "+count+"positions:\n")
+	number i=0
+		foreach(object myROI; tall_enabled)
 		{
-			print("defaultROI does not exist!")
-			return
+
+			result(i+": "+myROI.getName()+", order="+myROI.getOrder()+", mag="+myROI.getMag()+"\n")
+
 		}
-		number imagingWD = myWorkflow.returnSEM().measureWD()
-		myROI.setFocus(imagingWD)
-		print("Working Distance for defeault ROI set to: "+imagingWD)
-	}
 }
 
-void IPrep_setROIMode()
+void IPrep_setSetCustomImageSequence()
 {
 	// load a custom image sequence into workflow
 
@@ -624,6 +677,7 @@ void IPrep_setROIMode()
 	}
 	else
 	{
+		//debug("s1: "+s1+", s2: "+s2+"\n")
 		// if not, we can now revert back
 		myStateMachine.loadCustomImageSequence(oldSequence)
 		print("imaging sequence "+oldSequence+" loaded")
@@ -637,6 +691,92 @@ void IPrep_setROIMode()
 }
 
 
+// Single (default) ROI functions
+
+void IPrep_setSingleROIFocus()
+{
+	// set working distance to current measured working distance for default ROI
+	
+	string s0 = "Set working distance for default ROI to current measured working distance?"	
+
+	if (okcanceldialog(s0))
+	{
+		object myROI
+		string name1 = "StoredImaging"
+		if (!returnROIManager().getROIAsObject(name1, myROI))
+		{
+			print("defaultROI does not exist!")
+			return
+		}
+		number imagingWD = myWorkflow.returnSEM().measureWD()
+		myROI.setFocus(imagingWD)
+		print("Working Distance for defeault ROI set to: "+imagingWD)
+	}
+}
+
+void IPrep_setSingleImageSequence()
+{
+	// load a single image sequence into workflow for use with 1 ROI
+
+	number s2 = myStateMachine.loadCustomImageSequence("image_single")
+	if (s2)
+	{
+		print("imaging sequence image_single loaded")
+		// now make it the active one in case we reinitialize
+		overwriteTag(getpersistenttaggroup(), "IPrep:workflowSequences:imaging", "image_single")
+	}
+	else
+	{
+		throw ("problem loading image_single")
+	}
+}
+
+void IPrep_useCurrentMagForROI()
+{
+	// use the current mag value in the ROI 
+	
+	string name1 = "StoredImaging"
+	object myROI
+	returnROIManager().getROIAsObject(name1, myROI)
+
+	number val = 0
+	val = myWorkflow.returnSEM().measureMag()
+
+	// set mag
+	myROI.setMag(val)
+
+	// add the ROI
+	returnROIManager().addROI(myROI)
+	result("ROI "+name1+" updatd with new mag "+val+" \n\n")
+	myROI.print()
+
+
+
+
+}
+
+void IPrep_useCurrentFocusForROI()
+{
+	// use the current focus value in the ROI 
+	// remember that focus is only set from ROI if that mode (2) is selected
+
+	string name1 = "StoredImaging"
+	object myROI
+	returnROIManager().getROIAsObject(name1, myROI)
+
+	number val = 0
+	val = myWorkflow.returnSEM().measureWD()
+
+	// set focus
+	myROI.setFocus(val)
+
+	// add the ROI
+	returnROIManager().addROI(myROI)
+	result("ROI "+name1+" updatd with new focus "+val+" \n\n")
+	myROI.print()
+
+
+}
 
 
 /////////////////////
@@ -651,8 +791,8 @@ void iprep_InstallMenuItems( void )
 	string SS_SUB_MENU_2 = "PECS"
 	string SS_SUB_MENU_3 = "Recovery and Setup"
 	string SS_SUB_MENU_5 = "Loop Control"
-	string SS_SUB_MENU_6 = "ROI Setup"
-	string SS_SUB_MENU_7 = "Single ROI"
+	string SS_SUB_MENU_6 = "Multi ROI Setup"
+	string SS_SUB_MENU_7 = "Single ROI Setup"
 
 	// workflow	
 	AddScriptToMenu( "Set_starting_slice_number()", "Set starting slice number...", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
@@ -687,6 +827,8 @@ void iprep_InstallMenuItems( void )
 
 	AddScriptToMenu( "beep()", "------", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
 
+	AddScriptToMenu( "GoToSpecifiedCoord()", "Goto a user specified coordinate...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
+
 	AddScriptToMenu( "Goto_clear()", "Goto clear and move in z last...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "Goto_scribe_mark()", "Goto scribe mark...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "Goto_nominal_imaging()", "Goto nominal imaging position...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
@@ -717,13 +859,19 @@ void iprep_InstallMenuItems( void )
 
 	// ROI Setup
 	AddScriptToMenu( "IPrep_addSEMPosition()", "Add a new SEM coordinate", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
-	AddScriptToMenu( "IPrep_addROI()", "Add a ROI", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
-	AddScriptToMenu( "IPrep_setROIMode()", "Setup system to use custom image sequence", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
+	AddScriptToMenu( "IPrep_addROI()", "Add a ROI of current conditions", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
+	AddScriptToMenu( "IPrep_setSetCustomImageSequence()", "Setup system to use custom image sequence", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
+	AddScriptToMenu( "IPrep_printEnabledROIs()", "show all enabled ROIs in order", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
 	
 
-
 	// single ROI
-	AddScriptToMenu( "IPrep_setSingleROIFocus()", "set focus value for single ROI", SS_MENU_HEAD , SS_SUB_MENU_7 , 0)
+	AddScriptToMenu( "IPrep_setSingleROIFocus()", "set focus value to current working distance for default ROI", SS_MENU_HEAD , SS_SUB_MENU_7 , 0)
+	AddScriptToMenu( "IPrep_setSingleImageSequence()", "load single default image ROI with name StoredImaging", SS_MENU_HEAD , SS_SUB_MENU_7 , 0)
+	AddScriptToMenu( "IPrep_useCurrentFocusForROI()", "Use the current focus for StoredImaging ROI", SS_MENU_HEAD , SS_SUB_MENU_7 , 0)
+	AddScriptToMenu( "IPrep_useCurrentMagForROI()", "Use the current mag for StoredImaging ROI", SS_MENU_HEAD , SS_SUB_MENU_7 , 0)
+
+
+
 
 
 	// iprep loop control

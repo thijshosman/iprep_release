@@ -10,29 +10,32 @@ result("starting execution, idle\n\n")
 	
 	void etching_test_routine()
 	{
+		result("***start etching routine\n")
 		myWorkflow.returnPecs().goToEtchMode() // moves stage and angles
-		myWorkflow.returnPecs().goToEtchMode() // again to fix bug in not going to repeated angle first time
 		myWorkflow.returnPecs().startMilling() // start process
 		result("etching time remaining: "+myWorkflow.returnPecs().millingTimeRemaining()+"\n")	
 		sleep(1)
 		result("milling status during etching: "+myWorkflow.returnPecs().getMillingStatus()+"\n")
 		result("system status during etching: "+myWorkflow.returnPecs().getSystemStatus()+"\n")
-		sleep(5)
+		sleep(10)
 		myWorkflow.returnPecs().stopMilling()
+		result("***end etching routine\n")
 	}
 	
 	// test coating
 	
 	void coating_test_routine()
 	{
-		//myWorkflow.returnPecs().goToCoatMode() // moves stage
+		result("***start coating routine\n")
+		myWorkflow.returnPecs().goToCoatMode() // moves stage
 		myWorkflow.returnPecs().startCoating() // start process
 		result("coating time remaining: "+myWorkflow.returnPecs().millingTimeRemaining()+"\n")
 		sleep(1)
 		result("milling status during coating: "+myWorkflow.returnPecs().getMillingStatus()+"\n")
 		result("system status during coating: "+myWorkflow.returnPecs().getSystemStatus()+"\n")
-		sleep(5)
+		sleep(10)
 		myWorkflow.returnPecs().stopMilling()
+		result("***end coating routine\n")
 	}
 
 try
@@ -63,8 +66,9 @@ try
 	// 6. take shutter out
 
 	
-	coating_test_routine()
-	//etching_test_routine()
+	//coating_test_routine()
+
+	etching_test_routine()
 	
 	//myWorkflow.returnPecs().stopMilling()
 	//myWorkflow.returnPecs().goToEtchMode()

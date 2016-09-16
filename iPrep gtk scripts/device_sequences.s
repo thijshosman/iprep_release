@@ -721,7 +721,7 @@ class image_single: deviceSequence
 		// performs single image
 		number returncode = 0
 
-		self.print("executing dual ROI imaging step")
+		self.print("executing single ROI default imaging step")
 
 		// unblank
 		myWorkflow.returnSEM().blankOff()
@@ -862,6 +862,87 @@ class image_single: deviceSequence
 			break
 		}
 
+		// blank
+		myWorkflow.returnSEM().blankOn()
+
+		return 1
+	}
+
+	number undo(object self)
+	{
+		// public
+		// this method is intended to undo the sequence (if possible)
+		self.print("cannot undo this sequence")
+		return 0
+	}
+
+	number final(object self)
+	{
+		// public
+		// blank beam
+		myWorkflow.returnSEM().blankOn()
+		return 1
+	}
+}
+
+class image_test: deviceSequence
+{
+	// declare object since it is used below
+	object myWorkflow
+
+	number init(object self, string name1, object workflow1)
+	{
+		self.setname(name1)
+		myWorkflow = workflow1
+	}
+
+	number precheck(object self)
+	{
+		// public
+		// #todo: define prechecks. SEM in right position? 
+
+		return 1
+	}
+
+	number postcheck(object self)
+	{
+		// public
+		// checks that have to be performed after sequence has completed
+		// in this case there is no post-check needed
+		return 1
+	}
+
+	number do_actual(object self)
+	{
+		// public
+		// performs single image
+		number returncode = 0
+
+		self.print("executing imaging step as a test on coordinate testImagingRepeat")
+
+		// go to imaging location
+		myWorkflow.returnSEM().goToImagingPosition("testImagingRepeat")
+
+		// unblank
+		myWorkflow.returnSEM().blankOff()
+
+		image temp_slice_im
+
+		// or use digiscan parameters as setup in the normal 'capture' at this moment
+		myWorkflow.returnDigiscan().config()
+
+
+		myWorkflow.returnDigiscan().acquire(temp_slice_im)
+
+
+
+		// Save Digiscan image
+		IPrep_saveSEMImage(temp_slice_im, "digiscan")
+
+		// Close Digiscan image
+		ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
+		imdoc.ImageDocumentClose(0)
+		
 		// blank
 		myWorkflow.returnSEM().blankOn()
 
@@ -1127,22 +1208,25 @@ class image_iter: deviceSequence
 
 		// *** general
 
+		// fix magnificationbug on Quanta at first
+		WorkaroundQuantaMagBug()
+
 		// *** go through ROIs
 		//taggroup tall_enabled = NewTagList()
 		object tall_enabled = returnROIManager().getAllEnabledROIList()
-	
+		number count = tall_enabled.SizeOfList()
+
+		self.print("found "+count+"positions. visiting them sequentially")
+
 		foreach(object myROI; tall_enabled)
 		{
 
-			self.print("current ROI: "+myROI.getName())
+			self.print("current ROI: "+myROI.getName()+", order = "+myROI.getOrder())
 			myROI.print()
 
-			// go to ROI1
+			// go to ROI
 			self.print("IMAGE: going to location: "+myROI.getName())
 			myWorkflow.returnSEM().goToImagingPosition(myROI.getName())
-			
-			// fix magnificationbug on Quanta
-			WorkaroundQuantaMagBug()
 
 			// unblank
 			myWorkflow.returnSEM().blankOff()
@@ -1154,7 +1238,7 @@ class image_iter: deviceSequence
 				//#todo: also add the option of doing this when start is pressed again
 				if (IPrep_sliceNumber() % myROI.getAFnSlice() == 0 )
 				{
-
+					debug("autofocus called on slice "+IPrep_sliceNumber()+"\n")
 					self.print("IMAGE: autofocusing")
 					IPrep_autofocus()
 					number afs_sleep = 1	// seconds of delay
@@ -1174,6 +1258,7 @@ class image_iter: deviceSequence
 				self.print("IMAGE: focus is: "+myROI.getFocus())
 				myWorkflow.returnSEM().setDesiredWD(myROI.getFocus()) // automatically sets it after storing it in object
 			}
+			// else the value is 0, which means leave focus alone
 
 			// mag
 			if(returnROIEnables().mag())
@@ -1191,14 +1276,13 @@ class image_iter: deviceSequence
 			
 			// digiscan
 
-			// use digiscan parameters as setup in the normal 'capture' at this moment
-			myWorkflow.returnDigiscan().config()
+			// use digiscan parameters in tag
+			myWorkflow.returnDigiscan().config(dsp)
 			
-			// fix magnificationbug on Quanta
-			// second time, before imaging
-			WorkaroundQuantaMagBug()
-
 			myWorkflow.returnDigiscan().acquire(temp_slice_im)
+
+			// blank
+			myWorkflow.returnSEM().blankOn()
 
 			// Verify SEM is functioning properly - pause acquisition otherwise (might be better to do before AFS with a test scan, easier here)
 			// if tag exists
@@ -1226,12 +1310,11 @@ class image_iter: deviceSequence
 				{
 					self.print("IMAGE: Average image value ("+avg+") is greater than emission check threshold ("+pixel_threshold+"). SEM emission assumed OK." )	
 				}
-
 			}
 			
 
-			// Save Digiscan image
-			IPrep_saveSEMImage(temp_slice_im, myROI.getName()+"digiscan")
+			// Save Digiscan image in custom folder
+			IPrep_saveSEMImage(temp_slice_im, myROI.getName()+"_digiscan")
 
 			// Close Digiscan image
 			ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
@@ -1251,14 +1334,11 @@ class image_iter: deviceSequence
 				break
 			}
 
-			// blank
-			myWorkflow.returnSEM().blankOn()
-
-			return 1
-
 		}
+		
 
-
+		
+		return 1
 
 
 /*
