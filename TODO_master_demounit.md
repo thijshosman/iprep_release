@@ -8,6 +8,7 @@ This file describes what all the todos are for the demounit master development b
 - [] when changing capture settings in DM, you have to press 'capture' button before this becomes the capture setting returned by DSGetWidth( paramID ). iprep image sequence does not need initialization when settings change
 - [] when PECS reboots, we have a strange situation in which somehow the workflow still communications but still throws an exception somewhere that prevents it from continuing the workflow
 - [] some commands lock the UI thread in DM (gripper etc), no logic behind it that is oberservable. needs to be fixed
+- [] when pausing during a long acquisition, acquisition (sometimes?) aborts and system pauses. this should not happen
 
 *** general/helper ***
 - [x] the persistance classes need to throw a readable exception when a tag is not found to facilitate easy fixes on systems that do not have all the tags. 

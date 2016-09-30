@@ -54,9 +54,43 @@ class pecs_iprep: object
 		*/
 
 		if (argonStatus == "1")
-			return 1
+		{
+			return 1	
+		}
 		else
-			return 0
+		{
+			// check again to make sure:
+			sleep(1)
+			PIPS_GetPropertyDevice("subsystem_pumping", "device_gasPressure", "read_pressure_status", argonStatus)
+			self.log(2,"argon extra check: "+argonStatus)
+			if (argonStatus == "1")
+			{ 
+				// return 1 like nothing happened
+				return 1
+			}
+			else 
+			{ 
+				// now we have a real problem, report and return 0
+				string err
+				if (argonStatus == "0")
+				{
+					err = "argon pressure off"
+				}
+				else if (argonStatus == "2")
+				{
+					err = "argon pressure low"
+				}
+				else if (argonStatus == "3")
+				{
+					err = "argon pressure high"
+				}
+
+				self.print("argon pressure status check failed: "+err)
+				return 0
+			}
+		}
+	
+
 
 	}
 
@@ -74,6 +108,7 @@ class pecs_iprep: object
 		else
 		{
 			// check again to make sure:
+			sleep(1)
 			PIPS_GetPropertyDevice("subsystem_pumping", "device_turboPump", "read_speed_Hz", tmpSpeed)
 			self.log(2,"tmpspeed extra check: "+tmpSpeed)
 			if (val(tmpSpeed)>1275)

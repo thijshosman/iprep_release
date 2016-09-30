@@ -21,6 +21,12 @@ try
 	//IPrep_scribemarkVectorCorrection(-0.1,0)
 	//myWorkflow.returnPECSCamera().liveView()
 	//IPrep_cleanup()
+
+	if(!IPrep_check())
+		{
+			string popuperror = "check failed, check log. cannot start"
+			okdialog(popuperror)
+		}
 	
 ////////////////////	
 // *** TESTS *** ///
@@ -357,7 +363,7 @@ try
 	//myWorkflow.returnSEM().uncoupleFWD() // doesn't work on quanta, works on nova
 	//myWorkflow.returnSEM().coupleFWD()
 
-	print("current mag: "+myWorkflow.returnSEM().measureMag())
+	//print("current mag: "+myWorkflow.returnSEM().measureMag())
 	
 
 

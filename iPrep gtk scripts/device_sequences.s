@@ -787,7 +787,7 @@ class image_single: deviceSequence
 		if(returnROIEnables().mag())
 		{
 			self.print("IMAGE: magnification is: "+myROI.getMag())
-			myROI.getMag()
+			myWorkflow.returnSEM().setMag(myROI.getMag())
 		}
 
 		// Acquire Digiscan image, use digiscan parameters saved in ROI
