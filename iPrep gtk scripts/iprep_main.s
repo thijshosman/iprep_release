@@ -31,40 +31,6 @@ interface I_IPrep_mainloop
 // main loop
 object myLoop = alloc(IPrep_mainloop)
 
-object my3DvolumeSEM
-
-/*
-// 3d volumes
-object my3DvolumeSEM
-object my3DvolumePECSbefore
-object my3DvolumePECSafter
-*/
-/* #TODO: re-enable
-	// digiscan parameters alignment
-	number alignWidth = 2048
-	number alignHeight = 2048
-	number alignDwell = 4
-	number alignParamID = 3
-	number alignMag = 1000
-
-
-	// working distance for imaging grids on posts
-	number gridWD = 7.5
-
-	// imaging parameters
-	number imageMag = 5000
-	number imagingWD = 0
-
-	// voltage used
-	number IPrepVoltage = 2
-
-	// configured status flag
-	number imagingConfigured = 0
-*/
-
-
-
-
 // *** methods available for UI to call ***
 
 void IPrep_setSliceNumber(number setSlice)
@@ -402,13 +368,9 @@ number IPrep_init()
 		print("iprep init")
 
 
-		// init iprep workflow and set the default positions for transfer in tags
+		// init iprep workflow subsystems/hardware
 		myWorkflow.init()
 		
-		// hand over workflow object to state machine, who handles allowed transfers and keeps track of them
-		// get initial state from tag
-		myStateMachine.init(myWorkflow)
-
 		// #TODO: check dock against mode tag
 		// use okcanceldialog wrapper to choose to ignore this as warning or throw error
 
@@ -602,7 +564,14 @@ void IPrep_cleanup()
 	myWorkflow.returnPECS().unlock()
 }
 
-Number IPrep_Setup_Imaging()
+Number IPrep_setup_imaging()
+{
+	print("IPrep_Setup_Imaging")
+	// not used right now
+}
+
+/* // deprecated
+Number IPrep_Setup_Imaging_old() 
 {
 	print("IPrep_Setup_Imaging")
 	// setup the imaging parameters and saves them 
@@ -670,6 +639,7 @@ Number IPrep_Setup_Imaging()
 	}
 	return returncode
 }
+*/
 
 Number IPrep_foobar()
 {
@@ -867,11 +837,14 @@ Number IPrep_StartRun()
 			return returncode // to indicate error
 		}
 
+	// reload sequences to pick up on changes and to re-init 3D volumes
+	// init state machine sequences with already initialized subsystems
+	myStateMachine.init(myWorkflow)
 
 	// #TODO: this routine needs to know where to start in case of DM crash. 
 	// # slice number is remembered, but also needs to know last succesfully completed step. 
 	// # can query this with: myStateMachine.getLastCompletedStep() ("IMAGE", "MILL", "SEM", "PECS", "RESEAT")
-	// we should wrap this and call this function IPrep_infer()
+	// # this is all working in a rather rudimentary way now
 
 	// now that we have concluded the system is in a good state to start, infer where we are
 	try

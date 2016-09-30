@@ -197,6 +197,29 @@ class IROI: object
 		return digiscan_param
 	}	
 
+	// *** some helper functions
+
+	number getDigiscanX(object self)
+	{
+		taggroup digitags = self.getDigiscanParam()
+		number x
+		if (!TagGroupGetTagAsNumber( digitags,"digiscan_param:Image Width", x))
+			return x
+		else
+			throw("width not set in digiscan parameters of "+name)
+	}
+
+	number getDigiscanY(object self)
+	{
+		taggroup digitags = self.getDigiscanParam()
+		number y
+		if (!TagGroupGetTagAsNumber( digitags,"digiscan_param:Image Height", y))
+			return y
+		else
+			throw("height not set in digiscan parameters of "+name)
+	}
+
+	// describe this ROI
 	void print(object self)
 	{
 		result("ROI: name: "+name+", enabled: "+enabled+", af every "+af_n_slice+" slices\n")
@@ -672,8 +695,6 @@ class ROIManager: object
 			self.print("ROI "+name+" does not exist!")
 			throw("ROIManager: ROI "+name+" does not exist!")
 		}
-
-
 	}
 
 	void printAll(object self)

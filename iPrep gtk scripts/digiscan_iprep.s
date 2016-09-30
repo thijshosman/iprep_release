@@ -87,8 +87,15 @@ class digiscan_iprep : object
 		configured = 1
 	}
 
+	number DSGetWidth(object self)
+	{
+		return DSGetWidth(2)
+	}
 
-
+	number DSGetHeight(object self)
+	{
+		return DSGetHeight(2)
+	}
 
 	void acquire(object self, image &img)
 	{

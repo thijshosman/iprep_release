@@ -43,17 +43,17 @@ class digiscan_simulator : object
 		// paramID is the id of the configuration used to acquire. 
 		
 		paramID = 2	// capture ID
-		width = DSGetWidth( paramID )
-		height = DSGetHeight( paramID)
-		pixelTime = DSGetPixelTime( paramID )
-		lineSync = DSGetLineSynch( paramID )
-		rotation = DSGetRotation( paramID )
+		width = 1024
+		height = 1024
+		pixelTime = 16
+		lineSync = 0
+		rotation = 0
 
 		signed = 0	// Image has to be of type unsigned-integer
 		datatype = 2	// Currently this is hard coded - no way to read from DS plugin - #TODO: fix
 		
 		signalIndex = 0		// Only 1 signal supported now - #TODO: fix
-		name = DSGetSignalName( signalIndex )
+		name = "simulator"
 
 	
 		
@@ -74,6 +74,15 @@ class digiscan_simulator : object
 		
 	}
 
+	number DSGetWidth(object self)
+	{
+		return 1024
+	}
+
+	number DSGetHeight(object self)
+	{
+		return 1024
+	}
 
 	void acquire(object self, image &img)
 	{
@@ -111,17 +120,17 @@ class digiscan_simulator : object
 		number continuous  = 0 // 0 = single frame, 1 = continuous
 		number synchronous = 1 // 0 = return immediately, 1 = return when finished
 		
-		number paramID2 = DSCreateParameters( width, height, rotation, pixelTime, lineSync) 
+		//number paramID2 = DSCreateParameters( width, height, rotation, pixelTime, lineSync) 
 		// if paramID is used (Capture) then an extra copy of the image is made by GMS3 after acquire. 
 		// Doesnt happen if new parameter set is made
 
-		DSSetParametersSignal( paramID2, signalIndex, dataType, selected, imageID )
+		//DSSetParametersSignal( paramID2, signalIndex, dataType, selected, imageID )
 		//DSStartAcquisition( paramID2, continuous, synchronous )
 
 		img = 501
 		
 		// delete the parameter array we temporarily created
-		DSDeleteParameters( paramID2 )
+		//DSDeleteParameters( paramID2 )
 
 		// close the image that the digiscan image is contained in
 		// depreciated: done one level up

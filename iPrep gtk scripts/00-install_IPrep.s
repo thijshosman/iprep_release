@@ -43,7 +43,6 @@ InstallFile( PathConcatenate( gPath, "iprep_general.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "multi_roi.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "iprep_init_helpers.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "hardwareFactory.s" ), package, 3 )
-InstallFile( PathConcatenate( gPath, "iprep_3Dvolume.s" ), package, 3 )
 
 InstallFile( PathConcatenate( gPath, "UPS_APC.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "UPS_simulator.s" ), package, 3 )
@@ -64,7 +63,7 @@ InstallFile( PathConcatenate( gPath, "gripper_simulator.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "pecs_iprep.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "pecs_simulator.s" ), package, 3 )
 
-InstallFile( PathConcatenate( gPath, "pecscamera_iprep.s" ), package, 3 )
+//InstallFile( PathConcatenate( gPath, "pecscamera_iprep.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "pecscamera_simulator.s" ), package, 3 )
 
 InstallFile( PathConcatenate( gPath, "digiscan_iprep.s" ), package, 3 )
@@ -75,6 +74,8 @@ InstallFile( PathConcatenate( gPath, "ebsd_manual.s" ), package, 3 )
 //InstallFile( PathConcatenate( gPath, "ebsd_oi_automatic.s" ), package, 3 )
 
 InstallFile( PathConcatenate( gPath, "workflowElements.s" ), package, 3 )
+
+InstallFile( PathConcatenate( gPath, "iprep_3Dvolume.s" ), package, 3 )
 
 InstallFile( PathConcatenate( gPath, "device_sequences.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "sequenceFactory.s" ), package, 3 )

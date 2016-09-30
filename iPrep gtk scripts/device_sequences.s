@@ -697,6 +697,7 @@ class image_single: deviceSequence
 	{
 		self.setname(name1)
 		myWorkflow = workflow1
+		returnVolumeManager().initForDefaultROI()
 	}
 
 	number precheck(object self)
@@ -852,9 +853,14 @@ class image_single: deviceSequence
 		// quietly ignore if stack is not initialized
 		try
 		{
-			object my3DvolumeSEM = myWorkflow.return3DvolumeSEM()
+			object my3DvolumeSEM = returnVolumeManager().returnVolume("StoredImaging")
 			my3DvolumeSEM.addSlice(temp_slice_im)
 			my3DvolumeSEM.show()
+
+			// old method
+			//object my3DvolumeSEM = myWorkflow.return3DvolumeSEM()
+			//my3DvolumeSEM.addSlice(temp_slice_im)
+			//my3DvolumeSEM.show()
 		}
 		catch
 		{
@@ -1108,9 +1114,9 @@ class image_double: deviceSequence
 		// quietly ignore if stack is not initialized
 		try
 		{
-			object my3DvolumeSEM = myWorkflow.return3DvolumeSEM()
-			my3DvolumeSEM.addSlice(temp_slice_im)
-			my3DvolumeSEM.show()
+			//object my3DvolumeSEM = myWorkflow.return3DvolumeSEM()
+			//my3DvolumeSEM.addSlice(temp_slice_im)
+			//my3DvolumeSEM.show()
 		}
 		catch
 		{
@@ -1324,9 +1330,9 @@ class image_iter: deviceSequence
 			// quietly ignore if stack is not initialized
 			try
 			{
-				object my3DvolumeSEM = myWorkflow.return3DvolumeSEM()
-				my3DvolumeSEM.addSlice(temp_slice_im)
-				my3DvolumeSEM.show()
+				//object my3DvolumeSEM = myWorkflow.return3DvolumeSEM()
+				//my3DvolumeSEM.addSlice(temp_slice_im)
+				//my3DvolumeSEM.show()
 			}
 			catch
 			{
@@ -1437,9 +1443,9 @@ class image_iter: deviceSequence
 		// quietly ignore if stack is not initialized
 		try
 		{
-			object my3DvolumeSEM = myWorkflow.return3DvolumeSEM()
-			my3DvolumeSEM.addSlice(temp_slice_im)
-			my3DvolumeSEM.show()
+			//object my3DvolumeSEM = myWorkflow.return3DvolumeSEM()
+			//my3DvolumeSEM.addSlice(temp_slice_im)
+			//my3DvolumeSEM.show()
 		}
 		catch
 		{
@@ -1856,6 +1862,8 @@ class coat_default: deviceSequence
 				break
 			}
 
+			self.print("coating time remaining: "+myWorkflow.returnPecs().coatingTimeRemaining())
+
 			sleep(1)
 			
 		}
@@ -1892,6 +1900,7 @@ class PECSImageDefault: deviceSequence
 	{
 		self.setname(name1)
 		myWorkflow = workflow1
+		returnVolumeManager().initForPECS()
 	}
 
 	number precheck(object self)
@@ -1936,7 +1945,11 @@ class PECSImageDefault: deviceSequence
 		{
 
 			// show image
-			temp_slice_im.showimage() // only show if image is not a null image
+			//temp_slice_im.showimage() // only show if image is not a null image
+
+			object myPECSvolumeSEM = returnVolumeManager().returnPECS()
+			myPECSvolumeSEM.addSlice(temp_slice_im)
+			myPECSvolumeSEM.show()
 
 			// Close image
 			ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)

@@ -5,13 +5,15 @@ This file describes what all the todos are for the demounit master development b
 - [] when PECS has rebooted, check connection before starting workflow. now it still sort of runs but pops up messages in the meantime with that it failed to talk to PECS. can be dangerous
 - [] image sequence turns top illuminators off. this is probably wrong. 
 - [] rethink locking out the PECS UI at the end of milling vs at the beginning of transfer
-- [] adding sem image to 3d image stack broke
 - [] when changing capture settings in DM, you have to press 'capture' button before this becomes the capture setting returned by DSGetWidth( paramID ). iprep image sequence does not need initialization when settings change
 - [] when PECS reboots, we have a strange situation in which somehow the workflow still communications but still throws an exception somewhere that prevents it from continuing the workflow
 - [] some commands lock the UI thread in DM (gripper etc), no logic behind it that is oberservable. needs to be fixed
 
 *** general/helper ***
 - [x] the persistance classes need to throw a readable exception when a tag is not found to facilitate easy fixes on systems that do not have all the tags. 
+
+*** mediator ***
+- [] allow mediator to print out a list of common states for later use in UI dialog that reflects state of subsystems
 
 *** parkertransfer ***:
 - [x] allow homing to happen in the wrong direction. 
@@ -48,9 +50,10 @@ This file describes what all the todos are for the demounit master development b
 - [x] create a way to manually/dynamically load sequences in state machine. right now state machine loads default sequences and menu items can change them. it would be better if there were a way to dynamically load a sequence defined by a tag when the state machine initializes and a menu item that loads the tag and reinits the state machine
 - [] add a precondition that the sem is in 'clear' state and if not, ask user if he wants to home it. check unsafe/dead flags first
 - [] add a precondition that imaging point exists
+- [] start/resume should reinit sequences used to reflect changes (and possibly re-init the 3D volumes)
 
 *** setup ***
-- [] stop using IPrep_Setup_Imaging(), is now redundant
+- [x] stop using IPrep_Setup_Imaging(), is now redundant
 
 *** multi ROI ***
 - [x] we need a way to iterate over ROIs. the most logical thing would be to use the subtag for all ROIs that labels them as 'enabled'. the sequence method would then just iterate over all of them. use example robin. 
@@ -73,10 +76,9 @@ This file describes what all the todos are for the demounit master development b
 - [x] do not give warnings for pecs stage in raised or lowered position; only argon/tmp issues
 - [] home SEM stage to clear as part of workflow to prevent problems after pressing start button
 - [] after dock swap, set a flag that does not allow movement until iprep_scribemarkervectorcorrection has been run
-- [] fix pressing resume after pressing pause before it actually pauses. this causes bug
 - [] if max slices is reached already and workflow has started, it still gets to running mode; needs a check
-- [] issue stop_milling command before starting workflow just to be safe. 
-- [] add method to dynamically load an image sequence and init it (in state machine). the others do not change as often so they can use the regular init if needed
+- [x] issue stop_milling command before starting workflow just to be safe. 
+- [x] add method to dynamically load an image sequence and init it (in state machine). the others do not change as often so they can use the regular init if needed
 - [] how can we run custom methods on a particular sequence to set it up? pecs imaging is going to use the name of the object as initialized as the folder to save pecs images in
 - [] NB: all dead/unsafe setting happens in main, not state machine. the state machine just returns values (0,1,-1). the main functions need some proper sculpting to now put the system in a dead/unsafe state needlessly
 - [] when a 'soft' error happens (ie return 0) in workflow (ie milling precondition not met) system should pause workflow. may require change to how DM handles pause/start/stop events
@@ -91,6 +93,9 @@ This file describes what all the todos are for the demounit master development b
 - [x] create factory class for image sequence for multiple ROIs
 - [x] find a way to make sure that image step does not cause dead state when that is not really needed
 - [] create a 3D volume stack manager that can be properly initialized and resumed
+- [x] 3D stack: every ROI needs a stack. a manager returns a handle to the right stack by name. name of stack is name of ROI. these all need to be initialized. when they are closed they remain closed until re-initialized manually (for now). size of each stack is the same and is set by a global tag
+- [x] 3D stack: init 3D stack as part of init method of device sequences. the sequence will init the right sequence. 
+- [] 3D stack: when initting a stack, don't open a new one every time system resumes. check if it is already open and if it is, use it if the details fit. this can be handled by VolumeManager. 
 
 *** UI ***
 - [x] add iprep autofocus as a menu item
@@ -98,7 +103,6 @@ This file describes what all the todos are for the demounit master development b
 - [x] add function that gives a string popup and asks user to save current SEM position under given name
 - [] list all current SEM positions
 - [x] list all current ROIs
-
 
 *** gripper ***
 - [] fix bug in open/close once: if gripper does not move, it won't work this way
@@ -112,7 +116,6 @@ This file describes what all the todos are for the demounit master development b
 - [x] go to etch does not work when having stage lowered manually beforehand. then it somehow uses coating parameters and messes up milling time remaining -(needs testing)
 - [] there are still problems with go to etch/go to coat. stage does not always move and guns do not always go to right angle
 - [] millingtimeremaining() is not working in coat mode
-
 
 
 *** SW DM IPrep Bugs ***

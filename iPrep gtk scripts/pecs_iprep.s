@@ -148,6 +148,15 @@ class pecs_iprep: object
 		return t
 	}
 
+	number coatingTimeRemaining(object self)
+	{
+		// *** public ***
+		// returns time remaining in milling in seconds
+		string t
+		PIPS_GetPropertySubsystem("subsystem_milling", "read_coat_condition_remaining_s", t)
+		return val(t)
+	}
+
 	void goToCoatMode(object self)
 	{
 		// go to coating mode

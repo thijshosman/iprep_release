@@ -296,6 +296,12 @@ void pecs_home(void)
 
 // setup and init functions
 
+void IPrep_init_sequence()
+{
+	myStateMachine.init(myWorkflow)
+}
+
+
 void IPrep_setEBSD(void)
 {
 	// #todo: check current state
@@ -693,7 +699,7 @@ void IPrep_setSetCustomImageSequence()
 
 // Single (default) ROI functions
 
-void IPrep_setSingleROIFocus()
+void IPrep_setSingleROIFocus() // deprecated
 {
 	// set working distance to current measured working distance for default ROI
 	
@@ -749,10 +755,6 @@ void IPrep_useCurrentMagForROI()
 	returnROIManager().addROI(myROI)
 	result("ROI "+name1+" updatd with new mag "+val+" \n\n")
 	myROI.print()
-
-
-
-
 }
 
 void IPrep_useCurrentFocusForROI()
@@ -774,8 +776,6 @@ void IPrep_useCurrentFocusForROI()
 	returnROIManager().addROI(myROI)
 	result("ROI "+name1+" updatd with new focus "+val+" \n\n")
 	myROI.print()
-
-
 }
 
 
@@ -796,7 +796,6 @@ void iprep_InstallMenuItems( void )
 
 	// workflow	
 	AddScriptToMenu( "Set_starting_slice_number()", "Set starting slice number...", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
-	AddScriptToMenu( "iprep_setup_imaging()", "use current settings for imaging", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
 	AddScriptToMenu( "IPrep_acquire_ebsd()", "Run EBSD step", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
 	AddScriptToMenu( "IPrep_image()", "Run Image step", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
 	AddScriptToMenu( "IPrep_Pecs_Image_aftermilling()", "Run PECS Image After Milling step", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
@@ -846,10 +845,9 @@ void iprep_InstallMenuItems( void )
 	AddScriptToMenu( "pecs_raise()", "raise PECS stage", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
 	AddScriptToMenu( "pecs_home()", "rotate PECS stage to home", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
 
-
-
 	// setup
-	AddScriptToMenu( "IPrep_init()", "Initialize Hardware and Workflow", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
+	AddScriptToMenu( "IPrep_init()", "Initialize Hardware", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
+	AddScriptToMenu( "IPrep_init_sequence()", "Initialize Active Sequences", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 	AddScriptToMenu( "IPrep_consistency_check()", "IPrep state consistency check", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 	AddScriptToMenu( "IPrep_recover_deadflag()", "auto recover from dead state", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 	AddScriptToMenu( "IPrep_setEBSD()", "switch to EBSD dock and EBSD mode", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
@@ -865,7 +863,6 @@ void iprep_InstallMenuItems( void )
 	
 
 	// single ROI
-	AddScriptToMenu( "IPrep_setSingleROIFocus()", "set focus value to current working distance for default ROI", SS_MENU_HEAD , SS_SUB_MENU_7 , 0)
 	AddScriptToMenu( "IPrep_setSingleImageSequence()", "load single default image ROI with name StoredImaging", SS_MENU_HEAD , SS_SUB_MENU_7 , 0)
 	AddScriptToMenu( "IPrep_useCurrentFocusForROI()", "Use the current focus for StoredImaging ROI", SS_MENU_HEAD , SS_SUB_MENU_7 , 0)
 	AddScriptToMenu( "IPrep_useCurrentMagForROI()", "Use the current mag for StoredImaging ROI", SS_MENU_HEAD , SS_SUB_MENU_7 , 0)

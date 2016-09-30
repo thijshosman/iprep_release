@@ -81,7 +81,7 @@ string GetTagString(string tagpath)
 	if (TagGroupDoesTagExist(subtag,tagpath)) 
 		TagGroupGetTagAsString(subtag,tagpath,returnstring)
 	else
-		throw(tagpath+" does not exist!")
+		throw("tag at"+tagpath+" does not exist!")
 
 	return returnstring
 }
@@ -98,7 +98,7 @@ taggroup GetTagGroup(string tagpath)
 	}
 	else
 	{
-		throw(tagpath+" does not exist!")
+		throw("tag at"+tagpath+" does not exist!")
 	}
 
 }
@@ -111,7 +111,7 @@ string GetTagStringFromSubtag(string tagpath, taggroup subtag)
 	if (TagGroupDoesTagExist(subtag,tagpath)) 
 		TagGroupGetTagAsString(subtag,tagpath,returnstring)
 	else
-		throw(tagpath+" does not exist!")
+		throw("tag at"+tagpath+" does not exist!")
 
 	return returnstring
 }
@@ -124,7 +124,7 @@ number GetTagValueFromSubtag(string tagpath, taggroup subtag)
 	if (TagGroupDoesTagExist(subtag,tagpath)) 
 		TagGroupGetTagAsNumber(subtag,tagpath,returnvalue)
 	else
-		throw(tagpath+" does not exist!")
+		throw("tag at"+tagpath+" does not exist!")
 
 	return returnvalue
 }
