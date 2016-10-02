@@ -143,16 +143,36 @@ This file describes what all the todos are for the demounit master development b
 - [] we no longer want to trigger on max slices to stop workflow
 - [] make sure to grey out stop/pause after it is pressed so that we cannot resume before the actual pause has happened. this now causes problems since it calls script functions that are not supposed to be called until system is idle. 
 
-*** alignment ***
-- all this goes to iprep_alignment.s, a different file
-- [] add a function to change ROI alignment by a standard vector (ie StoredImaging) due to crash
-- the 'default' values after calibration should be in tags, not hardcoded. now the current value used is stored in tags
-(1)- store calibration values for SEM (scribe_pos_ebsd, scribe_pos_planar, reference_ebsd, reference_planar) and parker (pickup_dropoff_ebsd, pickup_dropoff_planar) in (sem position and numeric) tags. these do NOT change except when alignment changes. 
-(2)- store vectors for SEM coordinates (ie where is highgridfront with respect to scribe_pos? where is clear with respect to reference?) in (sem position)tags. these get applied when IPrep calibration routines are ran
-(3)- store values used by workflow routines in tags. the workflow uses these and does not know of ebsd/planar. these tags do not get changed except by IPrep calibration routines. 
-notes:
-- no values are hardcoded in code; the vectors (2) can change manually, the calibration values can change (1), but (3) is always found by applying (2) to (1) in a controlled routine that can be ran as often as needed
+*** alignment 2.0 ***
+
+Overview:
+
+(1)- store calibration_coordinates for SEM (scribe_pos_ebsd, scribe_pos_planar, reference_ebsd, reference_planar) and parker (pickup_dropoff_ebsd, pickup_dropoff_planar) in (sem position and numeric) tags. these do NOT change except when alignment changes. these coordinates are determined upon initial alignment (manually moving parker in, figuring out on planar dock what the sem coordinates are to get the scribe mark in the center of the FOV)
+(2)- store mode_vectors for SEM coordinates (ie where is highgridfront with respect to scribe_pos? where is clear with respect to reference?) in (sem position) tags. these are used to reference all workflow coordinates to calibration coordinates. there will be one vector for each workflow coordinate for each mode (so a vector for nominal_imaging for both planar and ebsd mode, for example). these vectors generally don't change. 
+(3)- workflow coordinates are used by sequences. the workflow uses these and does not know of ebsd/planar. these tags do not get changed except by IPrep calibration routines. 
+
+
+use cases:
+
+initial alignment: 
+(1) gets set manually, then (3) gets calculated by applying (2)
+
+dock put on stage again after being removed:
+(1) gets determined by dock/user queries. go to scribe mark calibration_coord. user gets asked to locate scribe mark in image and reinsertion_vector gets calculated. this vector is applied to (3) directly
+
+dock swap from EBSD to Planar:
+dock is removed (or is already removed). new dock is put in system. (1) is determined by dock/user queries. (1) gets set to correct values based on dock. user gets asked to locate scribe mark and reinsertion_vector gets calculated. (2) gets applied to (1) to find (3). reinsertion_vector gets applied to (3)
+
+
+additional notes:
+- no values are hardcoded in code; the vectors (2) can change manually, the calibration values can change (1), but (3) is always found by applying (2) to (1) in a controlled routine that can be ran as often as needed. 
 - the vectors (2) and the calibration values (1) have default values that can be set by running a function. 
+- nothing is applied automatically when something inits or dm starts. (3) only changes when:
+	-dock removal/reinsertion (reinsertion_vector)
+	-dock swap (changes back to (2) applied to (1) for correct mode plus reinsertion_vector)
+	-set back to default ( (2) applied to (1) for correct mode)
+
+
 
 
 *** legacy ***
