@@ -1,0 +1,19 @@
+
+how does iprep handle focus? 
+
+focus is 'reset' to wd coupled value every time the stage moves in z (which appens during transfers) and since the system has been coupled at a very different plane than the imaging plane in iprep imaging mode, you will need to do something
+
+
+
+- 3 mode options for ROI, stored in the af_mode tag:
+	- 0: leave focus alone
+	- 1: autofocus on at this ROI every nth slice
+	- 2: set to fixed value stored in this ROI
+
+	- NB: if 1 is selected, autofocus runs every nth slice, as defined by af_n_slice tag
+
+- additionally, the system stores a 'global' focus value that works for imaging. this value is stored in the "IPrep:SEM:WD:value" tag. every time the system moves to 'nominal_imaging', it sets the focus to this value. this is independent of any ROI stuff. what this means, however, is that even is the '0' mode is selected, you will still go back to this global focus value. the global value gets set every time an autofocus routine is ran (just because that is the best way to ensure it works). it can also be stored manually from the menu (SEM>save imaging position focus)
+
+
+
+

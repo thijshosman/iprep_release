@@ -60,9 +60,9 @@ class pecs_iprep: object
 		else
 		{
 			// check again to make sure:
-			sleep(1)
+			sleep(2)
 			PIPS_GetPropertyDevice("subsystem_pumping", "device_gasPressure", "read_pressure_status", argonStatus)
-			self.log(2,"argon extra check: "+argonStatus)
+			self.print("argon check failed, running extra check: "+argonStatus)
 			if (argonStatus == "1")
 			{ 
 				// return 1 like nothing happened
@@ -156,6 +156,7 @@ class pecs_iprep: object
 		PIPS_Execute("SETP_SUB0000,subsystem_milling,set_milling_variation,0")
 		sleep(10) // wait for PECS to set itself in the right position (move gun angles, etc) until start milling
 		PIPS_StartMilling()
+		sleep(1)
 	}
 
 	void startCoating(object self)
@@ -165,7 +166,9 @@ class pecs_iprep: object
 		if (!self.argonCheck())
 			throw("argon pressure check failed, aborting")
 		PIPS_Execute("SETP_SUB0000,subsystem_milling,set_milling_variation,1")
+		sleep(10) // wait for PECS to set itself in the right position (move gun angles, etc)
 		PIPS_StartMilling()	
+		sleep(1)
 	}
 
 	void stopMilling(object self)

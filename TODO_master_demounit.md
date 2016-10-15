@@ -9,6 +9,7 @@ This file describes what all the todos are for the demounit master development b
 - [] when PECS reboots, we have a strange situation in which somehow the workflow still communications but still throws an exception somewhere that prevents it from continuing the workflow
 - [] some commands lock the UI thread in DM (gripper etc), no logic behind it that is oberservable. needs to be fixed
 - [] when pausing during a long acquisition, acquisition (sometimes?) aborts and system pauses. this should not happen
+- [] for some reason, the quantamagbugfix does not like it when it is being used when the mag is already very low
 
 *** general/helper ***
 - [x] the persistance classes need to throw a readable exception when a tag is not found to facilitate easy fixes on systems that do not have all the tags. 
@@ -97,6 +98,8 @@ This file describes what all the todos are for the demounit master development b
 - [x] 3D stack: every ROI needs a stack. a manager returns a handle to the right stack by name. name of stack is name of ROI. these all need to be initialized. when they are closed they remain closed until re-initialized manually (for now). size of each stack is the same and is set by a global tag
 - [x] 3D stack: init 3D stack as part of init method of device sequences. the sequence will init the right sequence. 
 - [] 3D stack: when initting a stack, don't open a new one every time system resumes. check if it is already open and if it is, use it if the details fit. this can be handled by VolumeManager. 
+- [] 3D stack: it always opens one for after milling and before milling. this should only happen if they are actually enabled
+- [x] 3D stack: all init methods to factory, not volume class. class should know nothing of rois
 
 *** UI ***
 - [x] add iprep autofocus as a menu item
@@ -104,6 +107,7 @@ This file describes what all the todos are for the demounit master development b
 - [x] add function that gives a string popup and asks user to save current SEM position under given name
 - [] list all current SEM positions
 - [x] list all current ROIs
+- [] no more quanta bug fix when just moving in x and y in sem alignment functions
 
 *** gripper ***
 - [] fix bug in open/close once: if gripper does not move, it won't work this way

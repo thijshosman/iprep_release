@@ -1188,6 +1188,7 @@ class image_iter: deviceSequence
 	{
 		self.setname(name1)
 		myWorkflow = workflow1
+		returnVolumeManager().initForAllROIs()
 	}
 
 	number precheck(object self)
@@ -1215,7 +1216,7 @@ class image_iter: deviceSequence
 		// *** general
 
 		// fix magnificationbug on Quanta at first
-		WorkaroundQuantaMagBug()
+		//WorkaroundQuantaMagBug()
 
 		// *** go through ROIs
 		//taggroup tall_enabled = NewTagList()
@@ -1236,6 +1237,14 @@ class image_iter: deviceSequence
 
 			// unblank
 			myWorkflow.returnSEM().blankOff()
+
+			// mag
+			if(returnROIEnables().mag())
+			{
+	
+				self.print("IMAGE: magnification for ROI "+myROI.getName()+" is: "+myROI.getMag())
+				myWorkflow.returnSEM().setMag(myROI.getMag())
+			}
 
 			// focus
 			if (myROI.getAFMode() == 1) //autofocus on every nth slice
@@ -1265,14 +1274,6 @@ class image_iter: deviceSequence
 				myWorkflow.returnSEM().setDesiredWD(myROI.getFocus()) // automatically sets it after storing it in object
 			}
 			// else the value is 0, which means leave focus alone
-
-			// mag
-			if(returnROIEnables().mag())
-			{
-	
-				self.print("IMAGE: magnification for ROI "+myROI.getName()+" is: "+myROI.getMag())
-				myWorkflow.returnSEM().setMag(myROI.getMag())
-			}
 
 			// Acquire Digiscan image, use digiscan parameters saved in ROI
 			
@@ -1330,6 +1331,9 @@ class image_iter: deviceSequence
 			// quietly ignore if stack is not initialized
 			try
 			{
+				object my3DvolumeSEM = returnVolumeManager().returnVolume(myROI.getName())
+				my3DvolumeSEM.addSlice(temp_slice_im)
+				my3DvolumeSEM.show()
 				//object my3DvolumeSEM = myWorkflow.return3DvolumeSEM()
 				//my3DvolumeSEM.addSlice(temp_slice_im)
 				//my3DvolumeSEM.show()
@@ -1489,7 +1493,6 @@ class image_iter: deviceSequence
 		// blank
 		myWorkflow.returnSEM().blankOn()
 */
-		return 1
 	}
 
 	number undo(object self)
@@ -1675,9 +1678,6 @@ class mill_default: deviceSequence
 		// go to etch mode (which should include raising stage)
 		myWorkflow.returnPecs().goToEtchMode()
 
-		number tick = GetOSTickCount()
-		number tock = 0
-
 		string tagname = "IPrep:PECS:milling timeout"
 		number timeout
 		if(!GetPersistentNumberNote( tagname, timeout ))
@@ -1688,7 +1688,9 @@ class mill_default: deviceSequence
 		self.print("Milling started. press option and shift to abort")
 
 		myWorkflow.returnPecs().startMilling()
-		sleep(1) // sleep some so that system has time to get to milling before we start querying
+
+		number tick = GetOSTickCount()
+		number tock = 0
 
 		while (myWorkflow.returnPECS().getMillingStatus() == 1)
 		{
@@ -1736,13 +1738,10 @@ class mill_default: deviceSequence
 			}
 
 			self.print("milling time remaining: "+myWorkflow.returnPecs().millingTimeRemaining())
-			sleep(1)
+			sleep(2)
 			
 		}
 		returncode = 1
-
-		// #TODO
-		// take image (PECS)
 
 		myWorkflow.returnPecs().lockout()
 		//self.print("debug: returncode: "+returncode)
@@ -1803,9 +1802,6 @@ class coat_default: deviceSequence
 		// go to etch mode (which should include raising stage)
 		myWorkflow.returnPecs().goToCoatMode()
 
-		number tick = GetOSTickCount()
-		number tock = 0
-
 		string tagname = "IPrep:PECS:coating timeout"
 		number timeout
 		if(!GetPersistentNumberNote( tagname, timeout ))
@@ -1817,7 +1813,14 @@ class coat_default: deviceSequence
 
 		myWorkflow.returnPecs().startCoating()
 
-		while (myWorkflow.returnPECS().getMillingStatus() != 0)
+		number tick = GetOSTickCount()
+		number tock = 0
+
+		number status1 = 1
+		string status2 = "1"
+
+		//while (myWorkflow.returnPECS().getMillingStatus() != 0)
+		while (status2 != "0")
 		{
 			tock = GetOSTickCount()
 			if ((tock-tick)/1000 > timeout)
@@ -1863,7 +1866,9 @@ class coat_default: deviceSequence
 			}
 
 			self.print("coating time remaining: "+myWorkflow.returnPecs().coatingTimeRemaining())
-
+			status1 = myWorkflow.returnPECS().getMillingStatus()
+			status2 = myWorkflow.returnPECS().getSystemStatus()
+			debug("coating status1: "+status1+", status2: "+status2+"\n")
 			sleep(1)
 			
 		}

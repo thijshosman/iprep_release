@@ -15,9 +15,12 @@ try
 	//aTestSequence.do()
 
 	// *** generating a sequence ***
+	object aTestSequence
+	
+	aTestSequence = createSequence("PECSImageDefault")
 	
 	// testsequence generated with factory
-	object aTestSequence = createSequence("simulator")
+	//aTestSequence = createSequence("simulator")
 	
 	// init it and give it a name
 	aTestSequence.init("test",myWorkflow)
@@ -26,10 +29,10 @@ try
 	aTestSequence.do()
 
 	// *** test generating all sequences
-	object seq1 = createSequence("semToPecs_default")
-	seq1.init("sequence1",myWorkflow)
-	object seq2 = createSequence("pecsToSem_default")
-	seq1.init("sequence1",myWorkflow)
+	//object seq1 = createSequence("semToPecs_default")
+	//seq1.init("sequence1",myWorkflow)
+	//object seq2 = createSequence("pecsToSem_default")
+	//seq1.init("sequence1",myWorkflow)
 
 }
 

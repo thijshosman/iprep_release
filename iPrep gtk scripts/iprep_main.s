@@ -1421,8 +1421,6 @@ class IPrep_mainloop:thread
 		loop_running = 1
 		while (loop_running)
 		{
-			
-		
 			// get i and start loop at this step
 			number i = self.geti()
 			self.print("current step: "+i)
@@ -1442,7 +1440,7 @@ class IPrep_mainloop:thread
 				}
 				else // if step not enabled, succeed and go to next step
 				{
-					self.print("loop: skipping this step")
+					self.print("loop: skipping imaging step")
 					returnval = 1
 				}
 
@@ -1464,7 +1462,7 @@ class IPrep_mainloop:thread
 				}
 				else // if step not enabled, succeed and go to next step
 				{
-					self.print("loop: skipping this step")
+					self.print("loop: skipping EBSD/EDS step")
 					returnval = 1
 				}
 
@@ -1488,7 +1486,18 @@ class IPrep_mainloop:thread
 				aStepTimer.tick("move to pecs")
 
 				self.print("loop: i = 3, move to pecs")
-				number returnval = IPrep_MoveToPECS_workflow()
+				number returnval = 0
+
+				if(GetTagValue("IPrep:WorkflowElements:MoveToPECS"))
+				{
+					returnval = IPrep_MoveToPECS_workflow()
+				}
+				else // if step not enabled, succeed and go to next step
+				{
+					self.print("loop: skipping MoveToPECS step")
+					returnval = 1
+				}
+
 				if (!self.process_response(returnval, 0)) // dont repeat for now
 					self.stop()	
 
@@ -1506,7 +1515,7 @@ class IPrep_mainloop:thread
 				}
 				else // if step not enabled, succeed and go to next step
 				{
-					self.print("loop: skipping this step")
+					self.print("loop: skipping PECS imaging before milling step")
 					returnval = 1
 				}
 				
@@ -1519,7 +1528,18 @@ class IPrep_mainloop:thread
 				aStepTimer.tick("mill")
 
 				self.print("loop: i = 5, milling")
-				number returnval = IPrep_mill_workflow()
+				number returnval = 0
+
+				if(GetTagValue("IPrep:WorkflowElements:milling"))
+				{
+					returnval = IPrep_mill_workflow()
+				}
+				else // if step not enabled, succeed and go to next step
+				{
+					self.print("loop: skipping milling step")
+					returnval = 1
+				}
+
 				if (!self.process_response(returnval, 0)) // dont repeat for now
 					self.stop()	
 
@@ -1537,7 +1557,7 @@ class IPrep_mainloop:thread
 				}
 				else // if step not enabled, succeed and go to next step
 				{
-					self.print("loop: skipping this step")
+					self.print("loop: skipping PECS imaging after milling step")
 					returnval = 1
 				}				
 
@@ -1550,11 +1570,20 @@ class IPrep_mainloop:thread
 				aStepTimer.tick("move to sem")
 
 				self.print("loop: i = 7, move to sem")
-				number returnval = IPrep_MoveToSEM_workflow()
+				number returnval = 0
+
+				if(GetTagValue("IPrep:WorkflowElements:MoveToSEM"))
+				{
+					returnval = IPrep_MoveToSEM_workflow()
+				}
+				else // if step not enabled, succeed and go to next step
+				{
+					self.print("loop: skipping MoveToSEM step")
+					returnval = 1
+				}
+
 				if (!self.process_response(returnval, 0)) // dont repeat for now
 					self.stop()	
-
-
 			}
 			else if (i==8) // do a check of pressure/tmp speed/end conditions
 			{

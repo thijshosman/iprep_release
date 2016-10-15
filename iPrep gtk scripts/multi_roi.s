@@ -203,7 +203,7 @@ class IROI: object
 	{
 		taggroup digitags = self.getDigiscanParam()
 		number x
-		if (!TagGroupGetTagAsNumber( digitags,"digiscan_param:Image Width", x))
+		if (TagGroupGetTagAsNumber( digitags,"Image Width", x)!=0)
 			return x
 		else
 			throw("width not set in digiscan parameters of "+name)
@@ -213,7 +213,7 @@ class IROI: object
 	{
 		taggroup digitags = self.getDigiscanParam()
 		number y
-		if (!TagGroupGetTagAsNumber( digitags,"digiscan_param:Image Height", y))
+		if (TagGroupGetTagAsNumber( digitags,"Image Height", y)!=0)
 			return y
 		else
 			throw("height not set in digiscan parameters of "+name)
@@ -549,6 +549,7 @@ class ROIManager: object
 				return 1
 			}
 		}
+		self.print("tag "+name+" not found!")
 		return 0
 
 	}

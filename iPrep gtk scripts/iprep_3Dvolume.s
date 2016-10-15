@@ -45,20 +45,21 @@ class IPrep_3Dvolume: object
 		x=x1
 		y=y1
 	}
-
+/*
 	void init(object self, object ROI, number slices1)
 	{
 		// init a stack based on the ROI object supplied
 
 		// #todo: why not use something other than real? 
-		name = ROI.getName()
+		// #todo: migrate to factory
+		name = ROI.getName()+"_stack"
 		slices = slices1
 		self.initReal(ROI.getName(), slices, ROI.getDigiscanX(), ROI.getDigiscanY())
 
 	}
-
+*/
 	// old init methods, now used by factory
-
+/*
 	void initSEM_3D(object self,number slices1, number x1, number y1)
 	{
 		// *** public ***
@@ -81,7 +82,7 @@ class IPrep_3Dvolume: object
 		x=x1
 		y=y1
 	}	
-
+*/
 	// operations
 
 	void shift(object self)
@@ -124,7 +125,7 @@ class IPrep_3Dvolume: object
 
 
 // *** factories for different 3D volumes
-object create3DVolume(string type, string name)
+object create3DVolume(string type, string name) // main factory
 {
 	if(type == "StoredImaging") // standard 3D volume in b/w for SEM images
 	{	
@@ -134,7 +135,7 @@ object create3DVolume(string type, string name)
 		
 		// create volume object and populate it with parameters. then return it
 		object vol = alloc(IPrep_3Dvolume)
-		vol.initReal("StoredImaging", GetTagValue("IPrep:volume slices"), returnWorkflow().returnDigiscan().DSGetWidth(), returnWorkflow().returnDigiscan().DSGetHeight())
+		vol.initReal("StoredImaging_stack", GetTagValue("IPrep:volume slices"), returnWorkflow().returnDigiscan().DSGetWidth(), returnWorkflow().returnDigiscan().DSGetHeight())
 		return vol
 	}
 	else if (type == "PECS_full") // standard 3D volume in color for PECS images at full FOV
@@ -153,6 +154,8 @@ object create3DVolume(string type, string name)
 		
 		// create volume object and populate it with parameters. then return it
 		object vol = alloc(IPrep_3Dvolume)
+		vol.initReal(name+"_stack", GetTagValue("IPrep:volume slices"), myROI.getDigiscanX(), myROI.getDigiscanY())
+
 		vol.init(myROI,GetTagValue("IPrep:volume slices"))
 		return vol
 	}
@@ -160,11 +163,13 @@ object create3DVolume(string type, string name)
 		throw("trying to generate 3D volume that does not exist")
 }
 
-object create3DVolume(object myROI)
+object create3DVolume(object myROI) // factory for given ROI
 {
-	// create a volume for a specified ROI
+	// create a volume for an ROI as argument
+
 	object vol = alloc(IPrep_3Dvolume)
-	vol.init(myROI,GetTagValue("IPrep:volume slices"))
+	vol.initReal(myROI.getName()+"_stack", GetTagValue("IPrep:volume slices"), myROI.getDigiscanX(), myROI.getDigiscanY())
+	return vol
 }
 
 class VolumeManager: object
@@ -208,11 +213,11 @@ class VolumeManager: object
 		foreach(object myROI; tall_enabled)
 		{
 			self.print("found "+myROI.getName())
-			// #todo: it is a bit dirty to use the constructor directly after making a factory..
 			object vol = create3DVolume(myROI)
 
 			// now add to list
 			list.AddObjectToList(vol)
+			vol.show()
 		}
 	}
 
@@ -240,7 +245,7 @@ class VolumeManager: object
 
 	void initForPECS(object self)
 	{
-		PECSImage = create3DVolume("PECS_full", "PECS")
+		PECSImage = create3DVolume("PECS_full", "PECS Stack")
 		PECSImage.show()
 	}
 

@@ -71,7 +71,7 @@ void Recall_imaging_XYZ_position( void )
 	if (OKCancelDialog(s1))
 	{	
 		myWorkflow.returnSEM().goToStoredImaging()
-		WorkaroundQuantaMagBug()
+		//WorkaroundQuantaMagBug()
 		//result(s1)
 	}
 }
@@ -145,7 +145,7 @@ void Goto_alignment_grid( void ) // not needed in Nova
 	if (OKCancelDialog(s1))
 	{
 		myWorkflow.returnSEM().goTofwdGrid()
-		WorkaroundQuantaMagBug()
+		//WorkaroundQuantaMagBug()
 	}
 }
 
@@ -155,7 +155,7 @@ void Goto_highgridback( void )
 	if (OKCancelDialog(s1))
 	{
 		myWorkflow.returnSEM().goToHighGridBack()
-		WorkaroundQuantaMagBug()
+		//WorkaroundQuantaMagBug()
 	}
 
 
@@ -178,7 +178,7 @@ void Goto_highgridfront( void )
 	if (OKCancelDialog(s1))
 	{
 		myWorkflow.returnSEM().goToHighGridFront()
-		WorkaroundQuantaMagBug()
+		//WorkaroundQuantaMagBug()
 	}
 
 
@@ -190,7 +190,7 @@ void Goto_scribe_mark( void )
 	if (OKCancelDialog(s1))
 	{
 		myWorkflow.returnSEM().goToScribeMark()
-		WorkaroundQuantaMagBug()
+		//WorkaroundQuantaMagBug()
 	}
 }
 
@@ -655,7 +655,7 @@ void IPrep_printEnabledROIs()
 		foreach(object myROI; tall_enabled)
 		{
 
-			result(i+": "+myROI.getName()+", order="+myROI.getOrder()+", mag="+myROI.getMag()+"\n")
+			result(i+": "+myROI.getName()+", order="+myROI.getOrder()+", mag="+myROI.getMag()+", image size=("+myROI.getDigiscanX()+","+myROI.getDigiscanY()+")\n")
 
 		}
 }

@@ -185,6 +185,8 @@ class workflowStateMachine: object
 		// reset Tock 
 		Tock=0
 
+		self.print("initialized, current state (saved) = "+workflowState)
+
 	}
 
 	number reseat1(object self)
