@@ -64,6 +64,7 @@ This file describes what all the todos are for the demounit master development b
 - [x] replace ROImanager convertTagToROI with initROIFromTag in ROI object. much cleaner
 - [x] find a way to put order in ROI and have ROI manager order them when returning them
 - [x] ability to autofocus every x slices, and always autofocus when start is pressed
+- [] allow AF on separate ROI every n slices without imaging any of the other times
 
 *** workflow/main ***
 - [x] make sure that pecs is idle before a transfer to make sure we are not transfering during milling
@@ -87,7 +88,7 @@ This file describes what all the todos are for the demounit master development b
 - [] we want to make sure that an error during the workflow, ie something that puts system in dead state, generates a popup dialog that user sees
 - [] right now iprep_image puts the lastcompleted step at image, think about if you want to do this. it does allow manipulation of where workflow picks up
 - [] consistencychecks should not be done by calling workflow object, but instead should be done through mediator
-
+- [] add a tag to each image with iprep information (roi name, sem position name, milling time, voltage, angle (if possible))
 
 *** imaging ***
 - [] order of images in 3D stack is reversed
@@ -100,6 +101,8 @@ This file describes what all the todos are for the demounit master development b
 - [] 3D stack: when initting a stack, don't open a new one every time system resumes. check if it is already open and if it is, use it if the details fit. this can be handled by VolumeManager. 
 - [] 3D stack: it always opens one for after milling and before milling. this should only happen if they are actually enabled
 - [x] 3D stack: all init methods to factory, not volume class. class should know nothing of rois
+- [] 3D stack: open a different stack for each signal if 2 signals are acquired in digiscan. 
+- [] 3D stack: when workflow starts (but not resumes), check that all 3D stacks are correctly based on the current acquisition data. right now, they are initialized (but not shown) when the workflow initializes because that is easy, but that is wrong. create a function init_3d_stacks() based on what is enabled, infer image sizes from digiscan tags/capture settings and init some 3d volumes. call this function when iprep_start() is executed
 
 *** UI ***
 - [x] add iprep autofocus as a menu item
@@ -107,7 +110,10 @@ This file describes what all the todos are for the demounit master development b
 - [x] add function that gives a string popup and asks user to save current SEM position under given name
 - [] list all current SEM positions
 - [x] list all current ROIs
-- [] no more quanta bug fix when just moving in x and y in sem alignment functions
+- [x] no more quanta bug fix when just moving in x and y in sem alignment functions
+
+*** SEM ***
+- [] add internal checks in moving between SEM states that allows us to go to different imaging states directly from Clear, not first to nominal_imaging
 
 *** gripper ***
 - [] fix bug in open/close once: if gripper does not move, it won't work this way

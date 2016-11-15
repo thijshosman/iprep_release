@@ -370,6 +370,9 @@ number IPrep_init()
 
 		// init iprep workflow subsystems/hardware
 		myWorkflow.init()
+
+		// init the state machine with current states 
+		myStateMachine.init(myWorkflow)
 		
 		// #TODO: check dock against mode tag
 		// use okcanceldialog wrapper to choose to ignore this as warning or throw error

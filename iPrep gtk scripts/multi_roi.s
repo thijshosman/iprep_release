@@ -15,7 +15,7 @@ class IROI: object
 	number stigx // stig x value used
 	number stigy // stig y value used
 
-	taggroup digiscan_param // complete set of digiscan parameter array
+	taggroup digiscan_param // complete set of digiscan parameter array, including signals used
 	number af_mode // autofocus mode used. 0 = leave focus alone, 1 = on, see below, 2 = use stored value (in this object) for focus
 	number af_n_slice // autofocus every n slices (if af_mode == 1, look at the slice number and compare to n. only autofocus if slice_number % n == 0)
 
@@ -219,6 +219,17 @@ class IROI: object
 			throw("height not set in digiscan parameters of "+name)
 	}
 
+	number getNumberOfDigiscanSignals(object self)
+	{
+		// check how many signals are selected in digiscan tags and return that number
+		taggroup digitags = self.getDigiscanParam()
+		string signal1
+		if (TagGroupGetTagAsString( digitags,"signal 1", signal1)!=0)
+			return 0
+		else
+			return 0
+	}
+
 	// describe this ROI
 	void print(object self)
 	{
@@ -305,7 +316,7 @@ object ROIFactory(number type, string name1)
 		aROI.setCoordName(name1) // coord has same name as ROI
 		aROI.setEnabled(1) // enable by default
 		aROI.setFocus(9.7) // default focus
-		aROI.setDigiscanParam(GetTagGroup("Private:DigiScan:Faux:Setup:Record")) // default, 'capture' (2)
+		aROI.setDigiscanParam(GetTagGroup("Private:DigiScan:DigiScan 2:Setup:Record")) // default, 'capture' (2)
 		aROI.setOrder(0) // default order
 		return aROI
 	}

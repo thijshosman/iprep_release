@@ -1,19 +1,30 @@
 // $BACKGROUND$
 class digiscan_iprep : object
 {
-		number datatype
-		number width
-		number height
-		number signalIndex
-		number rotation
-		number pixelTime
-		number lineSync
-		number paramID
-		number signed
-		number imageID
-		string name
 
-	number configured
+	// general parameters for all images	
+	number datatype
+	number width
+	number height
+	number rotation
+	number pixelTime
+	number lineSync
+	number paramID, paramID2 // paramID is ID of capture settings (2), paramID2 is the one we create using our own settings that we can delete
+	number signed
+	
+	// parameters per image
+
+	number imageID0
+	number imageID1
+	
+	string name0
+	string name1
+
+	image img0
+	image img1
+
+	number configured0
+	number configured1
 
 	void log(object self, number level, string text)
 	{
@@ -32,13 +43,45 @@ class digiscan_iprep : object
 	void digiscan_iprep(object self)
 	{
 		// constructor
-		configured = 0
+		configured0 = 0
+		configured1 = 0
+
 		// paramID is the id of the configuration used to acquire. 
 		paramID = 2	// capture ID
 
 	}
 
-	void config(object self)
+	number getConfigured0(object self)
+	{
+		// check if signal 0 is configured
+		return configured0
+	}
+
+	number getConfigured1(object self)
+	{
+		// check if signal 1 is configured
+		return configured1
+	}
+
+	number numberOfSignals(object self)
+	{
+		// check if signal 0 is configured
+		return configured0+configured1
+	}
+
+	string getName0(object self)
+	{
+		// return name of signal 0
+		return name0
+	}
+
+	string getName1(object self)
+	{
+		// return name of signal 1
+		return name1
+	}
+
+	void config(object self, image &img0, image &img1)
 	{
 		// use parameters from capture as setup in DM
 		
@@ -51,16 +94,46 @@ class digiscan_iprep : object
 		signed = 0	// Image has to be of type unsigned-integer
 		datatype = 2	// Currently this is hard coded - no way to read from DS plugin - #TODO: fix
 		
-		signalIndex = 0		// Only 1 signal supported now - #TODO: fix
-		name = DSGetSignalName( signalIndex )
+		// use all these parameters to create a (temporary) parameter set
+		paramID2 = DSCreateParameters( width, height, rotation, pixelTime, lineSync) 
 
-		// #TODO: we want this config function to set the required signals that are selected and call DSSetParameterSignal methods based on which of these are selected
+		// check if first signal is enabled
+		if(DSGetSignalAcquired(paramID,0))
+		{
+			// enabled
+
+			name0 = DSGetSignalName( 0 )
+			self.print("digiscan configured using signal 0 ("+name0+").")
+			img0 := IntegerImage( name0, dataType, signed, width, height ) 
+			number imageID0 = ImageGetID( img0 )
+			DSSetParametersSignal( paramID2, 0, dataType, 1, imageID0 )
+			configured0 = 1
+			self.print("signal 0 succesfully configured from capture settings. height = "+height+", width = "+width+", dwell time = "+pixelTime)
+
+		}
+		else
+			self.print("signal 0 not configured")
+
+		if(DSGetSignalAcquired(paramID,1))
+		{
+			// enabled
+			name1 = DSGetSignalName( 1 )
+			self.print("digiscan configured using signal 1 ("+name1+").")
+			img1 := IntegerImage( name1, dataType, signed, width, height ) 
+			number imageID1 = ImageGetID( img1 )
+			DSSetParametersSignal( paramID2, 1, dataType, 1, imageID1 )
+			configured1 = 1
+			self.print("signal 1 succesfully configured from capture settings. height = "+height+", width = "+width+", dwell time = "+pixelTime)
+
+		}	
+		else
+			self.print("signal 1 not configured")
+
+		// #todo: if we try to get signal 2, DM crashes in an uncontrolled way. 2 signals supported for now
 		
-		self.print("digiscan configured using capture settings, height = "+height+", width = "+width+", dwell time = "+pixelTime)
-		configured = 1
 	}
 
-	void config(object self, taggroup DSParam)
+	void config(object self, taggroup DSParam, image &img0, image &img1 )
 	{
 		// copy the parameters from DSParam taggroup
 
@@ -72,19 +145,47 @@ class digiscan_iprep : object
 		rotation = GetTagValueFromSubtag("Rotation",DSParam)
 
 		signed = 0	// Image has to be of type unsigned-integer
-		
-		signalIndex = 0		// Only 1 signal supported now - #TODO: fix
-
 		datatype = 2	// Currently this is hard coded - no way to read from DS plugin - #TODO: fix
 		
-		name = "0"
+		// use all these parameters to create a (temporary) parameter set
+		paramID2 = DSCreateParameters( width, height, rotation, pixelTime, lineSync) 
 
-		// self.config()
+		// check if first signal is enabled
+		if(GetTagStringFromSubtag("Signal 0:Selected",DSParam) == "true")
+		{
+			// enabled
+
+			name0 = "Signal 0"
+			self.print("digiscan configured using signal 0 ("+name0+").")
+			img0 := IntegerImage( name0, dataType, signed, width, height ) 
+			number imageID0 = ImageGetID( img0 )
+			DSSetParametersSignal( paramID2, 0, dataType, 1, imageID0 )
+			configured0 = 1
+			self.print("signal 0 succesfully configured from tag. height = "+height+", width = "+width+", dwell time = "+pixelTime)
+
+		}
+		else
+			self.print("signal 0 not configured")
+
+		if(GetTagStringFromSubtag("Signal 1:Selected",DSParam) == "true")
+		{
+			// enabled
+			name1 = "Signal 1"
+			self.print("digiscan configured using signal 1 ("+name1+").")
+			img1 := IntegerImage( name1, dataType, signed, width, height ) 
+			number imageID1 = ImageGetID( img1 )
+			DSSetParametersSignal( paramID2, 1, dataType, 1, imageID1 )
+			configured1 = 1
+			self.print("signal 1 succesfully configured from tag. height = "+height+", width = "+width+", dwell time = "+pixelTime)
+
+		}	
+		else
+			self.print("signal 1 not configured")
 		
 		// #TODO: we want this config function to set the required signals that are selected and call DSSetParameterSignal methods based on which of these are selected
 
-		self.print("digiscan configured using taggroup settings, height = "+height+", width = "+width+", dwell time = "+pixelTime)
-		configured = 1
+		self.print("digiscan configured using tag settings from ROI, height = "+height+", width = "+width+", dwell time = "+pixelTime)
+
 	}
 
 	number DSGetWidth(object self)
@@ -97,15 +198,38 @@ class digiscan_iprep : object
 		return DSGetHeight(2)
 	}
 
+	void acquire(object self)
+	{
+		// *** public ***
+		// acquires 2 images, one for detector 1 and one for detector 2
+		//if (configured == 0)
+		//{
+		//	self.print("digiscan not configured!")
+	//		return
+		//}
+
+		if (configured0 == 1 || configured1 == 1)
+		{
+			// acquire image from signal 0 and signal 1
+			number continuous  = 0 // 0 = single frame, 1 = continuous
+
+			number synchronous = 1 // 0 = return immediately, 1 = return when finished
+
+			// start
+
+			DSStartAcquisition( paramID2, continuous, synchronous )
+			// delete the parameter array we temporarily created
+			//DSDeleteParameters( paramID2 )
+			self.print("digiscan done acquiring")
+		}
+
+	}
+/*
 	void acquire(object self, image &img)
 	{
 		// *** public ***
 		// acquires the image and shows it
-		if (configured == 0)
-		{
-			self.print("digiscan not configured!")
-			return
-		}
+		
 
 
 		self.print("digiscan start acquiring, height = "+height+", width = "+width+", dwell time = "+pixelTime)
@@ -155,10 +279,10 @@ class digiscan_iprep : object
 
 		//return img
 	}
-
+*/
 	~digiscan_iprep(object self)
 	{
-		
+		DSDeleteParameters(paramID2)
 	}
 
 

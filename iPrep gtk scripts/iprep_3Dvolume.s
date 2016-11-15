@@ -143,7 +143,7 @@ object create3DVolume(string type, string name) // main factory
 
 		// create volume object and populate it with parameters. then return it
 		object vol = alloc(IPrep_3Dvolume)
-		vol.initColor(name,GetTagValue("IPrep:volume slices"),2592,1944)
+		vol.initColor(name+"_stack",GetTagValue("IPrep:volume slices"),2592,1944)
 		return vol
 	}
 	else if (type == "lookup_ROI") // 3D volume with coordinates x,y and name name
@@ -156,7 +156,7 @@ object create3DVolume(string type, string name) // main factory
 		object vol = alloc(IPrep_3Dvolume)
 		vol.initReal(name+"_stack", GetTagValue("IPrep:volume slices"), myROI.getDigiscanX(), myROI.getDigiscanY())
 
-		vol.init(myROI,GetTagValue("IPrep:volume slices"))
+		//vol.init(myROI,GetTagValue("IPrep:volume slices"))
 		return vol
 	}
 	else
@@ -217,7 +217,7 @@ class VolumeManager: object
 
 			// now add to list
 			list.AddObjectToList(vol)
-			vol.show()
+			//vol.show()
 		}
 	}
 
@@ -230,7 +230,7 @@ class VolumeManager: object
 		object vol = create3DVolume("StoredImaging", "StoredImaging")
 		list.AddObjectToList(vol)
 
-		vol.show()
+		//vol.show()
 	}
 
 	void initForSpecificROI(object self, string name)
@@ -240,13 +240,14 @@ class VolumeManager: object
 		// now add to list
 		list.AddObjectToList(vol)
 		
-		vol.show()
+		//vol.show()
 	}
 
-	void initForPECS(object self)
+	void initForPECS(object self, string name)
 	{
-		PECSImage = create3DVolume("PECS_full", "PECS Stack")
-		PECSImage.show()
+		object vol = create3DVolume("PECS_full", name)
+		list.AddObjectToList(vol)
+		//PECSImage.show()
 	}
 
 	void showAll(object self)
@@ -257,11 +258,13 @@ class VolumeManager: object
 		}
 	}
 
+	/*
 	object returnPECS(object self)
 	{
 		return PECSImage
 	}
-
+	*/
+	
 	object returnVolume(object self, string roiname)
 	{
 		// returns handle of 3D volume so that images can be added
@@ -269,7 +272,7 @@ class VolumeManager: object
 
 		foreach( object myVol; list )
 		{
-			if (myVol.getName() == roiname)
+			if (myVol.getName() == roiname || myVol.getName() == roiname+"_stack")
 				return myVol
 		}
 

@@ -21,14 +21,19 @@ returnROIManager().getROIAsTag("test1",subtag) // as taggroup
 returnROIManager().getROIAsObject("test1",myROI) // as ROI object
 
 //result(myROI.getName()+", order="+myROI.getOrder()+", mag="+myROI.getMag()+", image size=("+myROI.getDigiscanX()+","+myROI.getDigiscanY()+")\n")
+
+// digiscan parameters
 subtag = myROI.getDigiscanParam()
 number x
 TagGroupGetTagAsNumber( subtag,"Image Width", x)
 debug(x+"\n")
+result(GetTagStringFromSubtag("Signal 0:Selected",subtag))
+result(GetTagStringFromSubtag("Signal 1:Selected",subtag))
 
+if (GetTagStringFromSubtag("Signal 0:Selected",subtag) == "true")
+	debug("yes")
 
-
-//subtag.taggroupopenbrowserwindow(0)
+subtag.taggroupopenbrowserwindow(0)
 
 //object p
 //returnROIManager().getROIAsObject("yo",p)

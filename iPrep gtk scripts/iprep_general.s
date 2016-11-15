@@ -564,7 +564,7 @@ string IPrep_rootSaveDir()
 	string pointer
 	GetPersistentTagGroup().TagGroupGetTagAsString("IPrep:Record Settings:Base Filename", pointer)
 
-	print("root dir is: "+pointer+"\n")
+	//print("root dir is: "+pointer+"\n")
 	return pointer
 }
 

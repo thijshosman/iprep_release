@@ -794,31 +794,24 @@ class image_single: deviceSequence
 		
 		taggroup dsp = myROI.getDigiscanParam()
 
-		image temp_slice_im
+		image temp_slice_im0, temp_slice_im1
 		
 		// digiscan
 
 		// can set digiscan parameter taggroup from this ROI to overwrite 'capture' settings
-		//myWorkflow.returnDigiscan().config(dsp)
+		//myWorkflow.returnDigiscan().config(dsp,temp_slice_im0,temp_slice_im1)
 		// or use digiscan parameters as setup in the normal 'capture' at this moment
-		myWorkflow.returnDigiscan().config()
-		
-		// fix magnificationbug on Quanta
-		// second time, before imaging
-		WorkaroundQuantaMagBug()
+		myWorkflow.returnDigiscan().config(temp_slice_im0,temp_slice_im1)
 
-		myWorkflow.returnDigiscan().acquire(temp_slice_im)
+		myWorkflow.returnDigiscan().acquire()
 
-
-		
-		
 		// Verify SEM is functioning properly - pause acquisition otherwise (might be better to do before AFS with a test scan, easier here)
 		// if tag exists
 		number pixel_threshold = 500
 		string tagname = "IPrep:SEM:Emission check threshold"
 		if(GetPersistentNumberNote( tagname, pixel_threshold ))
 		{
-			number avg = average( temp_slice_im )
+			number avg = average( temp_slice_im1 )
 
 			if ( avg < pixel_threshold )
 			{
@@ -842,25 +835,28 @@ class image_single: deviceSequence
 		}
 		
 
-		// Save Digiscan image
-		IPrep_saveSEMImage(temp_slice_im, "digiscan")
+		// Save Digiscan image 1
+		IPrep_saveSEMImage(temp_slice_im0, "digiscan "+myWorkflow.returnDigiscan().getName0())
+
+		// Save Digiscan image 2
+		IPrep_saveSEMImage(temp_slice_im1, "digiscan "+myWorkflow.returnDigiscan().getName0())
 
 		// Close Digiscan image
-		ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
-		imdoc.ImageDocumentClose(0)
-			
+		ImageDocument imdoc0 = ImageGetOrCreateImageDocument(temp_slice_im0)
+		imdoc0.ImageDocumentClose(0)
+	
+		// Close Digiscan image
+		ImageDocument imdoc1 = ImageGetOrCreateImageDocument(temp_slice_im1)
+		imdoc1.ImageDocumentClose(0)		
+
 		// add image to 3D volume and update 
 		// quietly ignore if stack is not initialized
 		try
 		{
 			object my3DvolumeSEM = returnVolumeManager().returnVolume("StoredImaging")
-			my3DvolumeSEM.addSlice(temp_slice_im)
+			my3DvolumeSEM.addSlice(temp_slice_im1)
 			my3DvolumeSEM.show()
 
-			// old method
-			//object my3DvolumeSEM = myWorkflow.return3DvolumeSEM()
-			//my3DvolumeSEM.addSlice(temp_slice_im)
-			//my3DvolumeSEM.show()
 		}
 		catch
 		{
@@ -1905,7 +1901,8 @@ class PECSImageDefault: deviceSequence
 	{
 		self.setname(name1)
 		myWorkflow = workflow1
-		returnVolumeManager().initForPECS()
+		returnVolumeManager().initForPECS(self.name())
+
 	}
 
 	number precheck(object self)
@@ -1952,7 +1949,7 @@ class PECSImageDefault: deviceSequence
 			// show image
 			//temp_slice_im.showimage() // only show if image is not a null image
 
-			object myPECSvolumeSEM = returnVolumeManager().returnPECS()
+			object myPECSvolumeSEM = returnVolumeManager().returnVolume(self.name())
 			myPECSvolumeSEM.addSlice(temp_slice_im)
 			myPECSvolumeSEM.show()
 
