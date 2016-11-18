@@ -39,33 +39,84 @@ class digiscan_iprep : object
 		self.log(2,text)
 	}
 
+	void updateSignalSettings(object self)
+	{
+		// look what signals names are/which are enabled
+
+		// first re-init them to 0
+		configured0 = 0
+		configured1 = 0
+
+		if(DSGetSignalAcquired(paramID,0))
+		{
+			// 0 enabled
+			configured0 = 1
+			name0 = DSGetSignalName( 0 )
+		}
+		
+		if(DSGetSignalAcquired(paramID,1))
+		{
+			// 1 enabled
+			configured1 = 1
+			name1 = DSGetSignalName( 1 )
+		}
+
+	}
+
+	void getControl(object self)
+	{
+		// give control of beam to digiscan
+		DSSetScanControl(1) // 1 is grab, 0 is release
+		self.print("control: "+DSHasScanControl())
+	}
+
+	void releaseControl(object self)
+	{
+		// release control of beam back to SEM
+		DSSetScanControl(0) // 1 is grab, 0 is release
+		self.print("control: "+DSHasScanControl())
+	}
 
 	void digiscan_iprep(object self)
 	{
 		// constructor
 		configured0 = 0
 		configured1 = 0
+		name0 = "unnamed"
+		name1 = "unnamed"
 
 		// paramID is the id of the configuration used to acquire. 
 		paramID = 2	// capture ID
+
+		// check which signals are enabled and what their names are
+		self.updateSignalSettings()
 
 	}
 
 	number getConfigured0(object self)
 	{
 		// check if signal 0 is configured
+	
+		// check which signals are enabled and what their names are
+		self.updateSignalSettings()
 		return configured0
 	}
 
 	number getConfigured1(object self)
 	{
 		// check if signal 1 is configured
+
+		// check which signals are enabled and what their names are
+		self.updateSignalSettings()
 		return configured1
 	}
 
 	number numberOfSignals(object self)
 	{
 		// check if signal 0 is configured
+
+		// check which signals are enabled and what their names are
+		self.updateSignalSettings()
 		return configured0+configured1
 	}
 
@@ -85,6 +136,9 @@ class digiscan_iprep : object
 	{
 		// use parameters from capture as setup in DM
 		
+		// see if signal names/enables have changed
+		self.updateSignalSettings()
+
 		width = DSGetWidth( paramID )
 		height = DSGetHeight( paramID)
 		pixelTime = DSGetPixelTime( paramID )
@@ -98,31 +152,30 @@ class digiscan_iprep : object
 		paramID2 = DSCreateParameters( width, height, rotation, pixelTime, lineSync) 
 
 		// check if first signal is enabled
-		if(DSGetSignalAcquired(paramID,0))
+		if(configured0)
 		{
 			// enabled
 
-			name0 = DSGetSignalName( 0 )
 			self.print("digiscan configured using signal 0 ("+name0+").")
 			img0 := IntegerImage( name0, dataType, signed, width, height ) 
 			number imageID0 = ImageGetID( img0 )
 			DSSetParametersSignal( paramID2, 0, dataType, 1, imageID0 )
-			configured0 = 1
+
 			self.print("signal 0 succesfully configured from capture settings. height = "+height+", width = "+width+", dwell time = "+pixelTime)
 
 		}
 		else
 			self.print("signal 0 not configured")
 
-		if(DSGetSignalAcquired(paramID,1))
+		if(configured1)
 		{
 			// enabled
-			name1 = DSGetSignalName( 1 )
+		
 			self.print("digiscan configured using signal 1 ("+name1+").")
 			img1 := IntegerImage( name1, dataType, signed, width, height ) 
 			number imageID1 = ImageGetID( img1 )
 			DSSetParametersSignal( paramID2, 1, dataType, 1, imageID1 )
-			configured1 = 1
+
 			self.print("signal 1 succesfully configured from capture settings. height = "+height+", width = "+width+", dwell time = "+pixelTime)
 
 		}	
@@ -137,6 +190,8 @@ class digiscan_iprep : object
 	{
 		// copy the parameters from DSParam taggroup
 
+		// check which signals are enabled and what their names are
+		self.updateSignalSettings()
 
 		width = GetTagValueFromSubtag("Image Width",DSParam)
 		height = GetTagValueFromSubtag("Image Height",DSParam)
@@ -151,31 +206,28 @@ class digiscan_iprep : object
 		paramID2 = DSCreateParameters( width, height, rotation, pixelTime, lineSync) 
 
 		// check if first signal is enabled
-		if(GetTagStringFromSubtag("Signal 0:Selected",DSParam) == "true")
+		if(configured0)
 		{
 			// enabled
-
-			name0 = "Signal 0"
 			self.print("digiscan configured using signal 0 ("+name0+").")
 			img0 := IntegerImage( name0, dataType, signed, width, height ) 
 			number imageID0 = ImageGetID( img0 )
 			DSSetParametersSignal( paramID2, 0, dataType, 1, imageID0 )
-			configured0 = 1
+
 			self.print("signal 0 succesfully configured from tag. height = "+height+", width = "+width+", dwell time = "+pixelTime)
 
 		}
 		else
 			self.print("signal 0 not configured")
 
-		if(GetTagStringFromSubtag("Signal 1:Selected",DSParam) == "true")
+		if(configured1)
 		{
 			// enabled
-			name1 = "Signal 1"
 			self.print("digiscan configured using signal 1 ("+name1+").")
 			img1 := IntegerImage( name1, dataType, signed, width, height ) 
 			number imageID1 = ImageGetID( img1 )
 			DSSetParametersSignal( paramID2, 1, dataType, 1, imageID1 )
-			configured1 = 1
+
 			self.print("signal 1 succesfully configured from tag. height = "+height+", width = "+width+", dwell time = "+pixelTime)
 
 		}	

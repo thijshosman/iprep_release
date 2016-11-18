@@ -135,12 +135,11 @@ object create3DVolume(string type, string name) // main factory
 		
 		// create volume object and populate it with parameters. then return it
 		object vol = alloc(IPrep_3Dvolume)
-		vol.initReal("StoredImaging_stack", GetTagValue("IPrep:volume slices"), returnWorkflow().returnDigiscan().DSGetWidth(), returnWorkflow().returnDigiscan().DSGetHeight())
+		vol.initReal(name+"_stack", GetTagValue("IPrep:volume slices"), returnWorkflow().returnDigiscan().DSGetWidth(), returnWorkflow().returnDigiscan().DSGetHeight())
 		return vol
 	}
 	else if (type == "PECS_full") // standard 3D volume in color for PECS images at full FOV
 	{	
-
 		// create volume object and populate it with parameters. then return it
 		object vol = alloc(IPrep_3Dvolume)
 		vol.initColor(name+"_stack",GetTagValue("IPrep:volume slices"),2592,1944)
@@ -170,6 +169,16 @@ object create3DVolume(object myROI) // factory for given ROI
 	object vol = alloc(IPrep_3Dvolume)
 	vol.initReal(myROI.getName()+"_stack", GetTagValue("IPrep:volume slices"), myROI.getDigiscanX(), myROI.getDigiscanY())
 	return vol
+}
+
+object create3DVolumeWithCustomName(object myROI, string name) // factory for given ROI that takes signal name into account
+{
+	// create a volume for an ROI as argument
+
+	object vol = alloc(IPrep_3Dvolume)
+	vol.initReal(name+"_stack", GetTagValue("IPrep:volume slices"), myROI.getDigiscanX(), myROI.getDigiscanY())
+	return vol
+
 }
 
 class VolumeManager: object
@@ -221,24 +230,85 @@ class VolumeManager: object
 		}
 	}
 
+	void initForAllROIsAndSignals(object self)
+	{
+		// initializes a 3D volume for a given ROI based on its digiscan parameters and add it to the list
+		
+		// delete the list
+		list.ClearList()
+
+		object tall_enabled = returnROIManager().getAllEnabledROIList()
+		number count = tall_enabled.SizeOfList()
+
+		self.print("found "+count+" enabled ROIs. creating a volume for each")
+
+		foreach(object myROI; tall_enabled)
+		{
+			self.print("found "+myROI.getName())
+			if (returnworkflow().returnDigiscan().numberOfSignals() == 2) // 2 signals, create 3d stack for each
+			{
+				object vol0 = create3DVolumeWithCustomName(myROI, myROI.getName()+"_"+returnworkflow().returnDigiscan().getName0())
+				list.AddObjectToList(vol0)
+				object vol1 = create3DVolumeWithCustomName(myROI, myROI.getName()+"_"+returnworkflow().returnDigiscan().getName1())
+				list.AddObjectToList(vol1)
+			}
+			else // only 1 signal
+			{	
+				object vol = create3DVolume(myROI)
+				// now add to list
+				list.AddObjectToList(vol)
+			}
+
+		}
+	}
+
 	void initForDefaultROI(object self)
 	{
 		// delete the list
 		list.ClearList()
 
-		// now use the only ROI we use
-		object vol = create3DVolume("StoredImaging", "StoredImaging")
-		list.AddObjectToList(vol)
+		// use 2 signals
+		if (returnworkflow().returnDigiscan().numberOfSignals() == 2) // 2 signals, create 3d stack for each
+		{
+				object vol0 = create3DVolume("StoredImaging", "StoredImaging_"+returnworkflow().returnDigiscan().getName0())
+				list.AddObjectToList(vol0)
+				object vol1 = create3DVolume("StoredImaging", "StoredImaging_"+returnworkflow().returnDigiscan().getName1())
+				list.AddObjectToList(vol1)
+		}
+		else // only 1 signal
+		{
+			object vol = create3DVolume("StoredImaging", "StoredImaging")
+			list.AddObjectToList(vol)
+		}
+
+
 
 		//vol.show()
 	}
 
 	void initForSpecificROI(object self, string name)
 	{
-		object vol = create3DVolume("lookup_ROI", name)
 		
-		// now add to list
-		list.AddObjectToList(vol)
+		// get ROI
+		object myROI
+		returnROIManager().getROIAsObject(name, myROI)
+		
+		// use 2 signals
+		if (returnworkflow().returnDigiscan().numberOfSignals() == 2) // 2 signals, create 3d stack for each
+		{
+				object vol0 = create3DVolumeWithCustomName(myROI, myROI.getName()+"_"+returnworkflow().returnDigiscan().getName0())
+				list.AddObjectToList(vol0)
+				object vol1 = create3DVolumeWithCustomName(myROI, myROI.getName()+"_"+returnworkflow().returnDigiscan().getName1())
+				list.AddObjectToList(vol1)
+		}
+		else
+		{
+			object vol = create3DVolume("lookup_ROI", name)
+			// now add to list
+			list.AddObjectToList(vol)
+		}
+
+
 		
 		//vol.show()
 	}
@@ -258,26 +328,19 @@ class VolumeManager: object
 		}
 	}
 
-	/*
-	object returnPECS(object self)
-	{
-		return PECSImage
-	}
-	*/
-	
-	object returnVolume(object self, string roiname)
+	object returnVolume(object self, string name)
 	{
 		// returns handle of 3D volume so that images can be added
 		// greedy 
 
 		foreach( object myVol; list )
 		{
-			if (myVol.getName() == roiname || myVol.getName() == roiname+"_stack")
+			if (myVol.getName() == name || myVol.getName() == name+"_stack")
 				return myVol
 		}
 
 		// not found
-		throw ("ROI in volume not found: "+roiname)
+		throw ("ROI in volume not found: "+name)
 
 	}
 

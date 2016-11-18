@@ -587,13 +587,35 @@ number IPrep_maxSliceNumber()
 
 void IPrep_saveSEMImage(image &im, string subdir)
 {
-	// saves front image, used both for digiscan
+	// saves front image, used for digiscan
 	
 	string DirPath = ""
 	DirPath = PathExtractDirectory(IPrep_rootSaveDir(), 0)
 
 	string FileNamePrefix = "IPREP_SEM"
 	string FileNamePostfix = "_slice_"+right("000"+IPrep_sliceNumber(),4)
+	
+	// check if dir exsits, create if not
+	if (!DoesDirectoryExist( dirPath + subdir))
+		CreateDirectory(dirPath + subdir)
+	
+	DirPath = DirPath + subdir + "\\"
+	string filename = DirPath+FileNamePrefix+FileNamePostfix
+	
+	SaveAsGatan(im,filename)
+
+	print("saved "+filename)
+}
+
+void IPrep_saveSEMImage(image &im, string subdir, string name)
+{
+	// saves front image and saves as custom name, used for digiscan
+	
+	string DirPath = ""
+	DirPath = PathExtractDirectory(IPrep_rootSaveDir(), 0)
+
+	string FileNamePrefix = "IPREP_SEM"
+	string FileNamePostfix = "_"+name+"_slice_"+right("000"+IPrep_sliceNumber(),4)
 	
 	// check if dir exsits, create if not
 	if (!DoesDirectoryExist( dirPath + subdir))

@@ -573,77 +573,6 @@ Number IPrep_setup_imaging()
 	// not used right now
 }
 
-/* // deprecated
-Number IPrep_Setup_Imaging_old() 
-{
-	print("IPrep_Setup_Imaging")
-	// setup the imaging parameters and saves them 
-	// run this after manually surveying
-	// beam is assumed to be on at this point	
-
-	// save workingdistance used now during preview in SEM class so that when taking 
-	// an actual image we can set it back to that value
-	// this value is the same for each image taken
-
-	number returncode = 0
-
-	if (!returnDeadFlag().checkAliveAndSafe())
-		return returncode // to indicate error
-
-	try
-	{
-		// for single ROI imaging (legacy mode)
-		// create the default ROI, linked to coord StoredImaging
-		object myDefaultROI = ROIFactory(0,"StoredImaging")
-		
-		// set focus
-		number imagingWD = myWorkflow.returnSEM().measureWD()
-		myDefaultROI.setFocus(imagingWD)
-		print("Setup Imaging: Working Distance="+imagingWD)
-
-		// set focus mode
-		// #TODO: when autofocusing, needs to be 1, when using fixed value, use 2
-		//myDefaultROI.setAFMode(2)
-
-		// update StoredImaging position with current position
-		myWorkflow.returnSEM().saveCurrentAsStoredImaging()
-		print("Setup Imaging: StoredImaging Coord set")
-
-		// blank the beam
-		//myWorkflow.returnSEM().blankOn()
-
-		// save the ROI to the manager
-		returnROIManager().addROI(myDefaultROI)
-
-		print("Setup Imaging: Done setting up imaging conditions")
-
-		// 3D volume stuff, number of slices in 3D block
-		// make the displayed 3D stack of digiscan images the size of what the "capture" setting is
-		// quietly ignore exceptions
-		try
-		{
-			number slices = 10
-			my3DvolumeSEM = alloc(IPrep_3Dvolume)
-			my3DvolumeSEM.initSEM_3D(slices, DSGetWidth(2), DSGetHeight(2))
-			my3DvolumeSEM.show()
-		}
-		catch
-		{
-			print("ignoring 3D volume stack")
-			break
-		}
-
-		returncode = 1
-	}
-	catch
-	{
-		okdialog("something went wrong in setting up imaging: "+GetExceptionString())
-		break
-	}
-	return returncode
-}
-*/
-
 Number IPrep_foobar()
 {
 	// test function for general error handling framework
@@ -812,47 +741,32 @@ Number IPrep_check()
 	return 1
 }
 
-Number IPrep_StartRun()
+Number IPrep_Init3DStacks()
 {
-	print("UI: IPrep_StartRun")
-	
+	// look at enabled ROIs and create (and show) 3D stacks of these
+	// -gets called by startrun(create and show), but not resumerun (resumerun only shows them)
+	// #todo: make startrun/resumerun compatible with this paradime
+
+
+}
+
+
+Number IPrep_StartResumeGeneric()
+{
+	// start the main loop for both start and resume
+	print("UI: IPrep_StartResumeGeneric")
+
 	number returncode = 0
-	string popuperror
-
-	if (!returnDeadFlag().checkAliveAndSafe())
-		{
-			popuperror = "system dead and/or unsafe. cannot start"
-			okdialog(popuperror)
-			return returncode // to indicate error
-		}
-
-	if(!IPrep_consistency_check())
-		{
-			popuperror = "consistency check failed, check log. cannot start"
-			okdialog(popuperror)
-			return returncode // to indicate error
-		}
-
-	if(!IPrep_check())
-		{
-			popuperror = "check failed, check log. cannot start"
-			okdialog(popuperror)
-			return returncode // to indicate error
-		}
-
-	// reload sequences to pick up on changes and to re-init 3D volumes
-	// init state machine sequences with already initialized subsystems
-	myStateMachine.init(myWorkflow)
-
-	// #TODO: this routine needs to know where to start in case of DM crash. 
-	// # slice number is remembered, but also needs to know last succesfully completed step. 
-	// # can query this with: myStateMachine.getLastCompletedStep() ("IMAGE", "MILL", "SEM", "PECS", "RESEAT")
-	// # this is all working in a rather rudimentary way now
 
 	// now that we have concluded the system is in a good state to start, infer where we are
 	try
 	{
-		
+
+		// #TODO: this routine needs to know where to start in case of DM crash. 
+		// # slice number is remembered, but also needs to know last succesfully completed step. 
+		// # can query this with: myStateMachine.getLastCompletedStep() ("IMAGE", "MILL", "SEM", "PECS", "RESEAT")
+		// # this is all working in a rather rudimentary way now
+
 		// set stop and pause back to 0
 		returnstopVar().set1(0)
 		returnPauseVar().set1(0)
@@ -896,7 +810,7 @@ Number IPrep_StartRun()
 		}
 
 	// start loop
-	myloop.init(9).StartThread()
+	myloop.init(9).StartThread() // start thread with 9 steps 
 
 	returncode = 1 // to indicate success
 
@@ -912,6 +826,48 @@ Number IPrep_StartRun()
 	}
 
 	return returncode
+
+}
+
+Number IPrep_StartRun()
+{
+	// executes when Start button is pressed
+	print("UI: IPrep_StartRun")
+
+	number returncode = 0
+	string popuperror
+
+	if (!returnDeadFlag().checkAliveAndSafe())
+		{
+			popuperror = "system dead and/or unsafe. cannot start"
+			okdialog(popuperror)
+			return returncode // to indicate error
+		}
+
+	if(!IPrep_consistency_check())
+		{
+			popuperror = "consistency check failed, check log. cannot start"
+			okdialog(popuperror)
+			return returncode // to indicate error
+		}
+
+	if(!IPrep_check())
+		{
+			popuperror = "check failed, check log. cannot start"
+			okdialog(popuperror)
+			return returncode // to indicate error
+		}
+
+	// reload sequences to pick up on changes
+	// init state machine sequences with already initialized subsystems. also reinits 3d volumes used
+	myStateMachine.init(myWorkflow)
+
+	// show 3D stacks based on just enabled sequences/ROIs
+	//returnVolumeManager().showAll()
+
+	IPrep_StartResumeGeneric()
+
+	
 }
 
 Number IPrep_PauseRun()
@@ -932,7 +888,33 @@ Number IPrep_ResumeRun()
 	number returncode = 0
 	print("UI: Prep_ResumeRun")
 
-	IPrep_StartRun()
+	number returncode = 0
+	string popuperror
+
+	if (!returnDeadFlag().checkAliveAndSafe())
+	{
+		popuperror = "system dead and/or unsafe. cannot start"
+		okdialog(popuperror)
+		return returncode // to indicate error
+	}
+
+	if(!IPrep_consistency_check())
+	{
+		popuperror = "consistency check failed, check log. cannot start"
+		okdialog(popuperror)
+		return returncode // to indicate error
+	}
+
+	if(!IPrep_check())
+	{
+		popuperror = "check failed, check log. cannot start"
+		okdialog(popuperror)
+		return returncode // to indicate error
+	}
+
+	// no reinit of 3d volumes or stacks
+
+	IPrep_StartResumeGeneric()
 
 	returncode = 1 // to indicate success
 	

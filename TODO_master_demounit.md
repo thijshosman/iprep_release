@@ -103,6 +103,10 @@ This file describes what all the todos are for the demounit master development b
 - [x] 3D stack: all init methods to factory, not volume class. class should know nothing of rois
 - [] 3D stack: open a different stack for each signal if 2 signals are acquired in digiscan. 
 - [] 3D stack: when workflow starts (but not resumes), check that all 3D stacks are correctly based on the current acquisition data. right now, they are initialized (but not shown) when the workflow initializes because that is easy, but that is wrong. create a function init_3d_stacks() based on what is enabled, infer image sizes from digiscan tags/capture settings and init some 3d volumes. call this function when iprep_start() is executed
+	ROIManager will be able to return all enabled ROIs and signals. This is known when IPrep_startrun is called (this function inits the statemachine (again, already happened in iprepinit, but just in case something changed)), so we can at this moment create a list of all ROIs and signals (format TBD). iprepstart will (re-)init the 3d volumes and show them. iprepresume will only show them. 3d volume init happens in sequence config. so all we need is a way for the sequence to know, at config time, which 3d volumes to enable and how to find them. best is probably to use a list with objects that only contain a string. this means: 3dvolumemanager looks at roimanager and infers this object list. we use a hash to combine roiname and signalname
+- [] 3D stack: now init all rois clears list, pecs images/sequence init has to be executed AFTER sem images init
+
+
 
 *** UI ***
 - [x] add iprep autofocus as a menu item
@@ -120,7 +124,7 @@ This file describes what all the todos are for the demounit master development b
 
 *** digiscan ***
 - [x] find way to configure digiscan with parameters from ROI object. can be done both nicely and hacky. 
-- [] make class compatible with acquiring 2 signals simultaneously by doing the parameter configuration in config method 
+- [x] make class compatible with acquiring 2 signals simultaneously by doing the parameter configuration in config method. keep in mind: same settings for each ROI. digiscan class looks at capture settings to get names/signals enabled/disabled and uses it for EACH ROI, not just storedimaging in single image mode
 
 *** BING Bugs ***
 - [x] we cannot read argon setpoint, only flow. this causes long term drift when setting it back after transfers. need fix

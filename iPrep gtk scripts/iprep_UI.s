@@ -266,8 +266,6 @@ void Set_autofocus_enable_dialog( void )
 	result("Autofocus mode set to "+af_mode+"\n")
 }
 
-
-
 // PECS functions
 
 void pecs_reseat(void)
@@ -822,7 +820,7 @@ void iprep_InstallMenuItems( void )
 
 	AddScriptToMenu( "Set_autofocus_enable_dialog()", "Set autofocus state...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	
-	AddScriptToMenu( "IPrep_autofocus()", "Run IPrep Autofocus routine", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
+	AddScriptToMenu( "IPrep_autofocus_complete()", "Run IPrep Autofocus routine", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 
 	AddScriptToMenu( "beep()", "------", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
 

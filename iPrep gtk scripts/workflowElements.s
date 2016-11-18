@@ -955,4 +955,28 @@ object returnWorkflow()
 	return myWorkflow
 }
 
+// define autofocus here since it uses workflow elements but needs to be there later
 
+void IPrep_autofocus_complete()
+{
+
+	// get digiscan control
+	returnWorkflow().returnDigiscan().getControl()
+	//unblank
+	returnWorkflow().returnSEM().blankOff()
+
+	print("IMAGE: autofocusing")
+	number old_focus = returnWorkflow().returnSEM().measureWD()	
+
+	IPrep_autofocus()
+	number afs_sleep = 1	// seconds of delay
+	sleep( afs_sleep )
+
+	number new_focus = returnWorkflow().returnSEM().measureWD()	
+	returnWorkflow().returnSEM().setDesiredWDToCurrent()
+
+	print("IMAGE: old focus: "+old_focus+" mm, new focus: "+new_focus+" mm")
+	
+	//blank
+	returnWorkflow().returnSEM().blankOn()
+}

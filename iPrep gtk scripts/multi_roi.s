@@ -19,6 +19,11 @@ class IROI: object
 	number af_mode // autofocus mode used. 0 = leave focus alone, 1 = on, see below, 2 = use stored value (in this object) for focus
 	number af_n_slice // autofocus every n slices (if af_mode == 1, look at the slice number and compare to n. only autofocus if slice_number % n == 0)
 
+	// added 20161118
+	number imageOn // image (0) or not (1)? default is 1, but 0 can be used in case of just autofocusing
+	number image_n_slice // image every n slices, 1 is every slice. (look at the slice number and compare to n. only iamge if slice_number % n == 0))
+	number af_before // autofocus before or after imaging? 1 is before, 0 is after
+
 	number order // order in which it is imaged (ascending)
 
 	string getName(object self)
@@ -65,6 +70,9 @@ class IROI: object
 		digiscan_param =  NewTagGroup()
 		af_n_slice = 1
 		order = 0
+		af_before = 1
+		image_n_slice = 1
+		imageOn = 1
 
 	}
 
@@ -135,6 +143,22 @@ class IROI: object
 		stigy = val1
 	}
 
+	void setImageOn(object self, number val1)
+	{
+		imageOn = val1
+	}
+
+	void setImagenSlice(object self, number val1)
+	{
+		image_n_slice = val1	
+	}
+
+	void setAFBefore(object self, number val1)
+	{
+		af_before = val1
+	}
+
+
 	// getter methods
 
 	number getFocus(object self)
@@ -197,6 +221,21 @@ class IROI: object
 		return digiscan_param
 	}	
 
+	number getImageOn(object self)
+	{
+		return imageOn
+	}
+
+	number getImagenSlice(object self)
+	{
+		return image_n_slice
+	}
+
+	number getAFBefore(object self)
+	{
+		return af_before
+	}
+
 	// *** some helper functions
 
 	number getDigiscanX(object self)
@@ -219,22 +258,12 @@ class IROI: object
 			throw("height not set in digiscan parameters of "+name)
 	}
 
-	number getNumberOfDigiscanSignals(object self)
-	{
-		// check how many signals are selected in digiscan tags and return that number
-		taggroup digitags = self.getDigiscanParam()
-		string signal1
-		if (TagGroupGetTagAsString( digitags,"signal 1", signal1)!=0)
-			return 0
-		else
-			return 0
-	}
-
 	// describe this ROI
 	void print(object self)
 	{
 		result("ROI: name: "+name+", enabled: "+enabled+", af every "+af_n_slice+" slices\n")
 		result("  mag: "+mag+", focus: "+focus+"\n")
+		result("ImageOn: "+imageOn+", af_before: "+af_before+", image every "+image_n_slice+" slices\n")
 
 	}
 
@@ -248,6 +277,10 @@ class IROI: object
 		tg.addTag("coordName",coordName)
 		tg.addTag("enabled",enabled)
 		tg.addTag("af_mode",af_mode)
+
+		tg.addTag("af_n_slice",af_n_slice)
+		tg.addTag("imageOn",imageOn)
+		tg.addTag("af_before",af_before)
 		
 		tg.addTagAsFloat("focus", focus)
 		tg.addTagAsFloat("brightness", brightness)
@@ -258,8 +291,9 @@ class IROI: object
 		tg.addTagAsFloat("stigx", stigx)
 		tg.addTagAsFloat("stigy", stigy)
 		tg.TagGroupSetTagAsTagGroup("digiscan_param",digiscan_param)
-		tg.addTagAsFloat("af_n_slice", af_n_slice)
+		tg.addTagAsFloat("image_n_slice", image_n_slice)
 		tg.addTagAsFloat("order", order)
+
 
 		return tg
 	}
@@ -270,34 +304,23 @@ class IROI: object
 
 
 		subtag.TagGroupGetTagAsString("name",name)
-
 		subtag.TagGroupGetTagAsString("coordName",coordName)
-
 		subtag.TagGroupGetTagAsNumber("enabled",enabled)
-
 		subtag.TagGroupGetTagAsNumber("af_mode",af_mode)
-
 		subtag.TagGroupGetTagAsTaggroup("digiscan_param",digiscan_param)
-
 		subtag.TagGroupGetTagAsFloat("focus",focus)
-
 		subtag.TagGroupGetTagAsFloat("brightness",brightness)
-
 		subtag.TagGroupGetTagAsNumber("contrast",contrast)
-
 		subtag.TagGroupGetTagAsNumber("mag",mag)
-
 		subtag.TagGroupGetTagAsNumber("voltage",voltage)
-
 		subtag.TagGroupGetTagAsNumber("ss",ss)		
-
 		subtag.TagGroupGetTagAsNumber("stigx",stigx)
-
 		subtag.TagGroupGetTagAsNumber("stigy",stigy)
-
 		subtag.TagGroupGetTagAsNumber("af_n_slice",af_n_slice)
-
 		subtag.TagGroupGetTagAsNumber("order",order)
+		subtag.TagGroupGetTagAsNumber("image_n_slice",image_n_slice)
+		subtag.TagGroupGetTagAsNumber("af_before",af_before)
+		subtag.TagGroupGetTagAsNumber("imageOn",imageOn)
 
 		return self
 	}
@@ -623,69 +646,6 @@ class ROIManager: object
 		}
 		return 0 // not found
 	}
-/*
-	object convertTagToROI(object self, taggroup subtag)
-	{
-		// converts a tag to a sem object
-
-		string name
-		subtag.TagGroupGetTagAsString("name",name)
-
-		string coordName
-		subtag.TagGroupGetTagAsString("coordName",coordName)
-
-		number enabled
-		subtag.TagGroupGetTagAsNumber("enabled",enabled)
-
-		number af_mode
-		subtag.TagGroupGetTagAsNumber("af_mode",af_mode)
-
-		taggroup digiscan_param
-		subtag.TagGroupGetTagAsTaggroup("digiscan_param",digiscan_param)
-
-		number focus
-		subtag.TagGroupGetTagAsFloat("focus",focus)
-
-		number brightness
-		subtag.TagGroupGetTagAsFloat("brightness",brightness)
-
-		number contrast
-		subtag.TagGroupGetTagAsNumber("contrast",contrast)
-		
-		number mag
-		subtag.TagGroupGetTagAsNumber("mag",mag)
-
-		number voltage
-		subtag.TagGroupGetTagAsNumber("voltage",voltage)
-
-		number ss
-		subtag.TagGroupGetTagAsNumber("ss",ss)		
-
-		number stigx
-		subtag.TagGroupGetTagAsNumber("stigx",stigx)
-
-		number stigy
-		subtag.TagGroupGetTagAsNumber("stigy",stigy)
-
-
-		object tempROI = alloc(IROI)
-		tempROI.setName(name)
-		tempROI.setCoordName(coordName)
-		tempROI.setEnabled(enabled)
-		tempROI.setAFMode(af_mode)
-		tempROI.setDigiscanParam(digiscan_param)
-		tempROI.setFocus(focus)
-		tempROI.setBrightness(brightness)
-		tempROI.setContrast(contrast)
-		tempROI.setMag(mag)
-		tempROI.setVoltage(voltage)
-		tempROI.setss(ss)
-		tempROI.setStigx(stigx)
-		tempROI.setStigy(stigy)
-
-		return tempROI
-	}
-*/
 
 	number getROIAsObject(object self, string name, object &obj)
 	{
@@ -742,7 +702,7 @@ class ROIManager: object
 
 	object getAllEnabledROIList(object self)
 	{
-		// return an objectlist of all ROIs
+		// return an objectlist of all ROIs that are enabled
 	
 		object list = alloc(objectlist)
 
@@ -768,41 +728,12 @@ class ROIManager: object
 		return list
 	}
 
-
-
-/*
-	taggroup getAllEnabled(object self)
+	object getAllEnabledROISignalList(object self)
 	{
-		// returns taggroup with all enabled tags
-
-		taggroup tall =self.getROIList()
-		number count = tall.TagGroupCountTags()
-		self.print(""+count)
-		// create empty list and add enabled ROIs as we iterate
-		taggroup tall_enabled = NewTagList()
-		
-		taggroup subtag
-		number i
-		for (i=0; i<count; i++)
-		{
-			// index the list and get single tag
-			tall.TagGroupGetIndexedTagAsTagGroup(i,subtag)
-
-			// old style
-			//object tmp = self.convertTagToROI(subtag)
-
-			// new style
-			object tmp = ROIFactory(0).initROIFromTag(subtag)
-			
-			self.print("i: "+i+" name: "+tmp.getName()+", enabled: "+tmp.getEnabled())
-			if (tmp.getEnabled()==1.0)
-				tall_enabled.TagGroupAddTagGroupAtEnd(subtag)
-
-		}
-		//tall_enabled.TagGroupOpenBrowserWindow(0)
-		return tall_enabled
+		// return an objectlist of all names 
 	}
-*/
+
+
 
 
 }
