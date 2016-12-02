@@ -885,7 +885,6 @@ Number IPrep_PauseRun()
 
 Number IPrep_ResumeRun()
 {
-	number returncode = 0
 	print("UI: Prep_ResumeRun")
 
 	number returncode = 0

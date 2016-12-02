@@ -1,3 +1,4 @@
+// $BACKGROUND$
 class workflowStateMachine: object
 {
 	// manages state transfers in the workflow. only manages when state transfers can happen, 

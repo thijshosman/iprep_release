@@ -683,6 +683,121 @@ class pecstosemSequenceDefault: deviceSequence
 	}
 }
 
+class image_current_settings: deviceSequence
+{
+// declare object since it is used below
+	object myWorkflow
+
+	number init(object self, string name1, object workflow1)
+	{
+		self.setname(name1)
+		myWorkflow = workflow1
+
+	}
+
+	number precheck(object self)
+	{
+		// public
+		// #todo: define prechecks. SEM in right position? 
+
+		return 1
+	}
+
+	number postcheck(object self)
+	{
+		// public
+		// checks that have to be performed after sequence has completed
+		// in this case there is no post-check needed
+		return 1
+	}
+
+	number do_actual(object self)
+	{
+		// public
+		// performs single image
+		number returncode = 0
+
+		self.print("executing test image step using current settings")
+		
+		// *** imaging ***
+
+		image temp_slice_im0, temp_slice_im1
+		
+		// digiscan
+
+		// use digiscan parameters as setup in the normal 'capture' at this moment
+		
+		myWorkflow.returnDigiscan().config(temp_slice_im0,temp_slice_im1)
+
+		// get digiscan control
+		myWorkflow.returnDigiscan().getControl()
+
+		// unblank
+		myWorkflow.returnSEM().blankOff()
+
+		myWorkflow.returnDigiscan().acquire()
+
+			
+		if (myWorkflow.returnDigiscan().getConfigured0())
+		{
+			// add tags
+			//TagGroup tg = temp_slice_im0.ImageGetTagGroup()
+			//tg.addTag("IPrep:focus",myWorkflow.returnSEM().measureWD())
+			temp_slice_im0.saveDefaultTags()
+
+			// Save Digiscan image 0
+			IPrep_saveSEMImage(temp_slice_im0, "digiscan "+myWorkflow.returnDigiscan().getName0(), myWorkflow.returnDigiscan().getName0())
+			
+			// Close Digiscan image
+			ImageDocument imdoc0 = ImageGetOrCreateImageDocument(temp_slice_im0)
+			imdoc0.ImageDocumentClose(0)
+
+
+		}
+
+		if (myWorkflow.returnDigiscan().getConfigured1())
+		{
+			// add tags
+			//TagGroup tg = temp_slice_im1.ImageGetTagGroup()
+			//tg.addTag("IPrep:focus",myWorkflow.returnSEM().measureWD())
+			temp_slice_im1.saveDefaultTags()
+
+			// Save Digiscan image 1
+			IPrep_saveSEMImage(temp_slice_im1, "digiscan "+myWorkflow.returnDigiscan().getName1(), myWorkflow.returnDigiscan().getName1())
+			
+			// Close Digiscan image
+			ImageDocument imdoc1 = ImageGetOrCreateImageDocument(temp_slice_im1)
+			imdoc1.ImageDocumentClose(0)
+
+						
+
+			// blank
+			myWorkflow.returnSEM().blankOn()
+
+			// get digiscan control (if needed, no real need to ever automatically release control until done)
+			//myWorkflow.returnDigiscan().releaseControl()
+		}
+
+		return 1
+	}
+
+	number undo(object self)
+	{
+		// public
+		// this method is intended to undo the sequence (if possible)
+		self.print("cannot undo this sequence")
+		return 0
+	}
+
+	number final(object self)
+	{
+		// public
+		// blank beam
+		myWorkflow.returnSEM().blankOn()
+		return 1
+	}	
+}
+
 class image_single: deviceSequence
 {
 	// declare object since it is used below
@@ -722,6 +837,7 @@ class image_single: deviceSequence
 		// get the ROI (default/StoredImaging in this case)
 		object myROI 
 		string name1 = "StoredImaging"
+		
 		if (!returnROIManager().getROIAsObject(name1, myROI))
 		{
 			self.print("IMAGE: tag does not exist!")
@@ -735,8 +851,8 @@ class image_single: deviceSequence
 		// temp, show the ROI
 		myROI.print()
 
-		// fix magnificationbug on Quanta
-		WorkaroundQuantaMagBug()
+		// fix magnificationbug on Quanta (not needed since already fixed in SEM class)
+		//WorkaroundQuantaMagBug()
 
 		// *** focus before imaging ***
 
@@ -841,6 +957,7 @@ class image_single: deviceSequence
 			if (myWorkflow.returnDigiscan().getConfigured0())
 			{
 				// Save Digiscan image 0
+				temp_slice_im0.saveDefaultTags(myROI)
 				IPrep_saveSEMImage(temp_slice_im0, "digiscan "+myWorkflow.returnDigiscan().getName0(), myWorkflow.returnDigiscan().getName0())
 				
 				// Close Digiscan image
@@ -873,7 +990,9 @@ class image_single: deviceSequence
 
 			if (myWorkflow.returnDigiscan().getConfigured1())
 			{
+
 				// Save Digiscan image 1
+				temp_slice_im1.saveDefaultTags(myROI)
 				IPrep_saveSEMImage(temp_slice_im1, "digiscan "+myWorkflow.returnDigiscan().getName1(), myWorkflow.returnDigiscan().getName1())
 				
 				// Close Digiscan image

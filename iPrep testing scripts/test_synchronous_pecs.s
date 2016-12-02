@@ -13,12 +13,12 @@ try
 	string value1
 	string value2
 
-	for (j=0;j<100;j++)
+	for (j=0;j<50;j++)
 	{
 		// get WL value, 1 if lowered
 		PIPS_GetPropertyDevice("subsystem_pumping", "device_valveWhisperlok", "set_active", value1) 
-		debug("wl state: "+value1+"\n")
-		
+		debug("should be 1: "+value1+"\n")
+		sleep(0.1)
 		// get TMP speed, 1500 
 		//PIPS_GetPropertyDevice("subsystem_pumping", "device_turboPump", "read_speed_Hz", value2)
 		//result("tmp state: "+value2+"\n")

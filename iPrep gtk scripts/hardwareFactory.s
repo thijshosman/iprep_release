@@ -1,3 +1,4 @@
+// $BACKGROUND$
 // creates hardware instances that are either real or simulated
 
 object createGripper(number simulator)

@@ -1,3 +1,4 @@
+// $BACKGROUND$
 class statusCheck : thread
 { 
 	// this class launches itself as a thread to check the PECS for problems

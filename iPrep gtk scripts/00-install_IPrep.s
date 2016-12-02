@@ -75,6 +75,8 @@ InstallFile( PathConcatenate( gPath, "ebsd_manual.s" ), package, 3 )
 
 InstallFile( PathConcatenate( gPath, "workflowElements.s" ), package, 3 )
 
+InstallFile( PathConcatenate( gPath, "workflowHelperFunctions.s" ), package, 3 )
+
 InstallFile( PathConcatenate( gPath, "iprep_3Dvolume.s" ), package, 3 )
 
 InstallFile( PathConcatenate( gPath, "device_sequences.s" ), package, 3 )

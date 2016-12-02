@@ -89,6 +89,7 @@ This file describes what all the todos are for the demounit master development b
 - [] right now iprep_image puts the lastcompleted step at image, think about if you want to do this. it does allow manipulation of where workflow picks up
 - [] consistencychecks should not be done by calling workflow object, but instead should be done through mediator
 - [] add a tag to each image with iprep information (roi name, sem position name, milling time, voltage, angle (if possible))
+- [] run restoregasflow when safetyflags get reset
 
 *** imaging ***
 - [] order of images in 3D stack is reversed
@@ -104,8 +105,10 @@ This file describes what all the todos are for the demounit master development b
 - [] 3D stack: open a different stack for each signal if 2 signals are acquired in digiscan. 
 - [] 3D stack: when workflow starts (but not resumes), check that all 3D stacks are correctly based on the current acquisition data. right now, they are initialized (but not shown) when the workflow initializes because that is easy, but that is wrong. create a function init_3d_stacks() based on what is enabled, infer image sizes from digiscan tags/capture settings and init some 3d volumes. call this function when iprep_start() is executed
 	ROIManager will be able to return all enabled ROIs and signals. This is known when IPrep_startrun is called (this function inits the statemachine (again, already happened in iprepinit, but just in case something changed)), so we can at this moment create a list of all ROIs and signals (format TBD). iprepstart will (re-)init the 3d volumes and show them. iprepresume will only show them. 3d volume init happens in sequence config. so all we need is a way for the sequence to know, at config time, which 3d volumes to enable and how to find them. best is probably to use a list with objects that only contain a string. this means: 3dvolumemanager looks at roimanager and infers this object list. we use a hash to combine roiname and signalname
-- [] 3D stack: now init all rois clears list, pecs images/sequence init has to be executed AFTER sem images init
-
+- [] 3D stack: now init all rois clears list, pecs images/sequence init has to be executed AFTER sem images init. fix this
+- [x] IPrep tag on each image. contains information on: entire ROI tag, focus, slice number
+- [] make EBSD a special condition of imaging, not a separate step. allow only 1 EBSD ROI. details to follow
+- [] name all EBSD functions to new ones from Mingkai
 
 
 *** UI ***
@@ -115,6 +118,8 @@ This file describes what all the todos are for the demounit master development b
 - [] list all current SEM positions
 - [x] list all current ROIs
 - [x] no more quanta bug fix when just moving in x and y in sem alignment functions
+- [] switching image mode (ie single ROI, multi ROI) needs to update newest added tags in ROI elements and put them in the right place (ie enabled, af, etc). just check, may already work well because of how roifactory works
+- [] in order to ensure everything does not run in the main DM thread, fire a thread for each UI menu call
 
 *** SEM ***
 - [] add internal checks in moving between SEM states that allows us to go to different imaging states directly from Clear, not first to nominal_imaging

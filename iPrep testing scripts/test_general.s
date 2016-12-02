@@ -22,11 +22,11 @@ try
 	//myWorkflow.returnPECSCamera().liveView()
 	//IPrep_cleanup()
 
-	if(!IPrep_check())
-		{
-			string popuperror = "check failed, check log. cannot start"
-			okdialog(popuperror)
-		}
+	//if(!IPrep_check())
+	//	{
+	//		string popuperror = "check failed, check log. cannot start"
+	//		okdialog(popuperror)
+	//	}
 	
 ////////////////////	
 // *** TESTS *** ///

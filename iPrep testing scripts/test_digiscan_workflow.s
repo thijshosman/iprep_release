@@ -7,31 +7,36 @@ object myStateMachine = returnStateMachine()
 try
 {
 
-	image temp_slice_im0, temp_slice_im1
+	// test enabled signals
+	result("signal 0: "+myWorkflow.returnDigiscan().getConfigured0()+"\n")
+	result("signal 1: "+myWorkflow.returnDigiscan().getConfigured1()+"\n")
+
+
+	//image temp_slice_im0, temp_slice_im1
 	
 	// digiscan
 
 	// or use digiscan parameters as setup in the normal 'capture' at this moment
-	myWorkflow.returnDigiscan().config(temp_slice_im0,temp_slice_im1)
+	//myWorkflow.returnDigiscan().config(temp_slice_im0,temp_slice_im1)
 
-	myWorkflow.returnDigiscan().acquire()
+	//myWorkflow.returnDigiscan().acquire()
 
 // Save Digiscan image 1
 
 	//temp_slice_im0.showimage()
 
-		IPrep_saveSEMImage(temp_slice_im0, "digiscan BSE")
+		//IPrep_saveSEMImage(temp_slice_im0, "digiscan BSE")
 
 		// Save Digiscan image 2
-		IPrep_saveSEMImage(temp_slice_im1, "digiscan SE")
+		//IPrep_saveSEMImage(temp_slice_im1, "digiscan SE")
 
 		// Close Digiscan image
-		ImageDocument imdoc0 = ImageGetOrCreateImageDocument(temp_slice_im0)
-		imdoc0.ImageDocumentClose(0)
+		//ImageDocument imdoc0 = ImageGetOrCreateImageDocument(temp_slice_im0)
+		//imdoc0.ImageDocumentClose(0)
 	
 		// Close Digiscan image
-		ImageDocument imdoc1 = ImageGetOrCreateImageDocument(temp_slice_im1)
-		imdoc1.ImageDocumentClose(0)	
+		//ImageDocument imdoc1 = ImageGetOrCreateImageDocument(temp_slice_im1)
+		//imdoc1.ImageDocumentClose(0)	
 
 }
 catch

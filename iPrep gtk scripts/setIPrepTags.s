@@ -1,3 +1,4 @@
+// $BACKGROUND$
 
 void setWorkflowElementTags()
 {

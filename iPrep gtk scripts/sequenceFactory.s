@@ -1,3 +1,4 @@
+// $BACKGROUND$
 // creates sequences
 
 object createSequence(string type)

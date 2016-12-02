@@ -676,6 +676,8 @@ void IPrep_autofocus()
 	// wrapper for autofocus function in DM
 	// #todo: test, just copied from JH example; modified 20160701
 	
+	// NB: numbers are in Microns
+
 	// Dear Thijs...you are going to hate this default focus mod. 
 
 	string s1="Private:AFS Parameters"
@@ -693,39 +695,46 @@ void IPrep_autofocus()
 	number focus = EMGetFocus()
 	result(datestamp()+": current focus value before autofocus: "+focus+"\n")
 	
-	///// CRAP CODE
-		str2 = s1+":"+s7
-		n7=9001
-		if (!GetPersistentNumberNote( str2, n7 ))
+
+	// Default focus
+	str2 = s1+":"+s7
+	n7=9001
+	if (!GetPersistentNumberNote( str2, n7 ))
+		{
+			if ( !GetNumber( str2, n7, n7 ) ) 
 			{
-				if ( !GetNumber( str2, n7, n7 ) ) 
-				{
-					n7 = 9000
-					result("  USING DEFAULT FOCUS OF 9000 microns\n")
-				}
-				
-				SetPersistentNumberNote( str2, n7 )
+				n7 = 9000
+				result("  USING DEFAULT FOCUS OF 9000 microns\n")
 			}
 			
-		number default_focus=n7
+			SetPersistentNumberNote( str2, n7 )
+		}
+		
+	number default_focus=n7
 
 
-		// number start_focus = EMGetFocus()
-		number start_focus = default_focus
-		EMSetFocus( start_focus )
-		focus=start_focus
-		result(datestamp()+": setting focus to (before AFS): "+start_focus+"\n")
-		result("\n"+datestamp()+": start WD = "+(start_focus/1000)+"\n")
-	///// END CRAP CODE
-	
-	
-	
-	number focus_range = focus_range_fraction*focus
-	number focus_res = .0025*focus
+	// number start_focus = EMGetFocus()
+	number start_focus = default_focus
+	EMSetFocus( start_focus )
+	focus=start_focus
+	result(datestamp()+": setting focus to (before AFS): "+start_focus+"\n")
+	result("\n"+datestamp()+": start WD = "+(start_focus/1000)+"\n")
+
 	number useDialog = 0 
 	
-	number AF_do_stig = 1
+	// old number JH
+	//number focus_range = focus_range_fraction*focus
+	//number focus_res = .0025*focus
 	
+	
+	// new numbers thijs troubleshooting 20161128
+	//number focus_range = 500
+	//number focus_res = 20
+
+
+	number AF_do_stig = 1
+/*	
+	// Focus accuracy
 	str2 = s1+":"+s2
 	GetPersistentNumberNote( str2, n2 )
 	n2 = focus_res
@@ -734,7 +743,7 @@ void IPrep_autofocus()
 		
 	SetPersistentNumberNote( str2, n2 )
 
-
+	// Focus limit (lower)
 	str2 = s1+":"+s3
 	GetPersistentNumberNote( str2, n3 )
 	n3 = focus - focus * focus_range_fraction
@@ -742,6 +751,7 @@ void IPrep_autofocus()
 			if ( !GetNumber( str2, n3, n3 ) ) exit(0)
 	SetPersistentNumberNote( str2, n3 )
 
+	// Focus limit (upper)
 	str2 = s1+":"+s4
 	GetPersistentNumberNote( str2, n4 )
 	n4 = focus + focus * focus_range_fraction
@@ -749,19 +759,20 @@ void IPrep_autofocus()
 		if ( !GetNumber( str2, n4, n4 ) ) exit(0)
 	SetPersistentNumberNote( str2, n4 )
 
+	// Focus search range
 	str2 = s1+":"+s5
 	GetPersistentNumberNote( str2, n5 )
 	n5=focus_range
 	if ( useDialog) 
 		if ( !GetNumber( str2, n5, n5 ) ) exit(0)
 	SetPersistentNumberNote( str2, n5 )
-
+*/
+	// Stigmation enabled
 	str2 = s1+":"+s6
 	n6=AF_do_stig
 	GetPersistentNumberNote( str2, n6 )
 	if ( useDialog) 
 		if ( !GetNumber( str2, n6, n6 ) ) exit(0)
-	
 	SetPersistentNumberNote( str2, n6 )
 	AF_do_stig=n6
 	
@@ -781,15 +792,19 @@ void IPrep_autofocus()
 		sleep( 1 )
 		result(".")
 	}
-// WARNING  - more crap code
+
 	number end_focus = EMGetFocus()
-	
 	if ( abs(end_focus-default_focus) > 5000 )
+	{
 		okdialog( "WARNING: focus is not within 5mm of the default focus" )
-	
+	}	
 	
 	result(datestamp()+": final WD = "+(end_focus/1000)+"\n")
 		result("  Change in focus = "+((start_focus-end_focus)/1000)+"\n")
+
+	// now set new AF default focus value to new value
+	str2 = s1+":"+s7
+	SetPersistentNumberNote( str2, end_focus )
 
 }
 

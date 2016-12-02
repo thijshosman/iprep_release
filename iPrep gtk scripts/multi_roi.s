@@ -1,3 +1,5 @@
+// $BACKGROUND$
+
 class IROI: object
 {
 	// simple container class for Region of Interest

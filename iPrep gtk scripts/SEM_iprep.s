@@ -414,7 +414,7 @@ class SEM_IPrep: object
 		// #TODO: but in Nova we go in Z first. 
 
 		object clear = returnSEMCoordManager().getCoordAsCoord("clear")
-
+		clear.print()
 		self.print("going to clear with checks disabled")
 		//self.goToCoordsZFirst(clear.getX(),clear.getY(),clear.getZ()) // Nova
 		self.goToCoordsZLast(clear.getX(),clear.getY(),clear.getZ()) // Quanta
@@ -490,6 +490,9 @@ class SEM_IPrep: object
 	
 		// set the working distance to the previously saved value (quanta always changes wd to coupled value after z is moved)
 		self.setWDForImaging()
+
+		// fix quanta mag bug (since stage moved in z)
+		WorkaroundQuantaMagBug()
 
 		// old way of setting wd, deprecated
 		//if ( nominal_imaging.getdfvalid() )
