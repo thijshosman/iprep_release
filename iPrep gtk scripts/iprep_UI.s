@@ -392,6 +392,7 @@ void IPrep_setScribeROI(void)
 			return
 		}
 		result("scribe mark correction done\n")
+		setDockCalibrationStatus(1)
 	}
 	catch
 	{

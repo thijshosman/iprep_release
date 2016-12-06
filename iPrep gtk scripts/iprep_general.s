@@ -436,7 +436,7 @@ void manualHaltOptionShift()
 
 string getSystemMode()
 {
-	// return the current mode of the system
+	// return the current mode of the system, "ebsd" or "planar"
 	string mode
 	taggroup tg = GetPersistentTagGroup()
 	TagGroupGetTagAsString(tg,"IPrep:simulation:mode", mode )
@@ -445,11 +445,25 @@ string getSystemMode()
 
 void setSystemMode(string mode)
 {
-	// return the current mode of the system
+	// set the current mode of the system, "ebsd" or "planar"
 	taggroup tg = GetPersistentTagGroup()
 	TagGroupSetTagAsString(tg,"IPrep:simulation:mode", mode )
 
 }
+
+number getDockCalibrationStatus()
+{
+	// return state of dock calibration
+	return GetTagValue("IPrep:flags:dockCalibrationStatus")
+}
+
+void setDockCalibrationStatus(number st)
+{
+	// set the state of dock calibration
+	taggroup tg = GetPersistentTagGroup()
+	TagGroupSetTagAsNumber(tg,"IPrep:flags:dockCalibrationStatus", st )
+}
+
 
 object deadFlag = alloc(deadFlagObject)
 

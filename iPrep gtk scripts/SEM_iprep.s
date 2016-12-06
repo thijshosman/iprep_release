@@ -50,7 +50,6 @@ class SEM_IPrep: object
 	number kV
 
 	// *** basics ***
-
 	
 	number returnHVState(object self)
 	{
@@ -66,8 +65,6 @@ class SEM_IPrep: object
 	{
 		return state
 	}
-
-
 
 	void log(object self, number level, string text)
 	{
@@ -138,7 +135,6 @@ class SEM_IPrep: object
 		return EMGetMagnification()/1000
 	}
 
-
 	void setDesiredkV(object self, number kV1)
 	{
 		// *** public ***
@@ -148,7 +144,6 @@ class SEM_IPrep: object
 		kV = kV1
 		SEMkVPersistance.setNumber(kV1)
 		self.print("new desired beam energy: "+kV1)
-
 	}
 
 	number getHV(object self)
@@ -174,7 +169,6 @@ class SEM_IPrep: object
 		EMSetFocus(workingdistance*1000)
 		SEMWDPersistance.setNumber(workingDistance)
 		self.print("working distance set to: "+workingDistance)
-
 	}
 
 	void setWDForImaging(object self)
@@ -209,7 +203,6 @@ class SEM_IPrep: object
 		SEMWDPersistance.setNumber(WD1)
 		self.setWDForImaging()
 		self.print("new desired working distance: "+WD1)
-
 	}
 
 	number measureWD(object self)
@@ -252,7 +245,6 @@ class SEM_IPrep: object
 		EMSetStageZ((Z+dist)*1000)
 		if(wait)
 			EMWaitUntilReady()
-
 	}
 
 	void moveXAbs(object self, number dist, number wait)
@@ -277,8 +269,6 @@ class SEM_IPrep: object
 		EMSetStageZ((dist)*1000)
 		if(wait)
 			EMWaitUntilReady()
-
-
 	}
 
 	void moveXYabs(object self, number xdist, number ydist, number wait)
@@ -287,7 +277,6 @@ class SEM_IPrep: object
 		EMSetStageXY(xdist*1000,ydist*1000)
 		if(wait)
 			EMWaitUntilReady()
-
 	}
 
 	// *** high level SEM move commands ***
@@ -299,7 +288,6 @@ class SEM_IPrep: object
 		self.moveZAbs(Znew,1)	
 
 		self.moveXYabs(Xnew,Ynew, 1)
-	
 	}
 
 	void goToCoordsZLast(object self, number Xnew, number Ynew, number Znew)
@@ -317,10 +305,7 @@ class SEM_IPrep: object
 		// only move in XY to prevent messing up focus. 
 
 		self.moveXYabs(Xnew,Ynew, 1)
-		
 	}
-
-
 
 	// *** state transfers ***
 
@@ -345,8 +330,6 @@ class SEM_IPrep: object
 			//print("Z = "+Z+", should be "+aCoord.getZ())
 			return 0
 		}
-
-
 	}
 
 	number checkStateConsistency(object self)
@@ -372,7 +355,6 @@ class SEM_IPrep: object
 			// #easily. assuming it is right
 			return 1
 		}
-
 	}
 
 
@@ -725,7 +707,6 @@ class SEM_IPrep: object
 
 	// *** calibration ***
 
-
 	void saveCurrentAsStoredImaging(object self)
 	{
 		// *** public ***
@@ -770,6 +751,7 @@ class SEM_IPrep: object
 
 	}
 
+	// *** misc ***
 
 	number getShiftX(object self)
 	{

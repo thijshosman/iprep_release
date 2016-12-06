@@ -484,6 +484,14 @@ class SEMCoord: object
 		return df_valid
 	}
 
+	void adjust(object self, object vector)
+	{
+		// adjust the current coord with the vector contained as argument
+		self.print("adjusting current coord (x,y,z) by ("+vector.getX()+","+vector.getY()+", "+vector.getZ()+")")
+		self.corrX(vector.getX())
+		self.corrY(vector.getY())
+		self.corrZ(vector.getZ())
+	}
 
 
 
@@ -514,6 +522,19 @@ class SEMCoord: object
 	}
 }
 
+object SEMCoordFactory(string name)
+{
+	object aCoord = alloc(SEMCoord)
+	aCoord.set(name,0,0,0)
+	return aCoord
+}
+
+object SEMCoordFactory(string name,x,y,z)
+{
+	object aCoord = alloc(SEMCoord)
+	aCoord.set(name,x,y,z)
+	return aCoord
+}
 
 class SEMCoordManager: object
 {
@@ -696,9 +717,11 @@ class SEMCoordManager: object
 			return self.convertTagToCoord(subtag)
 		else
 			return NULL
-
-
 	}
+
+
+
+
 
 	void printAll(object self)
 	{

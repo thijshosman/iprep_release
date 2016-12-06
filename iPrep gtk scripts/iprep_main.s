@@ -260,14 +260,7 @@ number IPrep_recover_deadflag()
 	}
 }
 
-number IPrep_align_applyvectors()
-{
-	// apply vectors based on current mode (ebsd or planar) to calibration points
-}
 
-number IPrep_align_restoredefaults()
-{
-}
 
 number IPrep_align_planar_hack()
 {
@@ -481,69 +474,7 @@ number IPrep_toggle_planar_ebsd(string mode)
 	return returncode
 }
 
-number IPrep_scribemarkVectorCorrection(number x_corr, number y_corr)
-{
-	// adjust nominal_imaging, stored_imaging, highGridFront, highGridBack, pickup_dropoff and clear by vector
-	// called by UI
 
-
-	object scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos")
-	object pickup_dropoff = returnSEMCoordManager().getCoordAsCoord("pickup_dropoff")
-	object clear = returnSEMCoordManager().getCoordAsCoord("clear")
-	object nominal_imaging = returnSEMCoordManager().getCoordAsCoord("nominal_imaging")
-	object StoredImaging = returnSEMCoordManager().getCoordAsCoord("StoredImaging")
-	object highGridFront = returnSEMCoordManager().getCoordAsCoord("highGridFront")
-	object highGridBack = returnSEMCoordManager().getCoordAsCoord("highGridBack")
-
-	
-	// do corrections on these points
-
-	scribe_pos.corrX(x_corr)
-	scribe_pos.corrY(y_corr)
-	print("new corrected scribe_pos: ")
-	scribe_pos.print()
-
-	pickup_dropoff.corrX(x_corr)
-	pickup_dropoff.corrY(y_corr)
-	print("new corrected pickup_dropoff: ")
-	pickup_dropoff.print()
-
-	clear.corrX(x_corr)
-	clear.corrY(y_corr)
-	print("new corrected clear: ")
-	clear.print()
-
-	nominal_imaging.corrX(x_corr)
-	nominal_imaging.corrY(y_corr)
-	print("new corrected nominal_imaging: ")
-	nominal_imaging.print()
-
-	StoredImaging.corrX(x_corr)
-	StoredImaging.corrY(y_corr)
-	print("new corrected StoredImaging: ")
-	StoredImaging.print()
-
-	highGridFront.corrX(x_corr)
-	highGridFront.corrY(y_corr)
-	print("new corrected highGridFront: ")
-	highGridFront.print()
-
-	highGridBack.corrX(x_corr)
-	highGridBack.corrY(y_corr)	
-	print("new corrected highGridBack: ")
-	highGridBack.print()
-
-	// save the points with corrections added
-	returnSEMCoordManager().addCoord(pickup_dropoff)
-	returnSEMCoordManager().addCoord(clear)
-	returnSEMCoordManager().addCoord(nominal_imaging)
-	returnSEMCoordManager().addCoord(StoredImaging)
-	returnSEMCoordManager().addCoord(highGridFront)
-	returnSEMCoordManager().addCoord(highGridBack)
-	returnSEMCoordManager().addCoord(scribe_pos)
-
-	return 1
-}
 
 void IPrep_cleanup()
 {
@@ -711,7 +642,13 @@ Number IPrep_check()
 	// -consistency check 
 	// -pecs vacuum and argon pressure
 	// -end condition met (number of slices)
+	// -dock scribe mark calibrated (as far as we know)
 
+	if(!getDockCalibrationStatus())
+	{
+		print("Dock not calibrated. Please calibrate scribe mark")
+		return 0
+	}
 
 
 	if(!myWorkflow.returnPECS().argonCheck())

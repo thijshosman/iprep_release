@@ -90,6 +90,8 @@ This file describes what all the todos are for the demounit master development b
 - [] consistencychecks should not be done by calling workflow object, but instead should be done through mediator
 - [] add a tag to each image with iprep information (roi name, sem position name, milling time, voltage, angle (if possible))
 - [] run restoregasflow when safetyflags get reset
+- [] allow skipping of everything, including transfers, in workflow with tags
+
 
 *** imaging ***
 - [] order of images in 3D stack is reversed
@@ -150,6 +152,17 @@ Overview:
 (1)- store calibration_coordinates for SEM (scribe_pos_ebsd, scribe_pos_planar, reference_ebsd, reference_planar) and parker (pickup_dropoff_ebsd, pickup_dropoff_planar) in (sem position and numeric) tags. these do NOT change except when alignment changes. these coordinates are determined upon initial alignment (manually moving parker in, figuring out on planar dock what the sem coordinates are to get the scribe mark in the center of the FOV)
 (2)- store mode_vectors for SEM coordinates (ie where is highgridfront with respect to scribe_pos? where is clear with respect to reference?) in (sem position) tags. these are used to reference all workflow coordinates to calibration coordinates. there will be one vector for each workflow coordinate for each mode (so a vector for nominal_imaging for both planar and ebsd mode, for example). these vectors generally don't change. 
 (3)- workflow coordinates are used by sequences. the workflow uses these and does not know of ebsd/planar. these tags do not get changed except by IPrep calibration routines. 
+
+functions: 
+apply_mode_vectors_EBSD() // apply mode_vectors for EBSD dock to calibration_coords (1). overwrites all workflow coordinates (3). parker coordinates get set directly to alignment vectors. 
+
+
+
+apply_mode_vectors_Planar() // apply mode_vectors for Planar dock to calibration_coords (1). overwrites all workflow coordinates (3) and parker coordinates. 
+
+determine_reinsertion_vector() // determine vector (x,y) of shift based on moving scribe mark. right now it will simply be a result of a shift in x and y of one scribe mark, but later this can be more complicated and use 2 points to also take care of rotation. 
+apply_reinsertion_vector() // apply the resinsertion_vector directly to the workflow coordiantes (3)
+
 
 
 use cases:

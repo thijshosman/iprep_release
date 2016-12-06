@@ -15,6 +15,454 @@
 // restoreDefaultVectors(Planar/EBSD): sets (2) to default (hardcoded) values based on dock
 // restoreDefaultAlignment(Planar/EBSD): sets (1) to default (hardcoded) values based on dock
 
+class alignment: object
+{
+	// initial alignment
+	// manages iprep alignment. that includes:
+	// reinsertion dock (minor adjustments)
+	// swapping dock from EBSD to planar and vice versa
+
+	// setSystemMode(mode) // sets mode
+	// getSystemMode() // gets mode 
+
+	// overview of calibration coordinates: 
+	// EBSD
+	// reference_ebsd: calibrated pickup_dropoff position at which gripper arms will close.
+	// scribe_pos_ebsd
+	// Planar
+	// reference_planar
+	// scribe_pos_planar
+
+	// overview of workflow coordinates: 
+	// clear: safe position of dock where arms can open and close. inferred from reference_ebsd or reference_planar (by moving stage down)
+	// pickup_dropoff: inferred from reference_ebsd or reference_planar (ie the same)
+	// scribe_pos: inferred from scribe_pos_ebsd or scribe_pos_planar (ie the same)
+	// nominal_imaging: inferred from scribe_pos_ebsd or scribe_pos_planar
+	// StoredImaging: inferred from scribe_pos_ebsd or scribe_pos_planar
+	// highGridFront: inferred from scribe_pos_ebsd or scribe_pos_planar
+	// highGridBack: inferred from scribe_pos_ebsd or scribe_pos_planar
+
+	// mode vectors for EBSD mode
+	// mode_vector_EBSD_scribe_pos
+	// mode_vector_EBSD_pickup_dropoff 
+	// mode_vector_EBSD_clear
+	// mode_vector_EBSD_nominal_imaging
+	// mode_vector_EBSD_highGridFront
+	// mode_vector_EBSD_highGridBack
+
+	// mode vectors for Planar mode
+	// mode_vector_Planar_scribe_pos
+	// mode_vector_Planar_pickup_dropoff 
+	// mode_vector_Planar_clear
+	// mode_vector_Planar_nominal_imaging
+	// mode_vector_Planar_highGridFront
+	// mode_vector_Planar_highGridBack
+
+
+	// *** helper functions
+
+	void log(object self, number level, string text)
+	{
+		// log events in log files
+		LogEvent("ALIGNMENT", level, text)
+	}
+
+	void print(object self, string text)
+	{
+		// *** public ***
+		result("Alignment: "+text+"\n")
+		self.log(2,text)
+	}
+
+	object adjustCoordByVector(object self, string coordname, string vectorname, string newname)
+	{
+		// *** private ***
+		// retrieve a coord called coordname and update its position with the name of second coord (vector)
+		// set the new coord name as newname and return it
+		self.print("adjusting "+coordname+" with "+vectorname+". new coordname = "+newname)
+		object aVector = returnSEMCoordManager().getCoordAsCoord(vectorname)
+		object aCoord = returnSEMCoordManager().getCoordAsCoord(coordname)
+		aCoord.adjust_plus(aVector)
+		aCoord.setName(newname)
+		return aCoord
+	}
+
+	// *** manual alignment
+	
+	void init_parker_defaults(object self)
+	{
+		// populate the parker positions with default values for EBSD and Planar dock
+		// get the object that manages the parker positions
+		object tr = returnWorkflow().returnTransfer().returnParkerPositions()
+
+		// generic positions
+		tr.savePosition("outofway",0) // home position, without going through homing sequence
+		tr.savePosition("prehome",5) // location where we can move to close to home from where we home
+		tr.savePosition("open_pecs",23.5) // location where arms can open in PECS  // #20150819: was 29, #20150903: was 28
+		tr.savePosition("pickup_pecs",42) // location where open arms can be used to pickup sample // #20150827: was 48.5, #20150903: was 49.5
+		tr.savePosition("beforeGV",100) // location where open arms can be used to pickup sample
+		tr.savePosition("dropoff_pecs",40) // location where sample gets dropped off in PECS // #20150827: was 45.5
+		tr.savePosition("dropoff_pecs_backoff",41) // location where sample gets dropped off in PECS // #20150827: was 46.5
+		tr.savePosition("backoff_sem_ebsd",420) // location where gripper arms can safely open/close in SEM chamber
+		tr.savePosition("dropoff_sem_planar",470.25) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
+		tr.savePosition("pickup_sem_ebsd",470.25) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
+		tr.savePosition("backoff_sem_planar",420) // location where gripper arms can safely open/close in SEM chamber
+		tr.savePosition("dropoff_sem_ebsd",470.25) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
+		tr.savePosition("pickup_sem_planar",470.25) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
+		tr.savePosition("backoff_sem",420) // location where gripper arms can safely open/close in SEM chamber
+		tr.savePosition("dropoff_sem",470.25) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
+		tr.savePosition("pickup_sem",470.25) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
+	}
+
+	void init_mode_vectors(object self)
+	{
+		// populate mode vectors with default values. only intended to be used once. 
+
+		// mode vectors for EBSD mode
+		object mode_vector_EBSD_scribe_pos = SEMCoordFactor("mode_vector_EBSD_scribe_pos")
+		object mode_vector_EBSD_pickup_dropoff = SEMCoordFactor("mode_vector_EBSD_pickup_dropoff")
+		object mode_vector_EBSD_clear = SEMCoordFactor("mode_vector_EBSD_clear")
+		object mode_vector_EBSD_nominal_imaging = SEMCoordFactor("mode_vector_EBSD_nominal_imaging")
+		object mode_vector_EBSD_highGridFront = SEMCoordFactor("mode_vector_EBSD_highGridFront")
+		object mode_vector_EBSD_highGridBack = SEMCoordFactor("mode_vector_EBSD_highGridBack")
+
+		// mode vectors for Planar mode
+		object mode_vector_Planar_scribe_pos = SEMCoordFactor("mode_vector_Planar_scribe_pos")
+		object mode_vector_Planar_pickup_dropoff = SEMCoordFactor("mode_vector_Planar_pickup_dropoff")
+		object mode_vector_Planar_clear = SEMCoordFactor("mode_vector_Planar_clear")
+		object mode_vector_Planar_nominal_imaging = SEMCoordFactor("mode_vector_Planar_nominal_imaging")
+		object mode_vector_Planar_highGridFront = SEMCoordFactor("mode_vector_Planar_highGridFront")
+		object mode_vector_Planar_highGridBack = SEMCoordFactor("mode_vector_Planar_highGridBack")
+
+		// upload all these coords
+		returnSEMCoordManager().addCoord(mode_vector_EBSD_scribe_pos)
+		returnSEMCoordManager().addCoord(mode_vector_EBSD_pickup_dropoff)
+		returnSEMCoordManager().addCoord(mode_vector_EBSD_clear)
+		returnSEMCoordManager().addCoord(mode_vector_EBSD_nominal_imaging)
+		returnSEMCoordManager().addCoord(mode_vector_EBSD_highGridFront)
+		returnSEMCoordManager().addCoord(mode_vector_EBSD_highGridBack)
+		returnSEMCoordManager().addCoord(mode_vector_Planar_scribe_pos)
+		returnSEMCoordManager().addCoord(mode_vector_Planar_pickup_dropoff)
+		returnSEMCoordManager().addCoord(mode_vector_Planar_clear)
+		returnSEMCoordManager().addCoord(mode_vector_Planar_nominal_imaging)
+		returnSEMCoordManager().addCoord(mode_vector_Planar_highGridFront)
+		returnSEMCoordManager().addCoord(mode_vector_Planar_highGridBack)
+	}
+
+	void calibrate_point(object self, string name)
+	{
+		// calibrate the calibration coordinates and workflow coordinates
+		// intention is to first use these for reference and scribe marks upon initial dock calibration
+		// after that, workflow coordinates can be found
+		// only for initializiation
+		// ie, call this one with "highGridFront" when stage is at highGridFront to store it
+		
+		// create a coord of the current SEM position
+		object a = SEMCoordFactory(name,returnWorkflow().returnSEM().getX(),returnWorkflow().returnSEM().getY(),returnWorkflow().returnSEM().getZ())
+		
+		// now add it or overwrite it
+		returnSEMCoordManager().addCoord(a)
+
+		self.print("coordinate just calibrated: ")
+		a.print()
+	}
+
+	void infer_vectors_from_coords()
+	{
+		// figures out all vectors after dock is installed
+		// use this when, after initial dock install, all coordinates on the dock are calibrated. 
+	
+
+
+
+
+	}
+
+
+	// *** methods to be used for calibration after dock swaps
+
+	void set_transfer_to_EBSD(object self)
+	{
+		// *** private ***
+		// set parker workflow positions to EBSD mode positions
+
+		self.print("calibrating for EBSD mode")
+
+		// adjust parker coordinates
+
+		// get the object that manages the parker positions
+		object tr = returnWorkflow().returnTransfer().returnParkerPositions()
+
+		// get the 3 positions we will use		
+		number pos1 = tr.getPosition("backoff_sem_ebsd")
+		number pos2 = tr.getPosition("dropoff_sem_ebsd")
+		number pos3 = tr.getPosition("pickup_sem_ebsd")
+
+		// set them
+		tr.savePosition("backoff_sem",pos1) // location where gripper arms can safely open/close in SEM chamber
+		tr.savePosition("dropoff_sem",pos2) // location where sample gets dropped off (arms will open)  
+		tr.savePosition("pickup_sem",pos3) // location in where sample gets picked up  
+
+		self.print("set parker backoff to "+pos1)
+		self.print("set parker dropoff_sem to "+pos2)
+		self.print("set parker pickup_sem to "+pos3)
+	}
+
+	void set_transfer_to_Planar(object self)
+	{
+		// *** private ***
+		// set parker workflow positions to Planar mode positions
+
+		self.print("calibrating for Planar mode")
+
+		// adjust parker coordinates
+
+		// get the object that manages the parker positions
+		object tr = returnWorkflow().returnTransfer().returnParkerPositions()
+
+		// get the 3 positions we will use		
+		number pos1 = tr.getPosition("backoff_sem_planar")
+		number pos2 = tr.getPosition("dropoff_sem_planar")
+		number pos3 = tr.getPosition("pickup_sem_planar")
+
+		// set them
+		tr.savePosition("backoff_sem",pos1) // location where gripper arms can safely open/close in SEM chamber
+		tr.savePosition("dropoff_sem",pos2) // location where sample gets dropped off (arms will open)  
+		tr.savePosition("pickup_sem",pos3) // location in where sample gets picked up  
+
+		self.print("set parker backoff to "+pos1)
+		self.print("set parker dropoff_sem to "+pos2)
+		self.print("set parker pickup_sem to "+pos3)
+	}
+
+	void apply_mode_vectors_Planar(object self)
+	{
+		// *** public ***
+		// adjust vectors such that the coords the workflow uses are in Planar mode
+		// apply mode_vectors for Planar dock to calibration_coords (1). overwrites all workflow coordinates (3) and parker coordinates.
+		// assumes you are sure of the curent mode and that any verification has already happened
+
+		// now adjust SEM coordinates
+
+		object scribe_pos = self.adjustCoordByVector("scribe_pos_planar","mode_vector_Planar_scribe_pos","scribe_pos")
+		returnSEMCoordManager().addCoord(scribe_pos)
+
+		object pickup_dropoff = self.adjustCoordByVector("reference_planar","mode_vector_Planar_pickup_dropoff","pickup_dropoff")
+		returnSEMCoordManager().addCoord(pickup_dropoff)
+
+		object clear  = self.adjustCoordByVector("reference_planar","mode_vector_Planar_clear","clear")
+		returnSEMCoordManager().addCoord(clear)
+
+		object nominal_imaging  = self.adjustCoordByVector("scribe_pos_planar","mode_vector_Planar_nominal_imaging","nominal_imaging")
+		returnSEMCoordManager().addCoord(nominal_imaging)
+
+		// #todo: update StoredImaging with nominal_imaging
+
+		object highGridFront  = self.adjustCoordByVector("scribe_pos_planar","mode_vector_Planar_highGridFront","highGridFront")
+		returnSEMCoordManager().addCoord(highGridFront)
+
+		object highGridBack  = self.adjustCoordByVector("scribe_pos_planar","mode_vector_Planar_highGridBack","highGridBack")
+		returnSEMCoordManager().addCoord(highGridBack)
+
+
+
+		//object scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos")
+		//object pickup_dropoff = returnSEMCoordManager().getCoordAsCoord("pickup_dropoff")
+		//object clear = returnSEMCoordManager().getCoordAsCoord("clear")
+		//object nominal_imaging = returnSEMCoordManager().getCoordAsCoord("nominal_imaging")
+		//object StoredImaging = returnSEMCoordManager().getCoordAsCoord("StoredImaging")
+		//object highGridFront = returnSEMCoordManager().getCoordAsCoord("highGridFront")
+		//object highGridBack = returnSEMCoordManager().getCoordAsCoord("highGridBack")
+	}
+
+	void apply_mode_vectors_EBSD(object self)
+	{
+		// *** public ***
+		// adjust vectors such that the coords the workflow uses are in EBSD mode
+		// apply mode_vectors for EBSD dock to calibration_coords (1). overwrites all workflow coordinates (3) and parker coordinates.
+		// assumes you are sure of the curent mode and that any verification has already happened
+
+		// now adjust SEM coordinates
+
+		object scribe_pos = self.adjustCoordByVector("scribe_pos_ebsd","mode_vector_EBSD_scribe_pos","scribe_pos")
+		returnSEMCoordManager().addCoord(scribe_pos)
+
+		object pickup_dropoff = self.adjustCoordByVector("reference_ebsd","mode_vector_EBSD_pickup_dropoff","pickup_dropoff")
+		returnSEMCoordManager().addCoord(pickup_dropoff)
+
+		object clear  = self.adjustCoordByVector("reference_ebsd","mode_vector_EBSD_clear","clear")
+		returnSEMCoordManager().addCoord(clear)
+
+		object nominal_imaging  = self.adjustCoordByVector("scribe_pos_ebsd","mode_vector_EBSD_nominal_imaging","nominal_imaging")
+		returnSEMCoordManager().addCoord(nominal_imaging)
+
+		// #todo: update StoredImaging with nominal_imaging
+
+		object highGridFront  = self.adjustCoordByVector("scribe_pos_ebsd","mode_vector_EBSD_highGridFront","highGridFront")
+		returnSEMCoordManager().addCoord(highGridFront)
+
+		object highGridBack  = self.adjustCoordByVector("scribe_pos_ebsd","mode_vector_EBSD_highGridBack","highGridBack")
+		returnSEMCoordManager().addCoord(highGridBack)
+	}
+
+	number apply_reinsertion_vector(object self, x_corr, y_corr)
+	{
+		// apply an x,y vector to all points. x,y are in mm
+
+		if (abs(x_corr) > 2 || abs(y_corr) > 2)
+		{
+			self.print("correction vector too large: ("+x_corr+","+y_corr+")")
+			return 0
+		}
+		else
+		{
+			self.print("applying correction vector ("+x_corr+","+y_corr+") to workflow coordinates")
+		}
+
+		object scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos")
+		object pickup_dropoff = returnSEMCoordManager().getCoordAsCoord("pickup_dropoff")
+		object clear = returnSEMCoordManager().getCoordAsCoord("clear")
+		object nominal_imaging = returnSEMCoordManager().getCoordAsCoord("nominal_imaging")
+		object StoredImaging = returnSEMCoordManager().getCoordAsCoord("StoredImaging")
+		object highGridFront = returnSEMCoordManager().getCoordAsCoord("highGridFront")
+		object highGridBack = returnSEMCoordManager().getCoordAsCoord("highGridBack")
+	
+		// do corrections on these points
+
+		scribe_pos.corrX(x_corr)
+		scribe_pos.corrY(y_corr)
+		print("new corrected scribe_pos: ")
+		scribe_pos.print()
+
+		pickup_dropoff.corrX(x_corr)
+		pickup_dropoff.corrY(y_corr)
+		print("new corrected pickup_dropoff: ")
+		pickup_dropoff.print()
+
+		clear.corrX(x_corr)
+		clear.corrY(y_corr)
+		print("new corrected clear: ")
+		clear.print()
+
+		nominal_imaging.corrX(x_corr)
+		nominal_imaging.corrY(y_corr)
+		print("new corrected nominal_imaging: ")
+		nominal_imaging.print()
+
+		StoredImaging.corrX(x_corr)
+		StoredImaging.corrY(y_corr)
+		print("new corrected StoredImaging: ")
+		StoredImaging.print()
+
+		highGridFront.corrX(x_corr)
+		highGridFront.corrY(y_corr)
+		print("new corrected highGridFront: ")
+		highGridFront.print()
+
+		highGridBack.corrX(x_corr)
+		highGridBack.corrY(y_corr)	
+		print("new corrected highGridBack: ")
+		highGridBack.print()
+
+		// save the points with corrections added
+		returnSEMCoordManager().addCoord(pickup_dropoff)
+		returnSEMCoordManager().addCoord(clear)
+		returnSEMCoordManager().addCoord(nominal_imaging)
+		returnSEMCoordManager().addCoord(StoredImaging)
+		returnSEMCoordManager().addCoord(highGridFront)
+		returnSEMCoordManager().addCoord(highGridBack)
+		returnSEMCoordManager().addCoord(scribe_pos)
+
+		self.print("done applying reinsertion vector to workflow coordinates")
+
+		return 1
+	}
+
+	// high level functions
+
+	void change_to_ebsd(object self)
+	{
+		// *** public ***
+		// intended to be used to swap mode from planar to ebsd
+
+		// first, change the transfer system coords
+		self.set_transfer_to_EBSD()
+
+		// now, we apply the vectors to the calibration coordinates
+		self.apply_mode_vectors_EBSD()
+
+		// done, system in EBSD mode
+		setSystemMode("ebsd")
+
+		// since we switched mode, we are uncalibrated
+		setDockCalibrationStatus(0)
+	
+	}
+
+	void change_to_planar(object self)
+	{
+		// *** public ***
+		// intended to be used to swap mode from ebsd to planar
+
+		// first, change the transfer system coords
+		self.set_transfer_to_Planar()
+
+		// now, we apply the vectors to the calibration coordinates
+		self.apply_mode_vectors_Planar()
+
+		// done, system in Planar mode
+		setSystemMode("planar")
+
+		// since we switched mode, we are uncalibrated
+		setDockCalibrationStatus(0)
+	
+	}
+
+
+
+
+
+	number reinsert_dock(object self)
+	{
+		// call when dock reinserted
+		// does the following things: 
+
+		// measure mode of current
+		string detectedMode =  returnMediator().detectMode()
+
+		if (detectedMode == getSystemMode())
+		{
+			// system is configured to use currently installed dock
+			// just apply reinsertion vectors
+			if (getSystemMode() == "ebsd")
+			{
+
+			}
+			else if (getSystemMode() == "planar")
+			{
+
+			}
+		}
+
+
+		// check if mode matches current_calibration_mode tag matches this mode
+		// if it matches, continue
+		// if not, change mode by applying correct vectors for this mode
+		// go to scribe mark 
+		// determine reinsertion vector
+		// apply this vector to these modes workflow coords
+		// verify scribe marks/grids
+	}
+
+	number 
+
+
+}
+
+
+
+
+
 void restoreDefaultAlignmentPlanar()
 {
 // restore reference and scribe pos 
@@ -43,9 +491,9 @@ void setTransferPositionsPlanar()
 	self.print("setDefaultPositions: setting default positions for use with Planar dock ")
 	// #todo: get this from global tag instead of hardcoded value
 
-	myTransfer.setPositionTag("backoff_sem",420) // location where gripper arms can safely open/close in SEM chamber
-	myTransfer.setPositionTag("dropoff_sem",470.25) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
-	myTransfer.setPositionTag("pickup_sem",470.25) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
+	tr.savePosition("backoff_sem",420) // location where gripper arms can safely open/close in SEM chamber
+	tr.savePosition("dropoff_sem",470.25) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
+	tr.savePosition("pickup_sem",470.25) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
 	
 }
 
@@ -55,9 +503,9 @@ void setTransferPositionsEBSD()
 	self.print("setDefaultPositions: setting positions for use with EBSD dock ")
 	// #todo: get this from global tag instead of hardcoded value
 
-	myTransfer.setPositionTag("backoff_sem",420) // location where gripper arms can safely open/close in SEM chamber
-	myTransfer.setPositionTag("dropoff_sem",513) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
-	myTransfer.setPositionTag("pickup_sem",513) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
+	tr.savePosition("backoff_sem",420) // location where gripper arms can safely open/close in SEM chamber
+	tr.savePosition("dropoff_sem",513) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
+	tr.savePosition("pickup_sem",513) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
 }
 
 void setDefaultPositionsDovetail()
@@ -67,13 +515,13 @@ void setDefaultPositionsDovetail()
 	self.print("setting generic positions (dovetail, home etc.)")
 
 	// generic positions
-	myTransfer.setPositionTag("outofway",0) // home position, without going through homing sequence
-	myTransfer.setPositionTag("prehome",5) // location where we can move to close to home from where we home
-	myTransfer.setPositionTag("open_pecs",23.5) // location where arms can open in PECS  // #20150819: was 29, #20150903: was 28
-	myTransfer.setPositionTag("pickup_pecs",42) // location where open arms can be used to pickup sample // #20150827: was 48.5, #20150903: was 49.5
-	myTransfer.setPositionTag("beforeGV",100) // location where open arms can be used to pickup sample
-	myTransfer.setPositionTag("dropoff_pecs",40) // location where sample gets dropped off in PECS // #20150827: was 45.5
-	myTransfer.setPositionTag("dropoff_pecs_backoff",41) // location where sample gets dropped off in PECS // #20150827: was 46.5
+	tr.savePosition("outofway",0) // home position, without going through homing sequence
+	tr.savePosition("prehome",5) // location where we can move to close to home from where we home
+	tr.savePosition("open_pecs",23.5) // location where arms can open in PECS  // #20150819: was 29, #20150903: was 28
+	tr.savePosition("pickup_pecs",42) // location where open arms can be used to pickup sample // #20150827: was 48.5, #20150903: was 49.5
+	tr.savePosition("beforeGV",100) // location where open arms can be used to pickup sample
+	tr.savePosition("dropoff_pecs",40) // location where sample gets dropped off in PECS // #20150827: was 45.5
+	tr.savePosition("dropoff_pecs_backoff",41) // location where sample gets dropped off in PECS // #20150827: was 46.5
 
 
 
@@ -317,7 +765,69 @@ void calibrateCoordsPlanar()
 
 	}
 
+number IPrep_scribemarkVectorCorrection(number x_corr, number y_corr)
+{
+	// adjust nominal_imaging, stored_imaging, highGridFront, highGridBack, pickup_dropoff and clear by vector
+	// called by UI
 
+
+	object scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos")
+	object pickup_dropoff = returnSEMCoordManager().getCoordAsCoord("pickup_dropoff")
+	object clear = returnSEMCoordManager().getCoordAsCoord("clear")
+	object nominal_imaging = returnSEMCoordManager().getCoordAsCoord("nominal_imaging")
+	object StoredImaging = returnSEMCoordManager().getCoordAsCoord("StoredImaging")
+	object highGridFront = returnSEMCoordManager().getCoordAsCoord("highGridFront")
+	object highGridBack = returnSEMCoordManager().getCoordAsCoord("highGridBack")
+
+	
+	// do corrections on these points
+
+	scribe_pos.corrX(x_corr)
+	scribe_pos.corrY(y_corr)
+	print("new corrected scribe_pos: ")
+	scribe_pos.print()
+
+	pickup_dropoff.corrX(x_corr)
+	pickup_dropoff.corrY(y_corr)
+	print("new corrected pickup_dropoff: ")
+	pickup_dropoff.print()
+
+	clear.corrX(x_corr)
+	clear.corrY(y_corr)
+	print("new corrected clear: ")
+	clear.print()
+
+	nominal_imaging.corrX(x_corr)
+	nominal_imaging.corrY(y_corr)
+	print("new corrected nominal_imaging: ")
+	nominal_imaging.print()
+
+	StoredImaging.corrX(x_corr)
+	StoredImaging.corrY(y_corr)
+	print("new corrected StoredImaging: ")
+	StoredImaging.print()
+
+	highGridFront.corrX(x_corr)
+	highGridFront.corrY(y_corr)
+	print("new corrected highGridFront: ")
+	highGridFront.print()
+
+	highGridBack.corrX(x_corr)
+	highGridBack.corrY(y_corr)	
+	print("new corrected highGridBack: ")
+	highGridBack.print()
+
+	// save the points with corrections added
+	returnSEMCoordManager().addCoord(pickup_dropoff)
+	returnSEMCoordManager().addCoord(clear)
+	returnSEMCoordManager().addCoord(nominal_imaging)
+	returnSEMCoordManager().addCoord(StoredImaging)
+	returnSEMCoordManager().addCoord(highGridFront)
+	returnSEMCoordManager().addCoord(highGridBack)
+	returnSEMCoordManager().addCoord(scribe_pos)
+
+	return 1
+}
 
 
 
