@@ -99,8 +99,13 @@ class gripper:object
 			state = "open"
 		else if (open == 0 && close == 1)
 			state = "closed"
-		else 
+		else if (open == 1 && close == 1
 			state = "inbetween"
+		else
+		{
+			state = "invalid"
+			throw("invalid state, open and closed sensors engaged at the same time")
+		}
 
 		if (view == 1)
 			self.print("GRIPPER: bitstr: "+bitStr+", current state is "+state+"; individual sensors: open: "+open+", close: "+close)
