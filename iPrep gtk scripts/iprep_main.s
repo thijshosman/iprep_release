@@ -380,8 +380,8 @@ number IPrep_init()
 	}
 	catch
 	{
-		print("exception during init"+ GetExceptionString())
-		okdialog("exception during init"+ GetExceptionString())
+		print("exception during init: "+ GetExceptionString())
+		okdialog("exception during init: "+ GetExceptionString())
 		break
 		
 	}

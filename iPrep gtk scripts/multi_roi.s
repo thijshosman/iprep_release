@@ -341,7 +341,16 @@ object ROIFactory(number type, string name1)
 		aROI.setCoordName(name1) // coord has same name as ROI
 		aROI.setEnabled(1) // enable by default
 		aROI.setFocus(9.7) // default focus
-		aROI.setDigiscanParam(GetTagGroup("Private:DigiScan:DigiScan 2:Setup:Record")) // default, 'capture' (2)
+		try 
+		{
+			aROI.setDigiscanParam(GetTagGroup("Private:DigiScan:DigiScan 2:Setup:Record")) // default, 'capture' (2)
+		}
+		catch
+		{
+			result("ROI: Digiscan global tags not found, silently ignoring, ROI will have no digiscan tags")
+			break
+		}
+
 		aROI.setOrder(0) // default order
 		return aROI
 	}

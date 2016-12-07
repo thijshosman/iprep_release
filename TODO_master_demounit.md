@@ -65,6 +65,7 @@ This file describes what all the todos are for the demounit master development b
 - [x] find a way to put order in ROI and have ROI manager order them when returning them
 - [x] ability to autofocus every x slices, and always autofocus when start is pressed
 - [] allow AF on separate ROI every n slices without imaging any of the other times
+- [] have an IPrep taggroup for default digiscan parameters. use this instead of the global one since that one does not exist on systems without digiscan isntalled (which needs to work as simulator, on ie my laptop)
 
 *** workflow/main ***
 - [x] make sure that pecs is idle before a transfer to make sure we are not transfering during milling

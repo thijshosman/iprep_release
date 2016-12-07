@@ -483,7 +483,7 @@ class SEMCoord: object
 	{
 		return df_valid
 	}
-
+/*
 	void adjust(object self, object vector)
 	{
 		// adjust the current coord with the vector contained as argument
@@ -492,7 +492,7 @@ class SEMCoord: object
 		self.corrY(vector.getY())
 		self.corrZ(vector.getZ())
 	}
-
+*/
 
 
 	void print(object self)
@@ -529,7 +529,7 @@ object SEMCoordFactory(string name)
 	return aCoord
 }
 
-object SEMCoordFactory(string name,x,y,z)
+object SEMCoordFactory(string name,number x,number y,number z)
 {
 	object aCoord = alloc(SEMCoord)
 	aCoord.set(name,x,y,z)

@@ -253,12 +253,6 @@ class digiscan_iprep : object
 	void acquire(object self)
 	{
 		// *** public ***
-		// acquires 2 images, one for detector 1 and one for detector 2
-		//if (configured == 0)
-		//{
-		//	self.print("digiscan not configured!")
-	//		return
-		//}
 
 		if (configured0 == 1 || configured1 == 1)
 		{

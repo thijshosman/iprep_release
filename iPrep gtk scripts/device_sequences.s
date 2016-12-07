@@ -1315,7 +1315,7 @@ class image_single_old: deviceSequence
 		return 1
 	}
 }
-
+/*
 class image_test: deviceSequence
 {
 	// declare object since it is used below
@@ -1396,7 +1396,8 @@ class image_test: deviceSequence
 		return 1
 	}
 }
-
+*/
+/*
 class image_double: deviceSequence
 {
 	// declare object since it is used below
@@ -1603,7 +1604,7 @@ class image_double: deviceSequence
 		return 1
 	}
 }
-
+*/
 class image_iter: deviceSequence
 {
 	// declare object since it is used below

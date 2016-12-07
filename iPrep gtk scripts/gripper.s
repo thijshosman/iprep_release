@@ -84,7 +84,13 @@ class gripper:object
 		// *** private ***
 		// check state from sensor input
 		string bitStr
+		string bitStr_extra
 		bitStr = self.sensorToBitStr()
+		bitStr_extra = self.sensorToBitStr()
+		
+		if (bitStr != bitStr_extra)
+			self.print("warning, 2 sensor reads not equal: "+bitStr+", "+bitStr_extra)
+
 		//self.print(bitStr)
 
 		number open 
@@ -99,7 +105,7 @@ class gripper:object
 			state = "open"
 		else if (open == 0 && close == 1)
 			state = "closed"
-		else if (open == 1 && close == 1
+		else if (open == 1 && close == 1)
 			state = "inbetween"
 		else
 		{

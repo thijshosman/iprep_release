@@ -385,7 +385,10 @@ void IPrep_setScribeROI(void)
 
 
 		if (okcanceldialog("Did the stage move the scribe mark to the center of the live view image?"))
-			IPrep_scribemarkVectorCorrection(-x_cal/1000,-y_cal/1000)
+			//IPrep_scribemarkVectorCorrection(-x_cal/1000,-y_cal/1000)
+		{
+			sleep(0.1)
+		}
 		else
 		{
 			result("not succeeded, user did not accept change\n")	
