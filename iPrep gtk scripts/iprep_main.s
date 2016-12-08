@@ -669,6 +669,7 @@ Number IPrep_check()
 		return 0
 	}
 
+	print("IPrep check finished!")
 
 	// SEM status:
 	// - working distance active check
@@ -754,10 +755,10 @@ Number IPrep_StartResumeGeneric()
 	}
 	catch
 	{
-		// system caught unhandled exception and is now considered dead/unsafe
+
 		print(GetExceptionString())
-		returnDeadFlag().setDeadUnSafe()
-		okdialog("something went wrong in starting run: "+GetExceptionString()+"\n"+"system now dead/unsafe")
+
+		okdialog("something went wrong in starting run: "+GetExceptionString()+"\n")
 		break // so that flow continues
 
 	}
@@ -774,37 +775,32 @@ Number IPrep_StartRun()
 	number returncode = 0
 	string popuperror
 
-	if (!returnDeadFlag().checkAliveAndSafe())
-		{
-			popuperror = "system dead and/or unsafe. cannot start"
-			okdialog(popuperror)
-			return returncode // to indicate error
-		}
+	try
+	{
 
-	if(!IPrep_consistency_check())
-		{
-			popuperror = "consistency check failed, check log. cannot start"
-			okdialog(popuperror)
-			return returncode // to indicate error
-		}
 
-	if(!IPrep_check())
-		{
-			popuperror = "check failed, check log. cannot start"
-			okdialog(popuperror)
-			return returncode // to indicate error
-		}
+		result("about to start debug\n")
 
-	// reload sequences to pick up on changes
-	// init state machine sequences with already initialized subsystems. also reinits 3d volumes used
-	myStateMachine.init(myWorkflow)
+		// reload sequences to pick up on changes
+		// init state machine sequences with already initialized subsystems. also reinits 3d volumes used
+		myStateMachine.init(myWorkflow)
 
-	// show 3D stacks based on just enabled sequences/ROIs
-	//returnVolumeManager().showAll()
+		// show 3D stacks based on just enabled sequences/ROIs
+		//returnVolumeManager().showAll()
 
-	IPrep_StartResumeGeneric()
+		IPrep_StartResumeGeneric()
 
-	
+		returncode = 1 // to indicate success
+
+	}
+	catch
+	{
+		print(GetExceptionString())
+
+		okdialog("something went wrong in starting run: "+GetExceptionString()+"\n")
+		break // so that flow continues
+
+	}
 }
 
 Number IPrep_PauseRun()

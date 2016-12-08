@@ -89,10 +89,10 @@ This file describes what all the todos are for the demounit master development b
 - [] we want to make sure that an error during the workflow, ie something that puts system in dead state, generates a popup dialog that user sees
 - [] right now iprep_image puts the lastcompleted step at image, think about if you want to do this. it does allow manipulation of where workflow picks up
 - [] consistencychecks should not be done by calling workflow object, but instead should be done through mediator
-- [] add a tag to each image with iprep information (roi name, sem position name, milling time, voltage, angle (if possible))
-- [] run restoregasflow when safetyflags get reset
-- [] allow skipping of everything, including transfers, in workflow with tags
-
+- [x] add a tag to each image with iprep information (roi name, sem position name, milling time, voltage, angle (if possible))
+- [x] run restoregasflow when safetyflags get reset
+- [x] allow skipping of everything, including transfers, in workflow with tags
+- [] checks when resuming/starting need cleaning up 
 
 *** imaging ***
 - [] order of images in 3D stack is reversed

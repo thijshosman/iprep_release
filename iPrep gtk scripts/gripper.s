@@ -110,12 +110,50 @@ class gripper:object
 		else
 		{
 			state = "invalid"
-			throw("invalid state, open and closed sensors engaged at the same time")
+			//throw("invalid state, open and closed sensors engaged at the same time")
 		}
 
 		if (view == 1)
 			self.print("GRIPPER: bitstr: "+bitStr+", current state is "+state+"; individual sensors: open: "+open+", close: "+close)
 		
+	}
+
+	string lookupStateNTimes(object self, number n)
+	{
+		// *** private ***
+		// check state from sensor input n times
+		string bitStr
+		number open1
+		number closed1
+
+		//bitStr = self.sensorToBitStr()
+
+		number i
+		for (i=0; i<n; i++)
+		{
+			bitStr = self.sensorToBitStr()
+			open1 = open1 + val(chr(bitStr[1]))
+			closed1 = closed1 + val(chr(bitStr[0]))
+		}
+		
+		number openSum = open1/n
+		number closedSum = closed1/n 
+
+		self.print("sum of "+n+" readings. open: "+openSum+", closed: "+closedSum)
+
+		if (openSum == 1 && closedSum != 1) // assume open
+		{
+			return "open"	
+		}
+		else if (closedSum == 1 && openSum != 1) // assume closed
+		{
+			return "closed"
+		}
+		else
+		{
+			return "undefined"
+		}
+
 	}
 
 	void init(object self)
@@ -199,8 +237,6 @@ class gripper:object
 			self.sendCommand("T")
 			self.sendCommand("T")
 
-			// update tag with new state
-			//gripperPersistance.setState("open")
 			sleep(0.1)
 			return
 		}
@@ -266,8 +302,6 @@ class gripper:object
 			self.sendCommand("T")
 			self.sendCommand("T")			
 
-			// update tag with new state
-			//gripperPersistance.setState("closed")
 			sleep(0.1)
 			return
 		}
@@ -285,6 +319,18 @@ class gripper:object
 			self.open_once()
 			break
 		}
+
+		// check if state is really what it is supposed to be; if not, try again, if it fails again, throw exception
+		sleep(2)
+		if (self.lookupStateNTimes(5) != "open")
+		{
+			self.print("opening failed first time, trying again")
+			self.open_once()
+			self.lookupState(0)
+			if (state != "open")
+				throw("gripper does not reflect open state after 2 tries")
+		}
+
 	}
 
 
@@ -298,6 +344,16 @@ class gripper:object
 			self.open_once()
 			self.close_once()
 			break
+		}
+		// check if state is really what it is supposed to be; if not, try again, if it fails again, throw exception
+		sleep(2)
+		if (self.lookupStateNTimes(5) != "closed")
+		{
+			self.print("closing failed first time, trying again")
+			self.close_once()
+			self.lookupState(0)
+			if (state != "closed")
+				throw("gripper does not reflect closed state after 2 tries")
 		}
 	}
 
