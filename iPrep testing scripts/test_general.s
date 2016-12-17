@@ -94,7 +94,7 @@ try
 /*
 	number i
 
-	for (i=0;i<100;i++)
+	for (i=0;i<10;i++)
 	{
 
 		try
@@ -103,6 +103,7 @@ try
 			myWorkflow.returnGripper().open()		
 			myWorkflow.returnGripper().close()
 			myWorkflow.returnGripper().lookupState(1)
+			myWorkflow.returnGripper().lookupStateNTimes(5)
 		}
 		catch
 		{
@@ -224,6 +225,37 @@ try
 
 */
 
+// *** recover from closing gripper on way to pecs 20161208 ***
+
+/*	
+	myWorkflow.returnSEM().goToClear()
+	myWorkflow.returnTransfer().move("beforeGV")  
+	myWorkflow.returnTransfer().move("dropoff_pecs") // location where sample gets dropped off in PECS
+    myWorkflow.returnTransfer().move("dropoff_pecs_backoff") // location where sample gets dropped off in PECS
+	myWorkflow.returnGripper().open()	
+	myWorkflow.returnTransfer().move("open_pecs")
+	myWorkflow.returnGripper().close()
+	myWorkflow.returnTransfer().home()
+	myWorkflow.returnSEMDock().clamp()
+	myWorkflow.returnPecs().closeGVandCheck()
+	myStateMachine.changeWorkflowState("PECS")
+*/	
+
+// *** recover from closing gripper on way to sem 20161209 ***
+
+/*	
+	myWorkflow.returnGripper().open()	
+	myWorkflow.returnTransfer().move("backoff_sem")  
+	myWorkflow.returnSEM().goToClear()
+	myWorkflow.returnGripper().close()
+	myWorkflow.returnTransfer().move("beforeGV") 
+	myWorkflow.returnTransfer().home()
+	myWorkflow.returnSEMDock().clamp()
+	myWorkflow.returnPecs().closeGVandCheck()
+	myWorkflow.returnSEM().goToNominalImaging()
+	myStateMachine.changeWorkflowState("SEM")
+	
+*/	
 
 
 /////////////////////////////	
@@ -250,7 +282,7 @@ try
 	
 	myWorkflow.returnGripper().lookupState(1)
 	//myWorkflow.returnGripper().open()		
-	myWorkflow.returnGripper().close()
+	//myWorkflow.returnGripper().close()
 	//myWorkflow.returnGripper().lookupState(1)
 	myWorkflow.returnGripper().lookupStateNTimes(5)
 	
@@ -307,14 +339,14 @@ try
 	//myWorkflow.returnTransfer().home()
 	//myWorkflow.returnTransfer().move("outofway")   // home position, without going through homing sequence
    // myWorkflow.returnTransfer().move("prehome")    // location where we can move to close to home from where we home
-  //myWorkflow.returnTransfer().move("open_pecs")  // location where arms can open in PECS	
+    //myWorkflow.returnTransfer().move("open_pecs")  // location where arms can open in PECS	
    //myWorkflow.returnTransfer().move("pickup_pecs") // location where open arms can be used to pickup sample	
 	//myWorkflow.returnTransfer().move("beforeGV")    // location where open arms can be used to pickup sample
 	//myWorkflow.returnTransfer().move("dropoff_sem") // location where sample gets dropped off (arms will open)
     //myWorkflow.returnTransfer().move("pickup_sem")  // location in where sample gets picked up
     //myWorkflow.returnTransfer().move("backoff_sem") // location where gripper arms can safely open/close in SEM chamber
     //myWorkflow.returnTransfer().move("dropoff_pecs") // location where sample gets dropped off in PECS
-   //myWorkflow.returnTransfer().move("dropoff_pecs_backoff") // location where sample gets dropped off in PECS
+    //myWorkflow.returnTransfer().move("dropoff_pecs_backoff") // location where sample gets dropped off in PECS
     //myWorkflow.returnTransfer().turnOff()  // turn off Parker to stop noise
     //myWorkflow.returnTransfer().move("test")  // test location from tags  
 	//result(MyWorkflow.returnTransfer().getCurrentPosition())
@@ -362,6 +394,8 @@ try
 	//myWorkflow.returnSEM().goToHighGridFront()
 	//myWorkflow.returnSEM().goToLowerGrid()
 	//myWorkflow.returnSEM().goToScribeMark()
+	
+	//myWorkflow.returnSEM().HVOn()
 	
 	//myWorkflow.returnSEM().uncoupleFWD() // doesn't work on quanta, works on nova
 	//myWorkflow.returnSEM().coupleFWD()

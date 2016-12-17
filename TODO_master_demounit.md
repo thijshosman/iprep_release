@@ -99,20 +99,20 @@ This file describes what all the todos are for the demounit master development b
 - [] starting iprep_image from menu increases slice number. it is not supposed to do that
 - [x] create factory class for image sequence for multiple ROIs
 - [x] find a way to make sure that image step does not cause dead state when that is not really needed
-- [] create a 3D volume stack manager that can be properly initialized and resumed
+- [x] create a 3D volume stack manager that can be properly initialized and resumed
 - [x] 3D stack: every ROI needs a stack. a manager returns a handle to the right stack by name. name of stack is name of ROI. these all need to be initialized. when they are closed they remain closed until re-initialized manually (for now). size of each stack is the same and is set by a global tag
 - [x] 3D stack: init 3D stack as part of init method of device sequences. the sequence will init the right sequence. 
-- [] 3D stack: when initting a stack, don't open a new one every time system resumes. check if it is already open and if it is, use it if the details fit. this can be handled by VolumeManager. 
+- [x] 3D stack: when initting a stack, don't open a new one every time system resumes. check if it is already open and if it is, use it if the details fit. this can be handled by VolumeManager. 
 - [] 3D stack: it always opens one for after milling and before milling. this should only happen if they are actually enabled
 - [x] 3D stack: all init methods to factory, not volume class. class should know nothing of rois
-- [] 3D stack: open a different stack for each signal if 2 signals are acquired in digiscan. 
+- [x] 3D stack: open a different stack for each signal if 2 signals are acquired in digiscan. 
 - [] 3D stack: when workflow starts (but not resumes), check that all 3D stacks are correctly based on the current acquisition data. right now, they are initialized (but not shown) when the workflow initializes because that is easy, but that is wrong. create a function init_3d_stacks() based on what is enabled, infer image sizes from digiscan tags/capture settings and init some 3d volumes. call this function when iprep_start() is executed
 	ROIManager will be able to return all enabled ROIs and signals. This is known when IPrep_startrun is called (this function inits the statemachine (again, already happened in iprepinit, but just in case something changed)), so we can at this moment create a list of all ROIs and signals (format TBD). iprepstart will (re-)init the 3d volumes and show them. iprepresume will only show them. 3d volume init happens in sequence config. so all we need is a way for the sequence to know, at config time, which 3d volumes to enable and how to find them. best is probably to use a list with objects that only contain a string. this means: 3dvolumemanager looks at roimanager and infers this object list. we use a hash to combine roiname and signalname
 - [] 3D stack: now init all rois clears list, pecs images/sequence init has to be executed AFTER sem images init. fix this
 - [x] IPrep tag on each image. contains information on: entire ROI tag, focus, slice number
 - [] make EBSD a special condition of imaging, not a separate step. allow only 1 EBSD ROI. details to follow
 - [] name all EBSD functions to new ones from Mingkai
-
+- [] exhaustively test 3d volume manager with multiple rois and signals
 
 *** UI ***
 - [x] add iprep autofocus as a menu item

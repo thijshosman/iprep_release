@@ -3,7 +3,7 @@ class gripper:object
 {
 
 	string state
-	number address, timeout
+	number address, timeout, timeout_2
 	string cmd,reply
 	object gripperPersistance
 	object myMediator
@@ -329,6 +329,8 @@ class gripper:object
 			self.lookupState(0)
 			if (state != "open")
 				throw("gripper does not reflect open state after 2 tries")
+			else
+				self.print("now opening succeeded")	
 		}
 
 	}
@@ -346,14 +348,18 @@ class gripper:object
 			break
 		}
 		// check if state is really what it is supposed to be; if not, try again, if it fails again, throw exception
-		sleep(2)
+		
 		if (self.lookupStateNTimes(5) != "closed")
 		{
-			self.print("closing failed first time, trying again")
+			self.print("closing failed first time, trying again after 10 seconds")
+			sleep(10)
+			self.open_once()
 			self.close_once()
 			self.lookupState(0)
 			if (state != "closed")
 				throw("gripper does not reflect closed state after 2 tries")
+			else
+				self.print("now closing succeeded")
 		}
 	}
 
