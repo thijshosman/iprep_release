@@ -29,19 +29,7 @@ class SEM_IPrep: object
 	// pickup_dropoff
 	// imaging
 
-	//object mySEMCoordManager
-
-	// coordinate objects
-	//object reference
-	//object scribe_pos
-	//object fwdGrid
-	//object pickup_dropoff
-	//object clear
-	//object nominal_imaging
-	//object StoredImaging
-	//object highGridFront
-	//object highGridBack
-	//object lowerGrid
+	string currentImagingPosition
 
 	number blankState
 	number HVState
@@ -64,6 +52,16 @@ class SEM_IPrep: object
 	string getState(object self)
 	{
 		return state
+	}
+
+	string getCurrentImagingPosition(object self)
+	{
+		return currentImagingPosition
+	}
+
+	void setCurrentImagingPosition(object self, string name1)
+	{
+		currentImagingPosition = name1
 	}
 
 	void log(object self, number level, string text)
@@ -462,10 +460,12 @@ class SEM_IPrep: object
 		if (state == "clear")
 		{
 			self.goToCoordsZFirst(nominal_imaging.getX(),nominal_imaging.getY(),nominal_imaging.getZ())
+			self.setCurrentImagingPosition("nominal_imaging")
 		}
 		else if (state == "imaging")
 		{
 			self.goToCoordsZFirst(nominal_imaging.getX(),nominal_imaging.getY(),nominal_imaging.getZ())
+			self.setCurrentImagingPosition("nominal_imaging")
 		}
 		else
 			throw("not allowed to go to imaging point. current state: " +state)
@@ -654,6 +654,7 @@ class SEM_IPrep: object
 		{
 			self.goToCoordsXY(StoredImaging.getX(),StoredImaging.getY()) 
 			self.print("at stored imaging point")
+			self.setCurrentImagingPosition("StoredImaging")
 		}
 		else 
 			throw("not allowed to go to stored imaging state coming from state: " +state)
@@ -694,6 +695,9 @@ class SEM_IPrep: object
 		{
 			self.goToCoordsXY(imagingCoord.getX(),imagingCoord.getY()) 
 			self.print("at "+imagingCoord.getName())
+
+			// set name
+			self.setCurrentImagingPosition(imagingCoord.getName())
 		}
 		else 
 			throw("not allowed to go to stored imaging state coming from state: " +state)
@@ -721,7 +725,7 @@ class SEM_IPrep: object
 		StoredImaging.print()
 
 		returnSEMCoordManager().addCoord(StoredImaging)
-
+		self.setCurrentImagingPosition("StoredImaging") // to make sure system knows we are there
 		
 
 	}

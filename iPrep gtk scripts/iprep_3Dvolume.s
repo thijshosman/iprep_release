@@ -9,6 +9,19 @@ class IPrep_3Dvolume: object
 	number x,y
 	string name
 
+	void log(object self, number level, string text)
+	{
+		// log events in log files
+		LogEvent("3DVolume", level, text)
+	}
+
+	void print(object self, string printstr)
+	{
+		result("3DVolume: "+printstr+"\n")
+		self.log(2,printstr)
+	}
+
+
 	string getName(object self)
 	{
 		return name
@@ -32,6 +45,7 @@ class IPrep_3Dvolume: object
 		iprep_volume := RealImage(name1, 4, x1,y1,slices1)
 		x=x1
 		y=y1
+		self.print("created real volume "+name1+", "+slices1+" slices, "+x1+" by "+y1+". ")
 	}
 
 	void initColor(object self, string name1, number slices1, number x1, number y1)
@@ -44,45 +58,9 @@ class IPrep_3Dvolume: object
 		iprep_volume := RGBImage(name1, 4, x1,y1,slices1)
 		x=x1
 		y=y1
+		self.print("created color volume "+name1+", "+slices1+" slices, "+x1+" by "+y1+". ")
 	}
-/*
-	void init(object self, object ROI, number slices1)
-	{
-		// init a stack based on the ROI object supplied
 
-		// #todo: why not use something other than real? 
-		// #todo: migrate to factory
-		name = ROI.getName()+"_stack"
-		slices = slices1
-		self.initReal(ROI.getName(), slices, ROI.getDigiscanX(), ROI.getDigiscanY())
-
-	}
-*/
-	// old init methods, now used by factory
-/*
-	void initSEM_3D(object self,number slices1, number x1, number y1)
-	{
-		// *** public ***
-		// init SEM stack
-
-		slices = slices1
-		iprep_volume := RealImage("sem_3D", 4, x1,y1,slices)
-		x=x1
-		y=y1
-	}	
-
-	void initPECS_3D(object self,number slices1)
-	{
-		// *** public ***
-		// init PECS stack
-		number x1, y1
-		slices = slices1
-		iprep_volume := RGBImage("iprep_3D", 4, 2592,1944,slices)
-		getsize(iprep_volume,x1,y1)
-		x=x1
-		y=y1
-	}	
-*/
 	// operations
 
 	void shift(object self)

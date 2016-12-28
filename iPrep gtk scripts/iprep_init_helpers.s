@@ -1,3 +1,4 @@
+// no background
 // $BACKGROUND$
 // define helper functions that will be used throughout the program
 

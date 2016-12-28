@@ -1615,7 +1615,7 @@ class image_iter: deviceSequence
 	{
 		self.setname(name1)
 		myWorkflow = workflow1
-		returnVolumeManager().initForAllROIs()
+		returnVolumeManager().initForAllROIsAndSignals()
 	}
 
 	number precheck(object self)
@@ -1650,11 +1650,20 @@ class image_iter: deviceSequence
 
 		foreach(object myROI; tall_enabled)
 		{
+			self.print("IMAGE: ROI: "+myROI.getName())
+			// go to ROIs SEM coord, but only if we are not already there
+			if (myWorkflow.returnSEM().getCurrentImagingPosition() == myROI.getCoordName())
+			{
+				// already there
+				self.print("IMAGE: already at "+myROI.getCoordName()+", leaving stage where it is")
+			}
+			else
+			{
+				// go there
+				self.print("IMAGE: going to location: "+myROI.getCoordName()+" belong to ROI "+myROI.getName())
+				myWorkflow.returnSEM().goToImagingPosition(myROI.getCoordName())
+			}
 
-			// go to ROI1
-			self.print("IMAGE: going to location: "+myROI.getName())
-			myWorkflow.returnSEM().goToImagingPosition(myROI.getName())
-			
 			// temp, show the ROI
 			myROI.print()
 

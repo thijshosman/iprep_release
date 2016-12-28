@@ -1,3 +1,4 @@
+// no background
 // $BACKGROUND$
 // general IPrep (helper) functions used in various scripts
 

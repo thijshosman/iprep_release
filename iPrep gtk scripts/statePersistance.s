@@ -1,3 +1,4 @@
+// no background
 // $BACKGROUND$
 
 // generic tag functions (JH)

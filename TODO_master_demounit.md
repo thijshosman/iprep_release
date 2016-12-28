@@ -93,6 +93,7 @@ This file describes what all the todos are for the demounit master development b
 - [x] run restoregasflow when safetyflags get reset
 - [x] allow skipping of everything, including transfers, in workflow with tags
 - [] checks when resuming/starting need cleaning up 
+- [] when sem stage is already at a location, don't go there again
 
 *** imaging ***
 - [] order of images in 3D stack is reversed
@@ -113,6 +114,7 @@ This file describes what all the todos are for the demounit master development b
 - [] make EBSD a special condition of imaging, not a separate step. allow only 1 EBSD ROI. details to follow
 - [] name all EBSD functions to new ones from Mingkai
 - [] exhaustively test 3d volume manager with multiple rois and signals
+- [] make sure 3dvolumemanager initializes all rois for all signals
 
 *** UI ***
 - [x] add iprep autofocus as a menu item
