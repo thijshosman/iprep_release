@@ -334,7 +334,7 @@ class safetyMediator:object
 	}
 
 	// *** actions ***
-	// experimental, not used yet
+	// experimental, not used in workflow yet
 
 	void HVOff(object self)
 	{
@@ -342,6 +342,38 @@ class safetyMediator:object
 		sem.HVOff()
 		result("mediator: turning high tension off\n")
 	}
+
+	// *** status ***
+	// for later use by UI elements to show status of everything
+
+	void printStatus(object self)
+	{
+		// list of outputs:
+		// -HV status (on or off)
+		// -dock status (clamped or unclamped)
+		// -system mode (planar or ebsd)
+		// -gripper pecs statestage state
+		// -sem stage state
+		// -parker position
+		// -gv state
+
+		// #todo
+
+	}
+
+	number bigCheck(object self)
+	{
+		// check intended to be run after start/resume is pressed
+		// #todo
+	}
+
+	number littleCheck(object self)
+	{
+		// check intended to be run every workflow step
+		// #todo
+	}
+
+
 
 }
 

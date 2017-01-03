@@ -175,11 +175,6 @@ class workflow: object
 	{
 		return myEBSD
 	}
-	//object return3DvolumeSEM(object self)
-	//{
-	//	return my3DvolumeSEM
-	//}
-
 
 	// *** workflow items (old style) ***
 
@@ -893,7 +888,7 @@ class workflow: object
 			
 			if ((optiondown() && shiftdown()))
 			{
-				self.print("aborted")
+				self.print("aborted by user")
 
 				break
 			}
