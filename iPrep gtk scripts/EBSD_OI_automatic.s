@@ -8,6 +8,7 @@ class EBSD_OI_automatic: object
 	number type // (1 is electron, 2 is eds, 4 is ebsd (which may also have eds enabled))
 
 	number err
+	number progress
 
 	void log(object self, number level, string text)
 	{
@@ -22,16 +23,23 @@ class EBSD_OI_automatic: object
 	}
 
 
+	number returnProgress(object self)
+	{
+		return progress
+	}
+
+	number returnError(object self)
+	{
+		return err
+	}
 
 	// give control to the EBSD system and hand it back over to the workflow when done
-	number timeout
 	
 	void init(object self)
 	{
-		self.print("Oxford Instruments EBSD Handshake initialized")
-		// set sitename
-
-
+		self.print("Oxford Instruments EBSD Handshake (Aztec 3.2) initialized")
+		progress = 0
+		err = 0
 	}
 
 	void init(object self, string sitename1, string prefix1, number type1)
@@ -54,25 +62,18 @@ class EBSD_OI_automatic: object
 	void EBSD_start(object self)
 	{
 		// start EBSD acquisition
-		OINA_AcquisitionStart(sitename, data_prefix+IPrep_sliceNumber(), type)
-		self.print("EBSD Acquisition started")
+		OINA_AcquisitionStart(sitename, data_prefix+"_"+IPrep_sliceNumber(), type)
+		self.print("Acquisition started")
 	}
 
 	void EBSD_stop(object self)
 	{
 		OINA_AcquisitionStop()
-	}
-
-	number checkProgress(object self)
-	{
-		number progress
-		OINA_AcquisitionIsActive(progress, err)
-		return progress
+		self.print("Acquisition stopped")
 	}
 
 	number isBusy(object self)
 	{
-		number progress
 		return OINA_AcquisitionIsActive(progress, err)
 	}
 
@@ -91,8 +92,8 @@ class EBSD_OI_automatic: object
 	{
 		return EBSD_IsAcquisitionBusy()
 
-*/	}
-
+	}
+*/
 
 
 }

@@ -360,19 +360,56 @@ class safetyMediator:object
 		// #todo
 
 	}
-
+/*
 	number bigCheck(object self)
 	{
 		// check intended to be run after start/resume is pressed
+		
+		// unsafe flag set
+		// consistency of sem stage, parker stage, gv
+		// dock mode vs sensor
+		// calibration flag set
+		// if succesful, reset dead flag
+		// 
 		// #todo
+		return 1
 	}
 
 	number littleCheck(object self)
 	{
 		// check intended to be run every workflow step
+		// argon pressure
+		// tmp speed
+		// max slice number exceeded
+		// sem pressure? 
+		// sem working distance coupled? 
+		// UPS
 		// #todo
+
+		if(!pecs.argonCheck())
+		{
+			self.print("PECS system argon pressure below threshold")
+			return 0
+		}
+
+		if(!pecs.TMPCheck())
+		{
+			print("PECS system not at vacuum or TMP problem")
+			return 0
+		}
+
+		if(IPrep_sliceNumber() > IPrep_maxSliceNumber())
+		{
+			print("Maximum number of slices ("+IPrep_maxSliceNumber()+") reached")
+			return 0
 	}
 
+	print("IPrep check finished!")
+
+		return 1
+
+	}
+*/
 
 
 }
@@ -699,24 +736,7 @@ void IPrep_savePECSImage(image &im, string subdir)
 }
 
 
-void WorkaroundQuantaMagBug( void )
-// When there is a Z move on the Quanta and the FWD is different from the calibrated stage Z,
-// there is a bug where the Quanta miscalculates the actual magnification.  This work around
-// seems to be generic in fixing the issue.  You can see this bug by having the stageZ=30, fwd=7
-// (focused on the sample) and then changing Z to 60 and back.  The mag will be off by > 2x.
-{
-	result( datestamp()+": WorkaroundQuantaMagBug" )
-	number oldmag=emgetmagnification()
 
-	emsetmagnification( 50 )
-	emwaituntilready()
-
-	emsetmagnification( 100000 )
-	emwaituntilready()
-
-	emsetmagnification( oldmag )
-	result( ",done.\n")
-}
 
 void IPrep_autofocus()
 {

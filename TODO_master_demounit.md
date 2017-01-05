@@ -4,16 +4,19 @@ This file describes what all the todos are for the demounit master development b
 ### for manchester ###
 * [] finish alignment steps
 
-* [] implement new EBSD methods
+* [x] implement new EBSD methods
+	* [x] need tags under iprep:EBSD for: type (ebsd or eds or electron), sitename as setup in OI, data prefix (to be used as prefix). all under IPrep:EBSD:
 
 * [] allow mediator to print out a list of common states for later use in UI dialog that reflects state of subsystems
-* [] consistencychecks should not be done by calling workflow object, but instead should be done through mediator. needs two separate checks: one for after start/resume and one every step
-	* [] checks: add a precondition that the sem is in 'clear' state and if not, ask user if he wants to home it. check unsafe/dead flags first #
-	* [] checks: add a precondition that imaging point exists
+* [x] consistencychecks should not put system in dead/unsafe state; you are just checking for issues that prevent a run. when something goes wrong during workflow, system gets put in unsafe state, and user can figure out what to do. we just check for the unsafe flag before starting/resuming and we ensure that the big check and little check pass
+	* [x] big check checks consistencies when resuming/starting
+	* [x] little check checks common problems (tmp, argon etc) every iteration
+	* [] consistencychecks should not be done by calling workflow object, but instead should be done through mediator, perhaps.
 
+* [] main: ensure that sem is in clear and move it there if not. may not be needed
 * [] main: start/resume should reinit sequences used to reflect changes (and possibly re-init the 3D volumes)
 * [] main: checks when resuming/starting need cleaning up 
-* [] main: home SEM stage to clear as part of workflow to prevent problems after pressing start button
+* [] main: home SEM stage to clear as part of workflow to prevent problems after pressing start button, but only if not imaging
 * [] main: if max slices is reached already and workflow has started, it still gets to running mode; needs a check
 * [] main: NB: all dead/unsafe setting happens in main, not state machine. the state machine just returns values (0,1,-1). the main functions need some proper sculpting to now put the system in a dead/unsafe state needlessly
 * [] main: when a 'soft' error happens (ie return 0) in workflow (ie milling precondition not met) system should pause workflow. may require change to how DM handles pause/start/stop events
@@ -30,6 +33,7 @@ This file describes what all the todos are for the demounit master development b
 
 * [] have an IPrep taggroup for default digiscan parameters. use this instead of the global one since that one does not exist on systems without digiscan isntalled (which needs to work as simulator, on ie my laptop)
 
+* [] rewrite all file names in gtk dir to have proper name space etc
 
 *** bugs ***
 - [] when PECS has rebooted, check connection before starting workflow. now it still sort of runs but pops up messages in the meantime with that it failed to talk to PECS. can be dangerous
@@ -63,6 +67,7 @@ This file describes what all the todos are for the demounit master development b
 - [] migrate quanta bug fix to SEM class as generic fix
 - [x] change the way we keep in focus after a transfer. now we explicitly set the focus after going to a coord in some coords 
 - [x] change going to coords from an xyz movement into only an xy movement so that focus stays the same. 
+- [] migrate imaging position check so that you don't go there twice to sem class itself
 
 *** dock ***:
 - [x] set holding torque during transfer when opens so that we don't have the thing close as it is picked up or the arm comes in (planar only for now)

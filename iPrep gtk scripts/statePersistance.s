@@ -499,10 +499,14 @@ class SEMCoord: object
 	void print(object self)
 	{
 		if (df_valid)
-			result("SEM coord: name:"+name+", X: "+X+", Y: "+Y+", Z: "+Z+", df:"+df+" \n")
+			result("SEM coord: name: "+name+", X: "+X+", Y: "+Y+", Z: "+Z+", df:"+df+" \n")
 		else
-			result("SEM coord: name:"+name+", X: "+X+", Y: "+Y+", Z: "+Z+", df:"+"not valid"+" \n")
+			result("SEM coord: name: "+name+", X: "+X+", Y: "+Y+", Z: "+Z+", df:"+"not valid"+" \n")
+	}
 
+	string getInline(object self)
+	{
+		return "SEM coord: name: "+name+", (X: "+X+", Y: "+Y+", Z: "+Z+")"
 	}
 
 	taggroup returnAsTag(object self)
@@ -535,6 +539,30 @@ object SEMCoordFactory(string name,number x,number y,number z)
 	object aCoord = alloc(SEMCoord)
 	aCoord.set(name,x,y,z)
 	return aCoord
+}
+
+object SEMCoordFactory(taggroup subtag)
+{
+	// initializes a semcoord from a tag
+
+	string name
+	subtag.TagGroupGetTagAsString("name",name)
+
+	number X
+	subtag.TagGroupGetTagAsFloat("X",X)
+
+	number Y
+	subtag.TagGroupGetTagAsFloat("Y",Y)
+
+	number Z
+	subtag.TagGroupGetTagAsNumber("Z",Z)
+	
+	number df
+	subtag.TagGroupGetTagAsNumber("df",df)
+
+	object tempCoord = alloc(SEMCoord)
+	tempCoord.set(name, X, Y, Z, df)
+	return tempCoord
 }
 
 class SEMCoordManager: object
@@ -611,14 +639,15 @@ class SEMCoordManager: object
 		
 		for (i=0; i<count; i++)
 		{
-			// index the list and get single tag
+			// index the list and get single tag (eagerly)
+
 			tall.TagGroupGetIndexedTagAsTagGroup(i,subtag)
 			string name1
 			subtag.TagGroupGetTagAsString("name", name1)
 
 			if (name1 == name)
 			{			
-				self.print("found "+name1)
+				//self.print("found "+name1)
 				//subtag.taggroupopenbrowserwindow(0)
 				return 1
 			}
@@ -639,7 +668,7 @@ class SEMCoordManager: object
 		if (self.getCoordAsTag(aCoord.getName(),subtag))
 		{
 			// coord with same name found, now replace it with the new one
-			self.print("replacing existing "+aCoord.getName())
+			self.print("replacing existing coord with "+aCoord.getInline())
 			TagGroupReplaceTagsWithCopy(subtag,aCoord.returnAsTag())
 			
 			//subtag.TagGroupOpenBrowserWindow( 0 )
@@ -648,7 +677,7 @@ class SEMCoordManager: object
 		else
 		{
 			// coord with that name does not exist yet. add it. 
-			self.print("inserting "+aCoord.getName())
+			self.print("inserting new coord with "+aCoord.getInline())
 			t1.TagGroupAddTagGroupAtEnd( aCoord.returnAsTag() )
 		}
 		
@@ -686,36 +715,25 @@ class SEMCoordManager: object
 		return 0 // not found
 	}
 
+/* old, may be remvoed
 	object convertTagToCoord(object self, taggroup subtag)
 	{
-		// converts a tag to a sem object
+		// converts a tag to a semcoord object
 
-		string name
-		subtag.TagGroupGetTagAsString("name",name)
-
-		number X
-		subtag.TagGroupGetTagAsFloat("X",X)
-
-		number Y
-		subtag.TagGroupGetTagAsFloat("Y",Y)
-
-		number Z
-		subtag.TagGroupGetTagAsNumber("Z",Z)
 		
-		number df
-		subtag.TagGroupGetTagAsNumber("df",df)
-
-		object tempCoord = alloc(SEMCoord)
-		tempCoord.set(name, X, Y, Z, df)
-		return tempCoord
 	}
+*/
 
 	object getCoordAsCoord(object self, string name)
 	{
 		// returns tag with given name from persistent list and create coord
 		taggroup subtag
 		if (self.getCoordAsTag(name,subtag))
-			return self.convertTagToCoord(subtag)
+		{
+			object myCoord = SEMCoordFactory(subtag)
+			self.print("retrieved "+myCoord.getInline())
+			return myCoord
+		}
 		else
 			return NULL
 	}
@@ -742,7 +760,7 @@ class SEMCoordManager: object
 			
 			TagGroupGetTagAsString(subtag,"name",name)
 			//result(name+"\n")
-			self.convertTagToCoord(subtag).print()
+			SEMCoordFactory(subtag).print()
 
 			//tg.TagGroupOpenBrowserWindow( 0 )
 			//result(i)

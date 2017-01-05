@@ -37,6 +37,26 @@ class SEM_IPrep: object
 	// voltage to be use for imaging (in kv)
 	number kV
 
+	// *** quanta fix ***
+	void WorkaroundQuantaMagBug(object self)
+		// When there is a Z move on the Quanta and the FWD is different from the calibrated stage Z,
+		// there is a bug where the Quanta miscalculates the actual magnification.  This work around
+		// seems to be generic in fixing the issue.  You can see this bug by having the stageZ=30, fwd=7
+		// (focused on the sample) and then changing Z to 60 and back.  The mag will be off by > 2x.
+		{
+			result( datestamp()+": WorkaroundQuantaMagBug" )
+			number oldmag=emgetmagnification()
+
+			emsetmagnification( 50 )
+			emwaituntilready()
+
+			emsetmagnification( 100000 )
+			emwaituntilready()
+
+			emsetmagnification( oldmag )
+			result( ",done.\n")
+		}
+
 	// *** basics ***
 	
 	number returnHVState(object self)
@@ -474,7 +494,7 @@ class SEM_IPrep: object
 		self.setWDForImaging()
 
 		// fix quanta mag bug (since stage moved in z)
-		WorkaroundQuantaMagBug()
+		self.WorkaroundQuantaMagBug()
 
 		// old way of setting wd, deprecated
 		//if ( nominal_imaging.getdfvalid() )
@@ -485,6 +505,7 @@ class SEM_IPrep: object
 
 	}
 
+	// old methods, now just go there using the semcoord name paradime
 	void goToHighGridFront(object self)
 	{
 		self.print("going to highGridFront. current state: "+state)

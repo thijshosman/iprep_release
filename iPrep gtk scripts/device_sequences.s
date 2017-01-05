@@ -178,8 +178,6 @@ class skeletonSequence: deviceSequence
 	}
 }
 
-
-
 class testSequence: deviceSequence
 {
 	// test class that inherits transferSequence
@@ -207,7 +205,6 @@ class testSequence: deviceSequence
 		self.print("undo called from child")
 		return 0
 	}
-
 }
 
 
@@ -685,7 +682,7 @@ class pecstosemSequenceDefault: deviceSequence
 
 class image_current_settings: deviceSequence
 {
-// declare object since it is used below
+	// declare object since it is used below
 	object myWorkflow
 
 	number init(object self, string name1, object workflow1)
@@ -1060,552 +1057,6 @@ class image_single: deviceSequence
 	}
 }
 
-/*
-class image_single_old: deviceSequence
-{
-	// declare object since it is used below
-	object myWorkflow
-
-	number init(object self, string name1, object workflow1)
-	{
-		self.setname(name1)
-		myWorkflow = workflow1
-		returnVolumeManager().initForDefaultROI()
-	}
-
-	number precheck(object self)
-	{
-		// public
-		// #todo: define prechecks. SEM in right position? 
-
-		return 1
-	}
-
-	number postcheck(object self)
-	{
-		// public
-		// checks that have to be performed after sequence has completed
-		// in this case there is no post-check needed
-		return 1
-	}
-
-	number do_actual(object self)
-	{
-		// public
-		// performs single image
-		number returncode = 0
-
-		self.print("executing single ROI default imaging step")
-
-		// get the ROI (default/StoredImaging in this case)
-		object myROI 
-		string name1 = "StoredImaging"
-		if (!returnROIManager().getROIAsObject(name1, myROI))
-		{
-			self.print("IMAGE: tag does not exist!")
-			return returncode
-		}
-
-		// go to ROI1
-		self.print("IMAGE: going to location: "+myROI.getName())
-		myWorkflow.returnSEM().goToImagingPosition(myROI.getName())
-		
-		// fix magnificationbug on Quanta
-		WorkaroundQuantaMagBug()
-
-		// focus
-		if (myROI.getAFMode() == 1) //autofocus on every nth slice
-		{
-			if (IPrep_sliceNumber() % myROI.getAFnSlice() == 0 )
-			{
-				//unblank
-				myWorkflow.returnSEM().blankOff()
-
-				self.print("IMAGE: autofocusing")
-				IPrep_autofocus()
-				number afs_sleep = 1	// seconds of delay
-				sleep( afs_sleep )
-
-				number current_focus = myWorkflow.returnSEM().measureWD()	
-				number saved_focus = myROI.getFocus()
-				number change = current_focus - saved_focus
-				self.print("IMAGE: Autofocus changed focus value by "+change+" mm")
-				myWorkflow.returnSEM().setDesiredWDToCurrent()
-				
-				//blank
-				myWorkflow.returnSEM().blankOn()
-			}
-			else
-			self.print("skipping autofocus this slice")
-		}
-		else if (myROI.getAFMode() == 2) // no autofocus, use stored value
-		{
-			self.print("IMAGE: focus is: "+myROI.getFocus())
-			myWorkflow.returnSEM().setDesiredWD(myROI.getFocus()) // automatically sets it after storing it in object
-		}
-
-		// brightness
-		if(returnROIEnables().brightness())
-		{
-			self.print("IMAGE: brightness is: "+myROI.getBrightness())
-			myROI.getBrightness()
-		}
-
-		// contrast
-		if(returnROIEnables().contrast())
-		{
-			self.print("IMAGE: contrast is: "+myROI.getContrast())
-			myROI.getContrast()
-		}
-
-		// mag
-		if(returnROIEnables().mag())
-		{
-			self.print("IMAGE: magnification is: "+myROI.getMag())
-			myWorkflow.returnSEM().setMag(myROI.getMag())
-		}
-
-		// Acquire Digiscan image, use digiscan parameters saved in ROI
-		
-		//taggroup dsp = myROI.getDigiscanParam()
-
-		image temp_slice_im0, temp_slice_im1
-		
-		// digiscan
-
-		// can set digiscan parameter taggroup from this ROI to overwrite 'capture' settings
-		//myWorkflow.returnDigiscan().config(dsp,temp_slice_im0,temp_slice_im1)
-		// or use digiscan parameters as setup in the normal 'capture' at this moment
-		
-		myWorkflow.returnDigiscan().config(temp_slice_im0,temp_slice_im1)
-
-		// get digiscan control
-		myWorkflow.returnDigiscan().getControl()
-
-		// unblank
-		myWorkflow.returnSEM().blankOff()
-
-		myWorkflow.returnDigiscan().acquire()
-
-		// Verify SEM is functioning properly - pause acquisition otherwise (might be better to do before AFS with a test scan, easier here)
-		// if tag exists
-		number pixel_threshold = 500
-		string tagname = "IPrep:SEM:Emission check threshold"
-		if(GetPersistentNumberNote( tagname, pixel_threshold ))
-		{
-			number avg
-			// use the image that is just acuired, 0 by default
-			if (myWorkflow.returnDigiscan().getConfigured0())
-			{
-				avg = average( temp_slice_im0 )
-			}
-			else
-			{
-				avg = average( temp_slice_im1 )
-			}
-
-			if ( avg < pixel_threshold )
-			{
-				// average image value is less than threshold, assume SEM emission problem, pause acq
-				string str = datestamp()+": Average image value ("+avg+") is less than emission check threshold ("+pixel_threshold+")\n"
-				self.print(""+ str )
-				string str2 = "\nAcquisition has been paused.\n\nCheck SEM is working properly and press <Continue> to resume acquisition, or <Cancel> to stop."
-				string str3 = "\n\nNote: Threshold can be set at global tag: IPrep:SEM:Emission check threshold"
-				if ( !ContinueCancelDialog( str + str2 +str3 ) )
-				{
-						str = ": Acquisition terminated by user" 
-						self.print("IMAGE: "+str)	
-						return returncode	
-				}
-			}
-			else
-			{
-				self.print("IMAGE: Average image value ("+avg+") is greater than emission check threshold ("+pixel_threshold+"). SEM emission assumed OK." )	
-			}
-
-		}
-		
-		if (myWorkflow.returnDigiscan().getConfigured0())
-		{
-			// Save Digiscan image 0
-			IPrep_saveSEMImage(temp_slice_im0, "digiscan "+myWorkflow.returnDigiscan().getName0(), myWorkflow.returnDigiscan().getName0())
-			
-			// Close Digiscan image
-			ImageDocument imdoc0 = ImageGetOrCreateImageDocument(temp_slice_im0)
-			imdoc0.ImageDocumentClose(0)
-
-			// add image to 3D volume and update, quietly ignore if stack is not initialized
-			try
-			{
-				if (myworkflow.returnDigiscan().numberOfSignals() == 2) // 2 signals, so add signal name
-				{
-					object my3DvolumeSEM = returnVolumeManager().returnVolume("StoredImaging_"+myWorkflow.returnDigiscan().getName0())
-					my3DvolumeSEM.addSlice(temp_slice_im0)
-					my3DvolumeSEM.show()
-				}
-				else
-				{
-					object my3DvolumeSEM = returnVolumeManager().returnVolume("StoredImaging")
-					my3DvolumeSEM.addSlice(temp_slice_im0)
-					my3DvolumeSEM.show()
-				}
-			}
-			catch
-			{
-				self.print("ignoring 3D volume stack")
-				break
-			}
-
-		}
-
-		if (myWorkflow.returnDigiscan().getConfigured1())
-		{
-			// Save Digiscan image 1
-			IPrep_saveSEMImage(temp_slice_im1, "digiscan "+myWorkflow.returnDigiscan().getName1(), myWorkflow.returnDigiscan().getName1())
-			
-			// Close Digiscan image
-			ImageDocument imdoc1 = ImageGetOrCreateImageDocument(temp_slice_im1)
-			imdoc1.ImageDocumentClose(0)
-
-			// add image to 3D volume and update, quietly ignore if stack is not initialized
-			try
-			{
-				if (myworkflow.returnDigiscan().numberOfSignals() == 2) // 2 signals, so add signal name
-				{
-					object my3DvolumeSEM = returnVolumeManager().returnVolume("StoredImaging_"+myWorkflow.returnDigiscan().getName1())
-					my3DvolumeSEM.addSlice(temp_slice_im1)
-					my3DvolumeSEM.show()
-				}
-				else
-				{
-					object my3DvolumeSEM = returnVolumeManager().returnVolume("StoredImaging")
-					my3DvolumeSEM.addSlice(temp_slice_im1)
-					my3DvolumeSEM.show()
-				}
-			}
-			catch
-			{
-				self.print("ignoring 3D volume stack")
-				break
-			}
-
-		}
-
-		// blank
-		myWorkflow.returnSEM().blankOn()
-
-		// get digiscan control
-		myWorkflow.returnDigiscan().releaseControl()
-
-		return 1
-	}
-
-	number undo(object self)
-	{
-		// public
-		// this method is intended to undo the sequence (if possible)
-		self.print("cannot undo this sequence")
-		return 0
-	}
-
-	number final(object self)
-	{
-		// public
-		// blank beam
-		myWorkflow.returnSEM().blankOn()
-		return 1
-	}
-}
-
-class image_test: deviceSequence
-{
-	// declare object since it is used below
-	object myWorkflow
-
-	number init(object self, string name1, object workflow1)
-	{
-		self.setname(name1)
-		myWorkflow = workflow1
-	}
-
-	number precheck(object self)
-	{
-		// public
-		// #todo: define prechecks. SEM in right position? 
-
-		return 1
-	}
-
-	number postcheck(object self)
-	{
-		// public
-		// checks that have to be performed after sequence has completed
-		// in this case there is no post-check needed
-		return 1
-	}
-
-	number do_actual(object self)
-	{
-		// public
-		// performs single image
-		number returncode = 0
-
-		self.print("executing imaging step as a test on coordinate testImagingRepeat")
-
-		// go to imaging location
-		myWorkflow.returnSEM().goToImagingPosition("testImagingRepeat")
-
-		// unblank
-		myWorkflow.returnSEM().blankOff()
-
-		image temp_slice_im
-
-		// or use digiscan parameters as setup in the normal 'capture' at this moment
-		myWorkflow.returnDigiscan().config()
-
-
-		myWorkflow.returnDigiscan().acquire(temp_slice_im)
-
-
-
-		// Save Digiscan image
-		IPrep_saveSEMImage(temp_slice_im, "digiscan")
-
-		// Close Digiscan image
-		ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
-		imdoc.ImageDocumentClose(0)
-		
-		// blank
-		myWorkflow.returnSEM().blankOn()
-
-		return 1
-	}
-
-	number undo(object self)
-	{
-		// public
-		// this method is intended to undo the sequence (if possible)
-		self.print("cannot undo this sequence")
-		return 0
-	}
-
-	number final(object self)
-	{
-		// public
-		// blank beam
-		myWorkflow.returnSEM().blankOn()
-		return 1
-	}
-}
-
-class image_double: deviceSequence
-{
-	// declare object since it is used below
-	object myWorkflow
-
-	number init(object self, string name1, object workflow1)
-	{
-		self.setname(name1)
-		myWorkflow = workflow1
-	}
-
-	number precheck(object self)
-	{
-		// public
-		// #todo: define prechecks. SEM in right position? 
-
-		return 1
-	}
-
-	number postcheck(object self)
-	{
-		// public
-		// checks that have to be performed after sequence has completed
-		// in this case there is no post-check needed
-		return 1
-	}
-
-	number do_actual(object self)
-	{
-		// public
-		// performs 2 image acquisitions
-		// first image default ROI with "capture" digiscan settings
-		// then image ROI with name "ExtraROI" using digiscan parameters as part of that ROI
-		// uses mag settings saved in tags and explicitly sets those before imaging
-		// extra ROI leaves focus alone
-
-		self.print("executing dual ROI imaging step")
-
-		number returncode = 0
-
-		// *** general
-
-		// unblank
-		myWorkflow.returnSEM().blankOff()
-
-
-		// *** default ROI ***
-
-		// get the ROI (default/StoredImaging in this case)
-		object myROI 
-		string name1 = "StoredImaging"
-		if (!returnROIManager().getROIAsObject(name1, myROI))
-		{
-			self.print("IMAGE: tag does not exist!")
-			return returncode
-		}
-
-		// go to ROI1
-		self.print("IMAGE: going to location: "+myROI.getName())
-		myWorkflow.returnSEM().goToImagingPosition(myROI.getName())
-		
-		// fix magnificationbug on Quanta
-		WorkaroundQuantaMagBug()
-
-		// focus
-		if (myROI.getAFMode() == 1) //autofocus on every slice
-		{
-			self.print("IMAGE: autofocusing")
-			IPrep_autofocus()
-			number afs_sleep = 1	// seconds of delay
-			sleep( afs_sleep )
-
-		}
-		else if (myROI.getAFMode() == 2) // no autofocus, use stored value
-		{
-			self.print("IMAGE: focus is: "+myROI.getFocus())
-			myWorkflow.returnSEM().setDesiredWD(myROI.getFocus()) // automatically sets it after storing it in object
-		}
-
-		// mag
-		if(returnROIEnables().mag())
-		{
-			self.print("IMAGE: magnification for ROI "+name1+" is: "+myROI.getMag())
-			myWorkflow.returnSEM().setMag(myROI.getMag())
-		}
-
-		// digiscan acquire
-
-		// Acquire Digiscan image, use digiscan parameters saved in ROI
-		taggroup dsp = myROI.getDigiscanParam()
-
-		// can set digiscan parameter taggroup from this ROI to overwrite 'capture' settings
-		//myWorkflow.returnDigiscan().config(dsp)
-		// or use digiscan parameters as setup in the normal 'capture' at this moment
-		myWorkflow.returnDigiscan().config()
-		
-		// fix magnificationbug on Quanta
-		// second time, before imaging
-		WorkaroundQuantaMagBug()
-
-		image temp_slice_im
-		myWorkflow.returnDigiscan().acquire(temp_slice_im)
-
-		// Verify SEM is functioning properly - pause acquisition otherwise (might be better to do before AFS with a test scan, easier here)
-		// if tag exists
-		number pixel_threshold = 500
-		string tagname = "IPrep:SEM:Emission check threshold"
-		if(GetPersistentNumberNote( tagname, pixel_threshold ))
-		{
-			number avg = average( temp_slice_im )
-
-			if ( avg < pixel_threshold )
-			{
-				// average image value is less than threshold, assume SEM emission problem, pause acq
-				string str = datestamp()+": Average image value ("+avg+") is less than emission check threshold ("+pixel_threshold+")\n"
-				self.print(""+ str )
-				string str2 = "\nAcquisition has been paused.\n\nCheck SEM is working properly and press <Continue> to resume acquisition, or <Cancel> to stop."
-				string str3 = "\n\nNote: Threshold can be set at global tag: IPrep:SEM:Emission check threshold"
-				if ( !ContinueCancelDialog( str + str2 +str3 ) )
-				{
-						str = ": Acquisition terminated by user" 
-						self.print("IMAGE: "+str)	
-						return returncode	
-				}
-			}
-			else
-			{
-				self.print("IMAGE: Average image value ("+avg+") is greater than emission check threshold ("+pixel_threshold+"). SEM emission assumed OK." )	
-			}
-		}
-		
-		// Save Digiscan image
-		IPrep_saveSEMImage(temp_slice_im, "digiscan")
-
-		// Close Digiscan image
-		ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
-		imdoc.ImageDocumentClose(0)
-			
-		// add image to 3D volume and update 
-		// quietly ignore if stack is not initialized
-		try
-		{
-			//object my3DvolumeSEM = myWorkflow.return3DvolumeSEM()
-			//my3DvolumeSEM.addSlice(temp_slice_im)
-			//my3DvolumeSEM.show()
-		}
-		catch
-		{
-			self.print("ignoring 3D volume stack")
-			break
-		}
-
-		// *** extra ROI ***
-
-		object myExtraROI
-		string name2 = "ExtraROI"
-		returnROIManager().getROIAsObject(name2, myExtraROI)
-
-		// set mag (hardcoded for now)
-		if(returnROIEnables().mag())
-		{
-			print("IMAGE: magnification for ROI "+name2+" is: "+myExtraROI.getMag())
-			myWorkflow.returnSEM().setMag(myExtraROI.getMag())
-		}
-
-		//get digiscan parameters saved in ROI
-		taggroup dsp2 = myExtraROI.getDigiscanParam()
-
-		// create image
-		image temp_slice_im_ExtraROI
-		
-		// set up digiscan using settings from ROI
-		myWorkflow.returnDigiscan().config(dsp2)
-		
-		// acquire
-		myWorkflow.returnDigiscan().acquire(temp_slice_im_ExtraROI)
-
-		// Save Digiscan image
-		IPrep_saveSEMImage(temp_slice_im_ExtraROI, "digiscan_"+name2)
-
-		// Close Digiscan image
-		imdoc = ImageGetOrCreateImageDocument(temp_slice_im_ExtraROI)
-		imdoc.ImageDocumentClose(0)
-
-		// blank
-		myWorkflow.returnSEM().blankOn()
-
-		return 1
-	}
-
-	number undo(object self)
-	{
-		// public
-		// this method is intended to undo the sequence (if possible)
-		self.print("cannot undo this sequence")
-		return 0
-	}
-
-	number final(object self)
-	{
-		// public
-		// blank beam
-		myWorkflow.returnSEM().blankOn()
-		return 1
-	}
-}
-*/
-
 class image_iter: deviceSequence
 {
 	// declare object since it is used below
@@ -1890,824 +1341,6 @@ class image_iter: deviceSequence
 	}
 }
 
-
-
-
-class image_iter_old: deviceSequence
-{
-	// declare object since it is used below
-	object myWorkflow
-
-	number init(object self, string name1, object workflow1)
-	{
-		self.setname(name1)
-		myWorkflow = workflow1
-		returnVolumeManager().initForAllROIs()
-	}
-
-	number precheck(object self)
-	{
-		// public
-		// #todo: define prechecks. SEM in right position? 
-
-		return 1
-	}
-
-	number postcheck(object self)
-	{
-		// public
-		// checks that have to be performed after sequence has completed
-		// in this case there is no post-check needed
-		return 1
-	}
-
-	number do_actual(object self)
-	{
-		// public
-		// runs through all ROIs that have the 'enabled' subtag set to 1 in ascending order of "order" subtag
-		number returncode = 0
-
-		// *** general
-
-		// fix magnificationbug on Quanta at first
-		WorkaroundQuantaMagBug()
-
-		// *** go through ROIs
-		object tall_enabled = returnROIManager().getAllEnabledROIList()
-		number count = tall_enabled.SizeOfList()
-
-		self.print("found "+count+"positions. visiting them sequentially")
-
-		foreach(object myROI; tall_enabled)
-		{
-
-
-			// go to ROI1
-			self.print("IMAGE: going to location: "+myROI.getName())
-			myWorkflow.returnSEM().goToImagingPosition(myROI.getName())
-			
-			// temp, show the ROI
-			myROI.print()
-
-			// *** focus before imaging ***
-
-			if (myROI.getAFMode() == 1) //autofocus on every nth slice
-			{
-				if (myROI.getAFBefore() == 1 && IPrep_sliceNumber() % myROI.getAFnSlice() == 0 )
-				{
-					IPrep_autofocus_complete()
-				}
-			}
-			else if (myROI.getAFMode() == 2) // no autofocus, use stored value
-			{
-				self.print("IMAGE: focus is: "+myROI.getFocus()+", setting focus to this value")
-				myWorkflow.returnSEM().setDesiredWD(myROI.getFocus()) // automatically sets it after storing it in object
-			}
-
-			// *** imaging ***
-
-			if (myROI.getImageOn() == 1 && IPrep_sliceNumber() % myROI.getImagenSlice() == 0 )
-			{
-				// brightness
-				if(returnROIEnables().brightness())
-				{
-					self.print("IMAGE: brightness is: "+myROI.getBrightness())
-					myROI.getBrightness()
-				}
-
-				// contrast
-				if(returnROIEnables().contrast())
-				{
-					self.print("IMAGE: contrast is: "+myROI.getContrast())
-					myROI.getContrast()
-				}
-
-				// mag
-				if(returnROIEnables().mag())
-				{
-					self.print("IMAGE: magnification is: "+myROI.getMag())
-					myWorkflow.returnSEM().setMag(myROI.getMag())
-				}
-
-				// Acquire Digiscan image, use digiscan parameters saved in ROI
-				
-				taggroup dsp = myROI.getDigiscanParam()
-
-				image temp_slice_im0, temp_slice_im1
-				
-				// digiscan
-
-				// can set digiscan parameter taggroup from this ROI to overwrite 'capture' settings
-				myWorkflow.returnDigiscan().config(dsp,temp_slice_im0,temp_slice_im1)
-
-				// get digiscan control
-				myWorkflow.returnDigiscan().getControl()
-
-				// unblank
-				myWorkflow.returnSEM().blankOff()
-
-				myWorkflow.returnDigiscan().acquire()
-
-				// Verify SEM is functioning properly - pause acquisition otherwise (might be better to do before AFS with a test scan, easier here)
-				// if tag exists
-				number pixel_threshold = 500
-				string tagname = "IPrep:SEM:Emission check threshold"
-				if(GetPersistentNumberNote( tagname, pixel_threshold ))
-				{
-					number avg
-					// use the image that is just acuired, 0 by default
-					if (myWorkflow.returnDigiscan().getConfigured0())
-					{
-						avg = average( temp_slice_im0 )
-					}
-					else
-					{
-						avg = average( temp_slice_im1 )
-					}
-
-					if ( avg < pixel_threshold )
-					{
-						// average image value is less than threshold, assume SEM emission problem, pause acq
-						string str = datestamp()+": Average image value ("+avg+") is less than emission check threshold ("+pixel_threshold+")\n"
-						self.print(""+ str )
-						string str2 = "\nAcquisition has been paused.\n\nCheck SEM is working properly and press <Continue> to resume acquisition, or <Cancel> to stop."
-						string str3 = "\n\nNote: Threshold can be set at global tag: IPrep:SEM:Emission check threshold"
-						if ( !ContinueCancelDialog( str + str2 +str3 ) )
-						{
-								str = ": Acquisition terminated by user" 
-								self.print("IMAGE: "+str)	
-								return returncode	
-						}
-					}
-					else
-					{
-						self.print("IMAGE: Average image value ("+avg+") is greater than emission check threshold ("+pixel_threshold+"). SEM emission assumed OK." )	
-					}
-
-				}
-				
-				if (myWorkflow.returnDigiscan().getConfigured0())
-				{
-					// Save Digiscan image 0
-					IPrep_saveSEMImage(temp_slice_im0, "digiscan "+myROI.getName()+" "+myWorkflow.returnDigiscan().getName0(), myROI.getName()+"_"+myWorkflow.returnDigiscan().getName0())
-					
-					// Close Digiscan image
-					ImageDocument imdoc0 = ImageGetOrCreateImageDocument(temp_slice_im0)
-					imdoc0.ImageDocumentClose(0)
-
-					// add image to 3D volume and update, quietly ignore if stack is not initialized
-					try
-					{
-						if (myworkflow.returnDigiscan().numberOfSignals() == 2) // 2 signals, so add signal name
-						{
-							object my3DvolumeSEM = returnVolumeManager().returnVolume(myROI.getName()+"_"+myWorkflow.returnDigiscan().getName0())
-							my3DvolumeSEM.addSlice(temp_slice_im0)
-							my3DvolumeSEM.show()
-						}
-						else
-						{
-							object my3DvolumeSEM = returnVolumeManager().returnVolume(myROI.getName())
-							my3DvolumeSEM.addSlice(temp_slice_im0)
-							my3DvolumeSEM.show()
-						}
-					}
-					catch
-					{
-						self.print("ignoring 3D volume stack")
-						break
-					}
-
-				}
-
-				if (myWorkflow.returnDigiscan().getConfigured1())
-				{
-					// Save Digiscan image 1
-					IPrep_saveSEMImage(temp_slice_im1, "digiscan "+myROI.getName()+" "+myWorkflow.returnDigiscan().getName1(), myROI.getName()+"_"+myWorkflow.returnDigiscan().getName1())
-					
-					// Close Digiscan image
-					ImageDocument imdoc1 = ImageGetOrCreateImageDocument(temp_slice_im1)
-					imdoc1.ImageDocumentClose(0)
-
-					// add image to 3D volume and update, quietly ignore if stack is not initialized
-					try
-					{
-						if (myworkflow.returnDigiscan().numberOfSignals() == 2) // 2 signals, so add signal name
-						{
-							object my3DvolumeSEM = returnVolumeManager().returnVolume(myROI.getName()+"_"+myWorkflow.returnDigiscan().getName1())
-							my3DvolumeSEM.addSlice(temp_slice_im1)
-							my3DvolumeSEM.show()
-						}
-						else
-						{
-							object my3DvolumeSEM = returnVolumeManager().returnVolume(myROI.getName())
-							my3DvolumeSEM.addSlice(temp_slice_im1)
-							my3DvolumeSEM.show()
-						}
-					}
-					catch
-					{
-						self.print("ignoring 3D volume stack")
-						break
-					}
-
-				}
-
-				// blank
-				myWorkflow.returnSEM().blankOn()
-
-				// get digiscan control (if needed, no real need to ever automatically release control until done)
-				//myWorkflow.returnDigiscan().releaseControl()
-			}
-
-			// *** autofocus after imaging ****
-
-			if (myROI.getAFMode() == 1) //autofocus on every nth slice
-			{
-				if (myROI.getAFBefore() == 0 && IPrep_sliceNumber() % myROI.getAFnSlice() == 0 )
-				{
-					IPrep_autofocus_complete()
-				}
-			}
-
-
-
-
-			self.print("current ROI: "+myROI.getName()+", order = "+myROI.getOrder())
-			myROI.print()
-
-			// go to ROI
-			self.print("IMAGE: going to location: "+myROI.getName())
-			myWorkflow.returnSEM().goToImagingPosition(myROI.getName())
-
-			// unblank
-			myWorkflow.returnSEM().blankOff()
-
-			// mag
-			if(returnROIEnables().mag())
-			{
-	
-				self.print("IMAGE: magnification for ROI "+myROI.getName()+" is: "+myROI.getMag())
-				myWorkflow.returnSEM().setMag(myROI.getMag())
-			}
-
-			// focus
-			if (myROI.getAFMode() == 1) //autofocus on every nth slice
-			{
-
-				//#todo: also add the option of doing this when start is pressed again
-				if (IPrep_sliceNumber() % myROI.getAFnSlice() == 0 )
-				{
-					debug("autofocus called on slice "+IPrep_sliceNumber()+"\n")
-					self.print("IMAGE: autofocusing")
-					IPrep_autofocus()
-					number afs_sleep = 1	// seconds of delay
-					sleep( afs_sleep )
-
-					number current_focus = myWorkflow.returnSEM().measureWD()	
-					number saved_focus = myROI.getFocus()
-					number change = current_focus - saved_focus
-					self.print("IMAGE: Autofocus changed focus value by "+change+" mm")
-					myWorkflow.returnSEM().setDesiredWDToCurrent()
-				}
-				else
-				self.print("skipping autofocus this slice, leaving focus alone")
-			}
-			else if (myROI.getAFMode() == 2) // no autofocus, use stored value
-			{
-				self.print("IMAGE: focus is: "+myROI.getFocus())
-				myWorkflow.returnSEM().setDesiredWD(myROI.getFocus()) // automatically sets it after storing it in object
-			}
-			// else the value is 0, which means leave focus alone
-
-			// Acquire Digiscan image, use digiscan parameters saved in ROI
-			
-			taggroup dsp = myROI.getDigiscanParam()
-
-			image temp_slice_im0, temp_slice_im1
-			
-			// digiscan
-
-			// use digiscan parameters in tag
-			myWorkflow.returnDigiscan().config(dsp, temp_slice_im0, temp_slice_im1)
-			
-			myWorkflow.returnDigiscan().acquire()
-
-			// blank
-			myWorkflow.returnSEM().blankOn()
-
-			// Verify SEM is functioning properly - pause acquisition otherwise (might be better to do before AFS with a test scan, easier here)
-			// if tag exists
-			number pixel_threshold = 500
-			string tagname = "IPrep:SEM:Emission check threshold"
-			if(GetPersistentNumberNote( tagname, pixel_threshold ))
-			{
-				number avg
-				// use the image that is just acuired, 0 by default
-				if (myWorkflow.returnDigiscan().getConfigured0())
-				{
-					avg = average( temp_slice_im0 )
-				}
-				else
-				{
-					avg = average( temp_slice_im1 )
-				}
-
-				if ( avg < pixel_threshold )
-				{
-					// average image value is less than threshold, assume SEM emission problem, pause acq
-					string str = datestamp()+": Average image value ("+avg+") is less than emission check threshold ("+pixel_threshold+")\n"
-					self.print(""+ str )
-					string str2 = "\nAcquisition has been paused.\n\nCheck SEM is working properly and press <Continue> to resume acquisition, or <Cancel> to stop."
-					string str3 = "\n\nNote: Threshold can be set at global tag: IPrep:SEM:Emission check threshold"
-					if ( !ContinueCancelDialog( str + str2 +str3 ) )
-					{
-							str = ": Acquisition terminated by user" 
-							self.print("IMAGE: "+str)	
-							return returncode	
-					}
-				}
-				else
-				{
-					self.print("IMAGE: Average image value ("+avg+") is greater than emission check threshold ("+pixel_threshold+"). SEM emission assumed OK." )	
-				}
-			}
-
-			if (myWorkflow.returnDigiscan().getConfigured0())
-			{
-				// Save Digiscan image 0
-				IPrep_saveSEMImage(temp_slice_im0, "digiscan "+myWorkflow.returnDigiscan().getName0())
-				
-				// Close Digiscan image
-				ImageDocument imdoc0 = ImageGetOrCreateImageDocument(temp_slice_im0)
-				imdoc0.ImageDocumentClose(0)
-
-				// add image to 3D volume and update, quietly ignore if stack is not initialized
-				try
-				{
-					if (myworkflow.returnDigiscan().numberOfSignals() == 2) // 2 signals, so add signal name
-					{
-						object my3DvolumeSEM = returnVolumeManager().returnVolume(myROI.getName()+"_"+myWorkflow.returnDigiscan().getName0())
-						my3DvolumeSEM.addSlice(temp_slice_im0)
-						my3DvolumeSEM.show()
-					}
-					else
-					{
-						object my3DvolumeSEM = returnVolumeManager().returnVolume(myROI.getName())
-						my3DvolumeSEM.addSlice(temp_slice_im0)
-						my3DvolumeSEM.show()
-					}
-				}
-				catch
-				{
-					self.print("ignoring 3D volume stack")
-					break
-				}
-
-			}
-
-			if (myWorkflow.returnDigiscan().getConfigured1())
-			{
-				// Save Digiscan image 1
-				IPrep_saveSEMImage(temp_slice_im1, "digiscan "+myWorkflow.returnDigiscan().getName1())
-				
-				// Close Digiscan image
-				ImageDocument imdoc1 = ImageGetOrCreateImageDocument(temp_slice_im1)
-				imdoc1.ImageDocumentClose(0)
-
-				// add image to 3D volume and update, quietly ignore if stack is not initialized
-				try
-				{
-					if (myworkflow.returnDigiscan().numberOfSignals() == 2) // 2 signals, so add signal name
-					{
-						object my3DvolumeSEM = returnVolumeManager().returnVolume(myROI.getName()+"_"+myWorkflow.returnDigiscan().getName1())
-						my3DvolumeSEM.addSlice(temp_slice_im1)
-						my3DvolumeSEM.show()
-					}
-					else
-					{
-						object my3DvolumeSEM = returnVolumeManager().returnVolume(myROI.getName())
-						my3DvolumeSEM.addSlice(temp_slice_im1)
-						my3DvolumeSEM.show()
-					}
-				}
-				catch
-				{
-					self.print("ignoring 3D volume stack")
-					break
-				}
-			
-			}
-
-		}
-		
-
-		
-		return 1
-
-
-	}
-
-	number undo(object self)
-	{
-		// public
-		// this method is intended to undo the sequence (if possible)
-		self.print("cannot undo this sequence")
-		return 0
-	}
-
-	number final(object self)
-	{
-		// public
-		// blank beam
-		myWorkflow.returnSEM().blankOn()
-		return 1
-	}
-}
-
-
-class image_iter_old2: deviceSequence
-{
-	// declare object since it is used below
-	object myWorkflow
-
-	number init(object self, string name1, object workflow1)
-	{
-		self.setname(name1)
-		myWorkflow = workflow1
-		returnVolumeManager().initForAllROIs()
-	}
-
-	number precheck(object self)
-	{
-		// public
-		// #todo: define prechecks. SEM in right position? 
-
-		return 1
-	}
-
-	number postcheck(object self)
-	{
-		// public
-		// checks that have to be performed after sequence has completed
-		// in this case there is no post-check needed
-		return 1
-	}
-
-	number do_actual(object self)
-	{
-		// public
-		// runs through all ROIs that have the 'enabled' subtag set to 1 in ascending order of "order" subtag
-		number returncode = 0
-
-		// *** general
-
-		// fix magnificationbug on Quanta at first
-		//WorkaroundQuantaMagBug()
-
-		// *** go through ROIs
-		//taggroup tall_enabled = NewTagList()
-		object tall_enabled = returnROIManager().getAllEnabledROIList()
-		number count = tall_enabled.SizeOfList()
-
-		self.print("found "+count+"positions. visiting them sequentially")
-
-		foreach(object myROI; tall_enabled)
-		{
-
-			self.print("current ROI: "+myROI.getName()+", order = "+myROI.getOrder())
-			myROI.print()
-
-			// go to ROI
-			self.print("IMAGE: going to location: "+myROI.getName())
-			myWorkflow.returnSEM().goToImagingPosition(myROI.getName())
-
-			// unblank
-			myWorkflow.returnSEM().blankOff()
-
-			// mag
-			if(returnROIEnables().mag())
-			{
-	
-				self.print("IMAGE: magnification for ROI "+myROI.getName()+" is: "+myROI.getMag())
-				myWorkflow.returnSEM().setMag(myROI.getMag())
-			}
-
-			// focus
-			if (myROI.getAFMode() == 1) //autofocus on every nth slice
-			{
-
-				//#todo: also add the option of doing this when start is pressed again
-				if (IPrep_sliceNumber() % myROI.getAFnSlice() == 0 )
-				{
-					debug("autofocus called on slice "+IPrep_sliceNumber()+"\n")
-					self.print("IMAGE: autofocusing")
-					IPrep_autofocus()
-					number afs_sleep = 1	// seconds of delay
-					sleep( afs_sleep )
-
-					number current_focus = myWorkflow.returnSEM().measureWD()	
-					number saved_focus = myROI.getFocus()
-					number change = current_focus - saved_focus
-					self.print("IMAGE: Autofocus changed focus value by "+change+" mm")
-					myWorkflow.returnSEM().setDesiredWDToCurrent()
-				}
-				else
-				self.print("skipping autofocus this slice, leaving focus alone")
-			}
-			else if (myROI.getAFMode() == 2) // no autofocus, use stored value
-			{
-				self.print("IMAGE: focus is: "+myROI.getFocus())
-				myWorkflow.returnSEM().setDesiredWD(myROI.getFocus()) // automatically sets it after storing it in object
-			}
-			// else the value is 0, which means leave focus alone
-
-			// Acquire Digiscan image, use digiscan parameters saved in ROI
-			
-			taggroup dsp = myROI.getDigiscanParam()
-
-			image temp_slice_im0, temp_slice_im1
-			
-			// digiscan
-
-			// use digiscan parameters in tag
-			myWorkflow.returnDigiscan().config(dsp, temp_slice_im0, temp_slice_im1)
-			
-			myWorkflow.returnDigiscan().acquire()
-
-			// blank
-			myWorkflow.returnSEM().blankOn()
-
-			// Verify SEM is functioning properly - pause acquisition otherwise (might be better to do before AFS with a test scan, easier here)
-			// if tag exists
-			number pixel_threshold = 500
-			string tagname = "IPrep:SEM:Emission check threshold"
-			if(GetPersistentNumberNote( tagname, pixel_threshold ))
-			{
-				number avg
-				// use the image that is just acuired, 0 by default
-				if (myWorkflow.returnDigiscan().getConfigured0())
-				{
-					avg = average( temp_slice_im0 )
-				}
-				else
-				{
-					avg = average( temp_slice_im1 )
-				}
-
-				if ( avg < pixel_threshold )
-				{
-					// average image value is less than threshold, assume SEM emission problem, pause acq
-					string str = datestamp()+": Average image value ("+avg+") is less than emission check threshold ("+pixel_threshold+")\n"
-					self.print(""+ str )
-					string str2 = "\nAcquisition has been paused.\n\nCheck SEM is working properly and press <Continue> to resume acquisition, or <Cancel> to stop."
-					string str3 = "\n\nNote: Threshold can be set at global tag: IPrep:SEM:Emission check threshold"
-					if ( !ContinueCancelDialog( str + str2 +str3 ) )
-					{
-							str = ": Acquisition terminated by user" 
-							self.print("IMAGE: "+str)	
-							return returncode	
-					}
-				}
-				else
-				{
-					self.print("IMAGE: Average image value ("+avg+") is greater than emission check threshold ("+pixel_threshold+"). SEM emission assumed OK." )	
-				}
-			}
-
-			if (myWorkflow.returnDigiscan().getConfigured0())
-			{
-				// Save Digiscan image 0
-				IPrep_saveSEMImage(temp_slice_im0, "digiscan "+myWorkflow.returnDigiscan().getName0())
-				
-				// Close Digiscan image
-				ImageDocument imdoc0 = ImageGetOrCreateImageDocument(temp_slice_im0)
-				imdoc0.ImageDocumentClose(0)
-
-				// add image to 3D volume and update, quietly ignore if stack is not initialized
-				try
-				{
-					if (myworkflow.returnDigiscan().numberOfSignals() == 2) // 2 signals, so add signal name
-					{
-						object my3DvolumeSEM = returnVolumeManager().returnVolume(myROI.getName()+"_"+myWorkflow.returnDigiscan().getName0())
-						my3DvolumeSEM.addSlice(temp_slice_im0)
-						my3DvolumeSEM.show()
-					}
-					else
-					{
-						object my3DvolumeSEM = returnVolumeManager().returnVolume(myROI.getName())
-						my3DvolumeSEM.addSlice(temp_slice_im0)
-						my3DvolumeSEM.show()
-					}
-				}
-				catch
-				{
-					self.print("ignoring 3D volume stack")
-					break
-				}
-
-			}
-
-			if (myWorkflow.returnDigiscan().getConfigured1())
-			{
-				// Save Digiscan image 1
-				IPrep_saveSEMImage(temp_slice_im1, "digiscan "+myWorkflow.returnDigiscan().getName1())
-				
-				// Close Digiscan image
-				ImageDocument imdoc1 = ImageGetOrCreateImageDocument(temp_slice_im1)
-				imdoc1.ImageDocumentClose(0)
-
-				// add image to 3D volume and update, quietly ignore if stack is not initialized
-				try
-				{
-					if (myworkflow.returnDigiscan().numberOfSignals() == 2) // 2 signals, so add signal name
-					{
-						object my3DvolumeSEM = returnVolumeManager().returnVolume(myROI.getName()+"_"+myWorkflow.returnDigiscan().getName1())
-						my3DvolumeSEM.addSlice(temp_slice_im1)
-						my3DvolumeSEM.show()
-					}
-					else
-					{
-						object my3DvolumeSEM = returnVolumeManager().returnVolume(myROI.getName())
-						my3DvolumeSEM.addSlice(temp_slice_im1)
-						my3DvolumeSEM.show()
-					}
-				}
-				catch
-				{
-					self.print("ignoring 3D volume stack")
-					break
-				}
-			
-			}
-
-		}
-		
-
-		
-		return 1
-
-
-/*
-
-		// get the ROI (default/StoredImaging in this case)
-		object myROI 
-		string name1 = "StoredImaging"
-		if (!returnROIManager().getROIAsObject(name1, myROI))
-		{
-			self.print("IMAGE: tag does not exist!")
-			return returncode
-		}
-
-		// go to ROI1
-		self.print("IMAGE: going to location: "+myROI.getName())
-		myWorkflow.returnSEM().goToImagingPosition(myROI.getName())
-		
-		// fix magnificationbug on Quanta
-		WorkaroundQuantaMagBug()
-
-		// focus
-		if (myROI.getAFMode() == 1) //autofocus on every slice
-		{
-			self.print("IMAGE: autofocusing")
-			IPrep_autofocus()
-			number afs_sleep = 1	// seconds of delay
-			sleep( afs_sleep )
-
-		}
-		else if (myROI.getAFMode() == 2) // no autofocus, use stored value
-		{
-			self.print("IMAGE: focus is: "+myROI.getFocus())
-			myWorkflow.returnSEM().setDesiredWD(myROI.getFocus()) // automatically sets it after storing it in object
-		}
-
-		// mag
-		if(returnROIEnables().mag())
-		{
-			self.print("IMAGE: magnification is: "+myROI.getMag())
-			myROI.getMag()
-		}
-
-		// digiscan acquire
-
-		// Acquire Digiscan image, use digiscan parameters saved in ROI
-		taggroup dsp = myROI.getDigiscanParam()
-
-		// can set digiscan parameter taggroup from this ROI to overwrite 'capture' settings
-		//myWorkflow.returnDigiscan().config(dsp)
-		// or use digiscan parameters as setup in the normal 'capture' at this moment
-		myWorkflow.returnDigiscan().config()
-		
-		// fix magnificationbug on Quanta
-		// second time, before imaging
-		WorkaroundQuantaMagBug()
-
-		image temp_slice_im
-		myWorkflow.returnDigiscan().acquire(temp_slice_im)
-
-		// Verify SEM is functioning properly - pause acquisition otherwise (might be better to do before AFS with a test scan, easier here)
-		// if tag exists
-		number pixel_threshold = 500
-		string tagname = "IPrep:SEM:Emission check threshold"
-		if(GetPersistentNumberNote( tagname, pixel_threshold ))
-		{
-			number avg = average( temp_slice_im )
-
-			if ( avg < pixel_threshold )
-			{
-				// average image value is less than threshold, assume SEM emission problem, pause acq
-				string str = datestamp()+": Average image value ("+avg+") is less than emission check threshold ("+pixel_threshold+")\n"
-				self.print(""+ str )
-				string str2 = "\nAcquisition has been paused.\n\nCheck SEM is working properly and press <Continue> to resume acquisition, or <Cancel> to stop."
-				string str3 = "\n\nNote: Threshold can be set at global tag: IPrep:SEM:Emission check threshold"
-				if ( !ContinueCancelDialog( str + str2 +str3 ) )
-				{
-						str = ": Acquisition terminated by user" 
-						self.print("IMAGE: "+str)	
-						return returncode	
-				}
-			}
-			else
-			{
-				self.print("IMAGE: Average image value ("+avg+") is greater than emission check threshold ("+pixel_threshold+"). SEM emission assumed OK." )	
-			}
-		}
-		
-		// Save Digiscan image
-		IPrep_saveSEMImage(temp_slice_im, "digiscan")
-
-		// Close Digiscan image
-		ImageDocument imdoc = ImageGetOrCreateImageDocument(temp_slice_im)
-		imdoc.ImageDocumentClose(0)
-			
-		// add image to 3D volume and update 
-		// quietly ignore if stack is not initialized
-		try
-		{
-			//object my3DvolumeSEM = myWorkflow.return3DvolumeSEM()
-			//my3DvolumeSEM.addSlice(temp_slice_im)
-			//my3DvolumeSEM.show()
-		}
-		catch
-		{
-			self.print("ignoring 3D volume stack")
-			break
-		}
-
-		// *** second ROI
-
-		object myExtraROI
-		string name2 = "ExtraROI"
-		returnROIManager().getROIAsObject(name2, myExtraROI)
-
-		// set mag (hardcoded for now)
-		if(returnROIEnables().mag())
-		{
-			print("IMAGE: magnification is: "+myExtraROI.getMag())
-			myWorkflow.returnSEM().setMag(myExtraROI.getMag())
-		}
-
-		//get digiscan parameters saved in ROI
-		taggroup dsp2 = myExtraROI.getDigiscanParam()
-
-		// create image
-		image temp_slice_im_ExtraROI
-		
-		// set up digiscan using settings from ROI
-		myWorkflow.returnDigiscan().config(dsp2)
-		
-		// acquire
-		myWorkflow.returnDigiscan().acquire(temp_slice_im_ExtraROI)
-
-		// Save Digiscan image
-		IPrep_saveSEMImage(temp_slice_im_ExtraROI, "digiscan_extraROI")
-
-		// Close Digiscan image
-		imdoc = ImageGetOrCreateImageDocument(temp_slice_im_ExtraROI)
-		imdoc.ImageDocumentClose(0)
-
-
-		// blank
-		myWorkflow.returnSEM().blankOn()
-*/
-	}
-
-	number undo(object self)
-	{
-		// public
-		// this method is intended to undo the sequence (if possible)
-		self.print("cannot undo this sequence")
-		return 0
-	}
-
-	number final(object self)
-	{
-		// public
-		// blank beam
-		myWorkflow.returnSEM().blankOn()
-		return 1
-	}
-}
-
 class EBSD_default: deviceSequence
 {
 	// default EBSD acquisition
@@ -2741,66 +1374,151 @@ class EBSD_default: deviceSequence
 
 		number returncode = 0
 
-		// unblank
-		myWorkflow.returnSEM().blankOff()
+		string tagname
 
-		number tick = GetOSTickCount()
-		number tock = 0
 
-		string tagname = "IPrep:EBSD:timeout"
+		// timeout
 		number timeout
+		tagname = "IPrep:EBSD:timeout"
 		if(!GetPersistentNumberNote( tagname, timeout ))
 		{
-			throw("EBSD timeout not set")
+			throw("EBSD timeout (IPrep:EBSD:timeout) not set")
 		}
+
 
 		self.print("EBSD starting. press option and shift to abort")
 
-		myWorkflow.returnEBSD().EBSD_start()
+		// init EBSD system with correct site, prefix for dataname and type
+		string sitename
+		string data_prefix
+		number type
+		number mag
+		string coordname
 
-		while (myWorkflow.returnEBSD().isBusy()!=0)
+		// sitename
+		tagname = "IPrep:EBSD:sitename"
+		if(!getpersistentstringnote( tagname, sitename ))
 		{
-			tock = GetOSTickCount()
-			if ((tock-tick)/1000 > timeout)
-			{
-				self.print("EBSD timeout passed")
-				
-				if (okcanceldialog("timeout for EBSD acquisition passed, continue workflow?"))
-				{
-					// continue
-					returncode = 1
-				}
-				else
-				{
-					// abort
-					returncode = 0
-				}
-
-				break	
-			}
-			
-			if ((optiondown() && shiftdown()))
-			{
-				self.print("EBSD aborted")
-
-				if (okcanceldialog("EBSD acquisition aborted, continue workflow?"))
-				{
-					// continue
-					returncode = 1
-				}
-				else
-				{
-					// abort
-					returncode = 0
-				}
-
-				break
-			}
-
-			sleep(1)
-			
+			throw("EBSD sitename (IPrep:EBSD:sitename) not set")
 		}
 
+		// data_prefix
+		tagname = "IPrep:EBSD:data_prefix"
+		if(!getpersistentstringnote( tagname, data_prefix ))
+		{
+			throw("EBSD data_prefix (IPrep:EBSD:data_prefix not set")
+		}
+
+		// type
+		tagname = "IPrep:EBSD:type"
+		if(!GetPersistentNumberNote( tagname, type ))
+		{
+			throw("EBSD type (IPrep:EBSD:type) not set")
+		}
+
+		// mag
+		tagname = "IPrep:EBSD:mag"
+		if(!GetPersistentNumberNote( tagname, mag ))
+		{
+			throw("EBSD mag (IPrep:EBSD:mag) not set")
+		}
+
+		// SEM coordname
+		tagname = "IPrep:EBSD:semcoord"
+		if(!getpersistentstringnote( tagname, coordname ))
+		{
+			throw("EBSD SEM coord (IPrep:EBSD:semcoord not set")
+		}		
+
+		// set magnification
+		self.print("EBSD: magnification is: "+mag)
+		myWorkflow.returnSEM().setMag(mag)
+
+
+		// go to sem coord
+		self.print("coordname for EBSD: "+coordname)
+		// go to ROIs SEM coord, but only if we are not already there
+		if (myWorkflow.returnSEM().getCurrentImagingPosition() == coordname)
+		{
+			// already there
+			self.print("EBSD: already at "+coordname+", leaving stage where it is")
+		}
+		else
+		{
+			// go there
+			self.print("EBSD: going to location: "+coordname)
+			myWorkflow.returnSEM().goToImagingPosition(coordname)
+		}
+
+		// setup EBSD interface
+		myWorkflow.returnEBSD().init(sitename, data_prefix, type)
+
+		// release digiscan control, just in case it is still set
+		myWorkflow.returnDigiscan().releaseControl()
+
+		// unblank
+		myWorkflow.returnSEM().blankOff()
+
+		// start
+		myWorkflow.returnEBSD().EBSD_start()
+
+		try
+		{
+
+			number tick = GetOSTickCount()
+			number tock = 0
+
+			while (myWorkflow.returnEBSD().isBusy()!=0)
+			{
+				tock = GetOSTickCount()
+				if ((tock-tick)/1000 > timeout)
+				{
+					self.print("EBSD timeout passed")
+					
+					if (okcanceldialog("timeout for EBSD acquisition passed, continue workflow?"))
+					{
+						// continue
+						returncode = 1
+					}
+					else
+					{
+						// abort
+						returncode = 0
+					}
+
+					break	
+				}
+				
+				if ((optiondown() && shiftdown()))
+				{
+					self.print("EBSD aborted")
+
+					if (okcanceldialog("EBSD acquisition aborted, continue workflow?"))
+					{
+						// continue
+						returncode = 1
+					}
+					else
+					{
+						// abort
+						returncode = 0
+					}
+
+					break
+				}
+				self.print("EBSD running, progress = "+myWorkflow.returnEBSD().returnProgress()+", error code = "+myWorkflow.returnEBSD().returnError())
+				sleep(5)
+				
+			}
+
+			myWorkflow.returnEBSD().EBSD_stop()
+
+		}
+		catch
+		{
+			print("exception in EBSD sequence: "+GetExceptionString()+", last error code is "+myWorkflow.returnEBSD().returnError())
+			myWorkflow.returnEBSD().EBSD_stop()
+		}
 
 
 		// blank

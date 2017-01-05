@@ -41,7 +41,46 @@ void IPrep_setSliceNumber(number setSlice)
 	myPW.updateC("slice: "+IPrep_sliceNumber())
 }
 
-number IPrep_consistency_check()
+Number IPrep_littleCheck()
+{
+	// call this at the end of imaging step to check:
+	// -SEM status (ie emission current)
+	// -UPS status
+	// -consistency check 
+	// -pecs vacuum and argon pressure
+	// -end condition met (number of slices)
+	// -dock scribe mark calibrated (as far as we know)
+
+	if(!myWorkflow.returnPECS().argonCheck())
+	{
+		print("PECS system argon pressure below threshold")
+		return 0
+	}
+
+	if(!myWorkflow.returnPECS().TMPCheck())
+	{
+		print("PECS system not at vacuum or TMP problem")
+		return 0
+	}
+
+	if(IPrep_sliceNumber() > IPrep_maxSliceNumber())
+	{
+		print("Maximum number of slices ("+IPrep_maxSliceNumber()+") reached")
+		return 0
+	}
+
+	print("IPrep check finished!")
+
+	// SEM status:
+	// - working distance active check
+
+	// UPS status
+
+	return 1
+}
+
+//number IPrep_consistency_check()
+number IPrep_bigCheck()
 {
 	// run after DM restarts to make sure that:
 	// -all state machines are in a known position that we can resume from
@@ -49,7 +88,7 @@ number IPrep_consistency_check()
 	// if we detect an unsafe flag, we need manual intervention
 
 
-	print("iprep consistency check:")
+	print("iprep big/consistency check:")
 
 	// workflow state machine
 	print("current workflow state: "+myStateMachine.getCurrentWorkflowState())
@@ -61,7 +100,7 @@ number IPrep_consistency_check()
 		// system crashed when doing transfer. nothing we can do. contact service and do a manual recovery
 		print("DM terminated when system was "+myStateMachine.getCurrentWorkflowState()+", manual recovery needed")
 		returnDeadFlag().setDeadUnSafe()
-
+		return 0
 	}
 	else if (myStateMachine.getCurrentWorkflowState() == "PECS") // sample was in PECS
 	{
@@ -97,27 +136,22 @@ number IPrep_consistency_check()
 			print("imaging was not finished when workflow was aborted")
 		}		
 	}
-	else
-	{
-		// workflow in unknown state, set dead unsafe. unlikely catch all state
-		print("DM crashed when system was "+myStateMachine.getCurrentWorkflowState()+", manual recovery needed")
-		returnDeadFlag().setDead(1, "state machine", "DM crashed when system was "+myStateMachine.getCurrentWorkflowState()+", manual recovery needed")
-		returnDeadFlag().setSafety(0, "current workflow state not known: "+myStateMachine.getCurrentWorkflowState())
 
-	}
 
-	// sample is either in SEM Dock or on PECS stage, so we can most likely recover
+	// sample is either in SEM Dock or on PECS stage, so the big things are ok
 	// figure out state of hardware one by one by running corresponding consistencychecks
 
 	// pips
 	// -check gate valve against sensor values
-	// -check stage state 
+
 	if (!myWorkflow.returnPecs().GVConsistencyCheck())
 	{
+		print("GV check failed")
+		return 0
 		// GV is not nicely opened or closed
 		// system is now dead
-		print("GV:sensordata do not agree with previous save state. either caused by a malfunction or powerloss")
-		returnDeadFlag().setDead(1, "GV", "GV state unknown: manual recovery needed")
+		//print("GV:sensordata do not agree with previous save state. either caused by a malfunction or powerloss")
+		//returnDeadFlag().setDead(1, "GV", "GV state unknown: manual recovery needed")
 		
 	}
 	else
@@ -131,11 +165,11 @@ number IPrep_consistency_check()
 	{
 				
 		print("transfer controller: stage is not where system thinks it is. manual recovery needed")
-		returnDeadFlag().setDead(1, "TRANSFER", "transfer system not where system thinks it is. caused by faulted drive or powerloss while system was not at home")
+		//returnDeadFlag().setDead(1, "TRANSFER", "transfer system not where system thinks it is. caused by faulted drive or powerloss while system was not at home")
 		
 		// set unsafe
-		returnDeadFlag().setSafety(0, "transfer system not where system thinks it is. caused by faulted drive or powerloss while system was not at home")
-
+		//returnDeadFlag().setSafety(0, "transfer system not where system thinks it is. caused by faulted drive or powerloss while system was not at home")
+		return 0
 	}
 	else
 	{
@@ -161,8 +195,9 @@ number IPrep_consistency_check()
 		}
 		else
 		{
-			print("sem stage: stage coordinates are not consistent with what the state of the stage is")
-			returnDeadFlag().setDead(1, "SEM", "SEM stage in "+myWorkflow.returnSEM().getState()+", but not at state coordinates of that state")
+			print("sem stage: stage coordinates are not consistent with what the state of the stage is. check failed. ")
+			return 0
+			//returnDeadFlag().setDead(1, "SEM", "SEM stage in "+myWorkflow.returnSEM().getState()+", but not at state coordinates of that state")
 		
 			// set unsafe
 			//returnDeadFlag().setSafety(0, "SEM stage in "+myWorkflow.returnSEM().getState()+", but not at state coordinates of that state")
@@ -178,18 +213,25 @@ number IPrep_consistency_check()
 	if (getSystemMode() != returnMediator().detectMode())
 	{
 		print(getSystemMode()+" dock not detected. detected dock is "+returnMediator().detectMode())
+		return 0
 
 		// give user option to ignore
-		if (!okcanceldialog("dock mode not detected. detected "+returnMediator().detectMode()+", but mode is set to "+getSystemMode()+". continue?"))
-		{
+		//print("dock mode not detected. detected "+returnMediator().detectMode()+", but mode is set to "+getSystemMode()+". check failed. "))
+		
 			
-			returnDeadFlag().setDead(1, "DOCK", getSystemMode()+" dock not detected. detected dock is "+returnMediator().detectMode())
-		}
-		print("ignoring dock warning")
+			//returnDeadFlag().setDead(1, "DOCK", getSystemMode()+" dock not detected. detected dock is "+returnMediator().detectMode())
+		
+		//print("ignoring dock warning")
 	}
 	else
 	{
 		print("dock mode consistent: "+returnMediator().detectMode())
+	}
+
+	if(!getDockCalibrationStatus())
+	{
+		print("Dock not calibrated. Please calibrate scribe mark")
+		return 0
 	}
 
 	// dock state
@@ -199,26 +241,25 @@ number IPrep_consistency_check()
 	// #todo: what if stuck in open position? go to unsafe, since gripper problems cannot be easily fixed!
 
 
-
-	// if dead, return 0
-	//if (returnDeadFlag().isDead())
+	// if unsafe, there is nothing we can do without manually figuring this out
+	//if (!returnDeadFlag().isSafe())
 	//{
-	//	print("system is in dead mode, devices need to be manually put in correct state")	
-	//	okdialog("system is in dead mode, devices need to be manually put in correct state")	
+	//	print("system is in unsafe mode, please contact Gatan service")	
+	//	okdialog("system is in unsafe mode, please contact Gatan service")	
 	//	return 0
 	//}
 
-
-	// if unsafe, there is nothing we can do without manually figuring this out
-	if (!returnDeadFlag().isSafe())
+	if (!IPrep_littleCheck())
 	{
-		print("system is in unsafe mode, please contact Gatan service")	
-		okdialog("system is in unsafe mode, please contact Gatan service")	
+		print("IPrep regular check failed. ")
 		return 0
 	}
 
 	// success,
 	print("consistency check finished!")
+
+
+
 	return 1
 }
 
@@ -253,7 +294,7 @@ number IPrep_recover_deadflag()
 
 	// for now, a succesful IPrep_consistency_check() will remove the dead flag
 	// #todo: we need to add some extra checks
-	if (IPrep_consistency_check())
+	if (IPrep_bigCheck())
 	{
 		print("consistency check passed. system no longer dead")
 		returnDeadFlag().setDead(0)
@@ -634,50 +675,7 @@ Number IPrep_reseat()
 	return returncode	
 }
 
-Number IPrep_check()
-{
-	// call this at the end of imaging step to check:
-	// -SEM status (ie emission current)
-	// -UPS status
-	// -consistency check 
-	// -pecs vacuum and argon pressure
-	// -end condition met (number of slices)
-	// -dock scribe mark calibrated (as far as we know)
 
-	if(!getDockCalibrationStatus())
-	{
-		print("Dock not calibrated. Please calibrate scribe mark")
-		return 0
-	}
-
-
-	if(!myWorkflow.returnPECS().argonCheck())
-	{
-		print("PECS system argon pressure below threshold")
-		return 0
-	}
-
-	if(!myWorkflow.returnPECS().TMPCheck())
-	{
-		print("PECS system not at vacuum or TMP problem")
-		return 0
-	}
-
-	if(IPrep_sliceNumber() > IPrep_maxSliceNumber())
-	{
-		print("Maximum number of slices ("+IPrep_maxSliceNumber()+") reached")
-		return 0
-	}
-
-	print("IPrep check finished!")
-
-	// SEM status:
-	// - working distance active check
-
-	// UPS status
-
-	return 1
-}
 
 Number IPrep_Init3DStacks()
 {
@@ -704,6 +702,22 @@ Number IPrep_StartResumeGeneric()
 		// # slice number is remembered, but also needs to know last succesfully completed step. 
 		// # can query this with: myStateMachine.getLastCompletedStep() ("IMAGE", "MILL", "SEM", "PECS", "RESEAT")
 		// # this is all working in a rather rudimentary way now
+
+		string popuperror
+
+		if (!returnDeadFlag().checkAliveAndSafe())
+		{
+			popuperror = "system dead and/or unsafe. cannot start"
+			okdialog(popuperror)
+			return returncode // to indicate error
+		}
+
+		if(!IPrep_bigCheck())
+		{
+			popuperror = "consistency check failed, check log. cannot start"
+			okdialog(popuperror)
+			return returncode // to indicate error
+		}
 
 		// set stop and pause back to 0
 		returnstopVar().set1(0)
@@ -773,11 +787,9 @@ Number IPrep_StartRun()
 	print("UI: IPrep_StartRun")
 
 	number returncode = 0
-	string popuperror
 
 	try
 	{
-
 
 		result("about to start debug\n")
 
@@ -785,7 +797,7 @@ Number IPrep_StartRun()
 		// init state machine sequences with already initialized subsystems. also reinits 3d volumes used
 		myStateMachine.init(myWorkflow)
 
-		// show 3D stacks based on just enabled sequences/ROIs
+		// show 3D stacks based on just enabled sequences/ROIs. if not shown workflow sequence will show them as images are added
 		//returnVolumeManager().showAll()
 
 		IPrep_StartResumeGeneric()
@@ -821,28 +833,6 @@ Number IPrep_ResumeRun()
 	print("UI: Prep_ResumeRun")
 
 	number returncode = 0
-	string popuperror
-
-	if (!returnDeadFlag().checkAliveAndSafe())
-	{
-		popuperror = "system dead and/or unsafe. cannot start"
-		okdialog(popuperror)
-		return returncode // to indicate error
-	}
-
-	if(!IPrep_consistency_check())
-	{
-		popuperror = "consistency check failed, check log. cannot start"
-		okdialog(popuperror)
-		return returncode // to indicate error
-	}
-
-	if(!IPrep_check())
-	{
-		popuperror = "check failed, check log. cannot start"
-		okdialog(popuperror)
-		return returncode // to indicate error
-	}
 
 	// no reinit of 3d volumes or stacks
 
@@ -890,46 +880,6 @@ number IPrep_acquire_ebsd()
 
 	return returncode
 
-
-
-	// old 
-	// #may be removed
-	/*
-	
-	number returncode = 0
-	try
-	{
-		if(getSystemMode() == "ebsd")
-		{
-			// tell state machine we want to start EBSD acquisition
-			myStateMachine.start_ebsd(8000) // timeout of 8000
-
-			// tell state machine we want to stop EBSD acquisition
-			myStateMachine.stop_ebsd()
-
-			returncode = 1
-		}
-		else
-		{
-			print("not in EBSD mode, skipping step..")
-			returncode = 1
-		}
-		
-	}
-	catch
-	{
-		// system caught unhandled exception
-		print("EBSD system generated exception: "+GetExceptionString())
-
-		// an exception in ebsd acquisition is most likely safe
-		returnDeadFlag().setDead(1, "DOCK", "EBSD system generated exception: "+GetExceptionString())
-		//returnDeadFlag().setDeadUnSafe()
-
-		break // so that flow continues
-	}
-
-	return returncode
-	*/
 }
 
 number IPrep_image() 
@@ -1049,51 +999,6 @@ Number IPrep_mill_workflow()
 
 	return returncode
 
-
-	// old style
-	/*
-	number returncode = 0
-
-	if (!returnDeadFlag().checkAliveAndSafe())
-		return returncode // to indicate error
-
-	print("UI: IPrep_Mill")
-	try
-	{
-		
-		// If on the first slice (which is slice 1), acquire an image before milling
-		if ( IPrep_sliceNumber() == 1 )
-
-
-
-		// initiate workflow to start milling
-		print("PECS milling started")
-		myPW.updateB("PECS milling started")
-
-		// Mill sample 
-		myStateMachine.start_mill(0, 8000)	// (timeout of 8000s)
-		myStateMachine.stop_mill() // milling done
-
-		myPW.updateB("PECS milling done")
-		
-		print("milling done on slice number: "+IPrep_sliceNumber())
-	
-		returncode = 1
-
-
-
-	}
-	catch
-	{
-		// system caught unhandled exception and is now considered dead/unsafe
-		print(GetExceptionString())
-		returnDeadFlag().setDeadUnSafe()
-
-		break // so that flow contineus
-
-	}
-	return returncode
-	*/
 }
 
 Number IPrep_Coat_workflow()
@@ -1508,7 +1413,7 @@ class IPrep_mainloop:thread
 
 				aGlobalTimer.tock()
 				self.print("loop: check")
-				number returnval = IPrep_check()
+				number returnval = IPrep_LittleCheck()
 				if (!self.process_response(returnval, 0)) // dont repeat for now
 					self.stop(GetTagValue("IPrep:endConditions:run_cleanup_at_end"))					
 			}

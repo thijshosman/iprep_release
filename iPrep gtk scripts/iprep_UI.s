@@ -53,7 +53,7 @@ void Goto_nominal_imaging(void)
 	string s1 = "Nominal imaging position\n("+xx+","+yy+","+zz+")\n\nGo there now?"
 	if (OKCancelDialog(s1))
 	{	myWorkflow.returnSEM().goToNominalImaging()
-		WorkaroundQuantaMagBug()
+		myWorkflow.returnSEM().WorkaroundQuantaMagBug()
 
 	}
 }
@@ -112,7 +112,7 @@ void Recall_imaging_position_focus( void )
 		myWorkflow.returnSEM().setDesiredWD(saved_focus)
 	}
 	
-	WorkaroundQuantaMagBug()
+	myWorkflow.returnSEM().WorkaroundQuantaMagBug()
 }
 
 void GoToSpecifiedCoord(void)
@@ -154,7 +154,8 @@ void Goto_highgridback( void )
 	string s1 = "Move to grid on post closest to back of chamber?"
 	if (OKCancelDialog(s1))
 	{
-		myWorkflow.returnSEM().goToHighGridBack()
+		myWorkflow.returnSEM().goToImagingPosition("highGridBack")
+		//myWorkflow.returnSEM().goToHighGridBack()
 		//WorkaroundQuantaMagBug()
 	}
 
@@ -167,7 +168,7 @@ void Goto_clear()
 	if (OKCancelDialog(s1))
 	{
 		myWorkflow.returnSEM().goToClear()
-		WorkaroundQuantaMagBug()
+		myWorkflow.returnSEM().WorkaroundQuantaMagBug()
 	}
 }
 
@@ -177,7 +178,8 @@ void Goto_highgridfront( void )
 	string s1 = "Move to grid on post closest to front of chamber?"
 	if (OKCancelDialog(s1))
 	{
-		myWorkflow.returnSEM().goToHighGridFront()
+		myWorkflow.returnSEM().goToImagingPosition("highGridFront")
+		//myWorkflow.returnSEM().goToHighGridFront()
 		//WorkaroundQuantaMagBug()
 	}
 
@@ -189,7 +191,8 @@ void Goto_scribe_mark( void )
 	string s1 = "Move to scribe mark?"
 	if (OKCancelDialog(s1))
 	{
-		myWorkflow.returnSEM().goToScribeMark()
+		myWorkflow.returnSEM().goToImagingPosition("scribe_pos")
+		//myWorkflow.returnSEM().goToScribeMark()
 		//WorkaroundQuantaMagBug()
 	}
 }
@@ -237,7 +240,7 @@ void Recall_imaging_parameters_from_image( void )
 			EMSetStageXY( XX, YY )
 		}
 		
-		WorkaroundQuantaMagBug()
+		myWorkflow.returnSEM().WorkaroundQuantaMagBug()
 
 	}
 		
@@ -426,7 +429,7 @@ void homeSEMStageToClear(void)
 	string s1 = "clear position\n("+xx+","+yy+","+zz+")\n\nGo (home) there now?"
 	if (OKCancelDialog(s1))
 		myWorkflow.returnSEM().homeToClear()
-	WorkaroundQuantaMagBug()
+	myWorkflow.returnSEM().WorkaroundQuantaMagBug()
 }
 
 void gotoPickupDropoff(void)
@@ -440,7 +443,7 @@ void gotoPickupDropoff(void)
 	string s1 = "pickup dropoff position\n("+xx+","+yy+","+zz+")\n\nGo there now?"
 	if (OKCancelDialog(s1))
 		myWorkflow.returnSEM().goToPickup_Dropoff()
-	WorkaroundQuantaMagBug()
+	myWorkflow.returnSEM().WorkaroundQuantaMagBug()
 }
 
 void homeParker(void)
