@@ -37,60 +37,59 @@ else
 
 string package = "IPrep"
 
-InstallFile( PathConcatenate( gPath, "statePersistance.s" ), package, 3 )
-InstallFile( PathConcatenate( gPath, "progressWindow.s" ), package, 3 )
-InstallFile( PathConcatenate( gPath, "iprep_general.s" ), package, 3 )
-InstallFile( PathConcatenate( gPath, "multi_roi.s" ), package, 3 )
-InstallFile( PathConcatenate( gPath, "iprep_init_helpers.s" ), package, 3 )
-InstallFile( PathConcatenate( gPath, "hardwareFactory.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_statePersistence.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_progressWindow.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_general.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_multi_roi.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_init_helpers.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_hardwareFactory.s" ), package, 3 )
 
-InstallFile( PathConcatenate( gPath, "UPS_APC.s" ), package, 3 )
-InstallFile( PathConcatenate( gPath, "UPS_simulator.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_UPS_APC.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_UPS_simulator.s" ), package, 3 )
 
-InstallFile( PathConcatenate( gPath, "SEM_iprep.s" ), package, 3 )
-InstallFile( PathConcatenate( gPath, "SEM_simulator.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_SEM_Quanta.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_SEM_simulator.s" ), package, 3 )
 
-InstallFile( PathConcatenate( gPath, "PlanarSEMdock.s" ), package, 3 )
-InstallFile( PathConcatenate( gPath, "EBSDSEMdock.s" ), package, 3 )
-InstallFile( PathConcatenate( gPath, "dock_simulator.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_dock_planar.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_dock_EBSD.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_dock_simulator.s" ), package, 3 )
 
-InstallFile( PathConcatenate( gPath, "transfer.s" ), package, 3 )
-InstallFile( PathConcatenate( gPath, "transfer_simulator.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_transfer_parkerIPA.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_transfer_simulator.s" ), package, 3 )
 
-InstallFile( PathConcatenate( gPath, "gripper.s" ), package, 3 )
-InstallFile( PathConcatenate( gPath, "gripper_simulator.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_gripper.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_gripper_simulator.s" ), package, 3 )
 
-InstallFile( PathConcatenate( gPath, "pecs_iprep.s" ), package, 3 )
-InstallFile( PathConcatenate( gPath, "pecs_simulator.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_pecs.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_pecs_simulator.s" ), package, 3 )
 
-InstallFile( PathConcatenate( gPath, "pecscamera_iprep.s" ), package, 3 )
-InstallFile( PathConcatenate( gPath, "pecscamera_simulator.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_pecscamera.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_pecscamera_simulator.s" ), package, 3 )
 
-InstallFile( PathConcatenate( gPath, "digiscan_iprep.s" ), package, 3 )
-InstallFile( PathConcatenate( gPath, "digiscan_simulator.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_digiscan.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_digiscan_simulator.s" ), package, 3 )
 
-InstallFile( PathConcatenate( gPath, "ebsd_simulator.s" ), package, 3 )
-InstallFile( PathConcatenate( gPath, "ebsd_manual.s" ), package, 3 )
-InstallFile( PathConcatenate( gPath, "ebsd_oi_automatic.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_ebsd_simulator.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_ebsd_manual.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_ebsd_oi_automatic.s" ), package, 3 )
 
-InstallFile( PathConcatenate( gPath, "workflowElements.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_workflowElements.s" ), package, 3 )
 
-InstallFile( PathConcatenate( gPath, "workflowHelperFunctions.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_workflowHelperFunctions.s" ), package, 3 )
 
-InstallFile( PathConcatenate( gPath, "iprep_3Dvolume.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_3Dvolume.s" ), package, 3 )
 
-InstallFile( PathConcatenate( gPath, "device_sequences.s" ), package, 3 )
-InstallFile( PathConcatenate( gPath, "sequenceFactory.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_device_sequences.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_sequenceFactory.s" ), package, 3 )
 
-InstallFile( PathConcatenate( gPath, "mainStateMachine.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_mainStateMachine.s" ), package, 3 )
 
 
-// InstallFile( PathConcatenate( gPath, "iprep_alignment.s" ), package, 3 )
+// InstallFile( PathConcatenate( gPath, "IPrep_alignment.s" ), package, 3 )
 
-InstallFile( PathConcatenate( gPath, "iprep_main.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_main.s" ), package, 3 )
 
-//InstallFile( PathConcatenate( gPath, "iprep_pecsstatuschecker.s" ), package, 3 )
-InstallFile( PathConcatenate( gPath, "iprep_UI.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_UI.s" ), package, 3 )
 
 result("Done installing "+package+" scripts as plugin.\n")
 

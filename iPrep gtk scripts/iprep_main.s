@@ -301,8 +301,6 @@ number IPrep_recover_deadflag()
 	}
 }
 
-
-
 number IPrep_align_planar_hack()
 {
 	// hardcoded values as planar coordinates
@@ -515,8 +513,6 @@ number IPrep_toggle_planar_ebsd(string mode)
 	return returncode
 }
 
-
-
 void IPrep_cleanup()
 {
 	// runs when there is a problem detected to return to manageable settings, ie:
@@ -602,6 +598,7 @@ Number IPrep_MoveToPECS_workflow()
 	else if (success == 0)
 	{
 		returncode = 0 // irrecoverable error (for now)
+		returnDeadFlag().setDead(1, "movetopecs", " ")
 		print("iprep encountered an error. cannot recover")
 	}
 
@@ -633,6 +630,7 @@ Number IPrep_MoveToSEM_workflow()
 	else if (success == 0)
 	{
 		returncode = 0 // irrecoverable error (for now)
+		returnDeadFlag().setDead(1, "movetosem", " ")
 		print("iprep encountered an error. cannot recover")
 	}	
 
@@ -669,23 +667,15 @@ Number IPrep_reseat()
 	else if (success == 0)
 	{
 		returncode = 0 // irrecoverable error (for now)
+		returnDeadFlag().setDead(1, "reseating", " ")
 		print("iprep encountered an error. cannot recover")
 	}	
 
+	if (returncode == 0)
+		okdialog("problem during reaseating")
+
 	return returncode	
 }
-
-
-
-Number IPrep_Init3DStacks()
-{
-	// look at enabled ROIs and create (and show) 3D stacks of these
-	// -gets called by startrun(create and show), but not resumerun (resumerun only shows them)
-	// #todo: make startrun/resumerun compatible with this paradime
-
-
-}
-
 
 Number IPrep_StartResumeGeneric()
 {
@@ -708,15 +698,15 @@ Number IPrep_StartResumeGeneric()
 		if (!returnDeadFlag().checkAliveAndSafe())
 		{
 			popuperror = "system dead and/or unsafe. cannot start"
-			okdialog(popuperror)
-			return returncode // to indicate error
+			//okdialog(popuperror)
+			return 0 // to indicate error
 		}
 
 		if(!IPrep_bigCheck())
 		{
 			popuperror = "consistency check failed, check log. cannot start"
 			okdialog(popuperror)
-			return returncode // to indicate error
+			return 0 // to indicate error
 		}
 
 		// set stop and pause back to 0
@@ -771,14 +761,15 @@ Number IPrep_StartResumeGeneric()
 	{
 
 		print(GetExceptionString())
-
+		IPrep_abortrun()
+		
 		okdialog("something went wrong in starting run: "+GetExceptionString()+"\n")
 		break // so that flow continues
 
 	}
 
-	return returncode
 
+	return returncode
 }
 
 Number IPrep_StartRun()
@@ -786,33 +777,32 @@ Number IPrep_StartRun()
 	// executes when Start button is pressed
 	print("UI: IPrep_StartRun")
 
-	number returncode = 0
+	result("about to start debug\n")
 
-	try
+	// reload sequences to pick up on changes
+	// init state machine sequences with already initialized subsystems. also reinits 3d volumes used
+	myStateMachine.init(myWorkflow)
+
+	// show 3D stacks based on just enabled sequences/ROIs. if not shown workflow sequence will show them as images are added
+	//returnVolumeManager().showAll()
+
+	if (IPrep_StartResumeGeneric() != 1)
 	{
 
-		result("about to start debug\n")
+		// if we fail and have to return, make sure: 
+		// 	tell UI to not be in 'running' state anymore
+		//	popup some message
 
-		// reload sequences to pick up on changes
-		// init state machine sequences with already initialized subsystems. also reinits 3d volumes used
-		myStateMachine.init(myWorkflow)
+		IPrep_abortrun() 
 
-		// show 3D stacks based on just enabled sequences/ROIs. if not shown workflow sequence will show them as images are added
-		//returnVolumeManager().showAll()
-
-		IPrep_StartResumeGeneric()
-
-		returncode = 1 // to indicate success
+		// popup message
+		okdialog("something went wrong when trying to start workflow. check results window/log. ")
 
 	}
-	catch
-	{
-		print(GetExceptionString())
+	
 
-		okdialog("something went wrong in starting run: "+GetExceptionString()+"\n")
-		break // so that flow continues
+	return 1
 
-	}
 }
 
 Number IPrep_PauseRun()
@@ -832,15 +822,23 @@ Number IPrep_ResumeRun()
 {
 	print("UI: Prep_ResumeRun")
 
-	number returncode = 0
 
 	// no reinit of 3d volumes or stacks
 
-	IPrep_StartResumeGeneric()
 
-	returncode = 1 // to indicate success
-	
-	return returncode
+	if (IPrep_StartResumeGeneric() != 1)
+	{
+
+		// if we fail and have to return, make sure: 
+		// 	tell UI to not be in 'running' state anymore
+		//	popup some message
+
+		IPrep_abortrun() 
+
+		// popup message
+		okdialog("something went wrong when trying to resume workflow. check results window/log. ")
+
+	}
 }
 
 Number IPrep_StopRun()
@@ -852,7 +850,7 @@ Number IPrep_StopRun()
 	return 1
 }
 
-number IPrep_acquire_ebsd()
+number IPrep_acquire_ebsd_workflow()
 {
 	number returncode = 0
 
@@ -879,10 +877,9 @@ number IPrep_acquire_ebsd()
 	}	
 
 	return returncode
-
 }
 
-number IPrep_image() 
+number IPrep_image_workflow() 
 {
 	number returncode = 0
 
@@ -899,19 +896,21 @@ number IPrep_image()
 	else if (success == -1)
 	{
 		returncode = 0 // irrecoverable error
-		print("iprep encountered an irrecoverable error")
+		//returnDeadFlag().setDead(1, "image", " ")
+		//print("iprep encountered an irrecoverable error")
 	}
 	else if (success == 0)
 	{
 		returncode = 0 // irrecoverable error (for now)
-		print("iprep encountered an error. cannot recover")
-		// #TODO: should pause system for user to fix whatever is wrong and continue
+		//returnDeadFlag().setDead(1, "image", " ")
+		//print("iprep encountered an error. cannot recover")
+
 	}	
 
 	return returncode
 }
 
-Number IPrep_Pecs_Image_beforemilling()
+Number IPrep_Pecs_Image_beforemilling_workflow()
 // take image of sample in PECS before milling
 {
 	number returncode = 0
@@ -927,11 +926,13 @@ Number IPrep_Pecs_Image_beforemilling()
 	else if (success == -1)
 	{
 		returncode = 0 // irrecoverable error
+		//returnDeadFlag().setDead(1, "pecs_image_before", " ")
 		print("iprep encountered an irrecoverable error")
 	}
 	else if (success == 0)
 	{
 		returncode = 0 // irrecoverable error (for now)
+		//returnDeadFlag().setDead(1, "pecs_image_before", " ")
 		print("iprep encountered an error. cannot recover")
 		// #TODO: should pause system for user to fix whatever is wrong and continue
 	}	
@@ -939,7 +940,7 @@ Number IPrep_Pecs_Image_beforemilling()
 	return returncode
 }
 
-Number IPrep_Pecs_Image_aftermilling()
+Number IPrep_Pecs_Image_aftermilling_workflow()
 // take image of sample in PECS before milling
 {
 	number returncode = 0
@@ -955,19 +956,19 @@ Number IPrep_Pecs_Image_aftermilling()
 	else if (success == -1)
 	{
 		returncode = 0 // irrecoverable error
+		//returnDeadFlag().setDead(1, "pecs_image_after", " ")
 		print("iprep encountered an irrecoverable error")
 	}
 	else if (success == 0)
 	{
 		returncode = 0 // irrecoverable error (for now)
+		//returnDeadFlag().setDead(1, "pecs_image_after", " ")
 		print("iprep encountered an error. cannot recover")
 		// #TODO: should pause system for user to fix whatever is wrong and continue
 	}	
 
 	return returncode
 }
-
-
 
 Number IPrep_mill_workflow()
 // Assumes sample is in PECS
@@ -988,17 +989,18 @@ Number IPrep_mill_workflow()
 	else if (success == -1)
 	{
 		returncode = 0 // irrecoverable error
+		//returnDeadFlag().setDead(1, "mill", " ")
 		print("iprep encountered an irrecoverable error")
 	}
 	else if (success == 0)
 	{
 		returncode = 0 // irrecoverable error (for now)
+		//returnDeadFlag().setDead(1, "mill", " ")
 		print("iprep encountered an error. cannot recover")
 		// #TODO: should pause system for user to fix whatever is wrong and continue
 	}	
 
 	return returncode
-
 }
 
 Number IPrep_Coat_workflow()
@@ -1020,11 +1022,13 @@ Number IPrep_Coat_workflow()
 	else if (success == -1)
 	{
 		returncode = 0 // irrecoverable error
+		//returnDeadFlag().setDead(1, "coat", " ")
 		print("iprep encountered an irrecoverable error")
 	}
 	else if (success == 0)
 	{
 		returncode = 0 // irrecoverable error (for now)
+		//returnDeadFlag().setDead(1, "coat", " ")
 		print("iprep encountered an error. cannot recover")
 		// #TODO: should pause system for user to fix whatever is wrong and continue
 	}	
@@ -1055,48 +1059,164 @@ Number IPrep_RunPercentCompleted()
 }
 
 // *** methods manually called by UI/user ***
-// #TODO: these are called by buttons in the UI what look for these names. not ideal but ok for now. 
+// these call the same routines as the workflow does, but we create a thread so that they run in the background
+// called by menu UI elements and by native DM menus
 
-Number IPrep_MoveToPECS()
-{
-		
-	if(IPrep_MoveToPECS_workflow() != 1)
-	{
-		okdialog("Did not finish transfer to PECS. check log")
+class IPrep_image_thread : thread
+{ 
+
+	void RunThread( object self )   
+	{     
+		if(IPrep_image_workflow() != 1)
+		{
+			okdialog("Did not finish image. check log")
+		}
 	}
+}
 
+	
+
+number IPrep_image() 
+{
+	alloc(IPrep_image_thread).StartThread()
 	return 1
 }
 
+class IPrep_acquire_ebsd_thread : thread
+{ 
+
+	void RunThread( object self )   
+	{     
+		if(IPrep_acquire_ebsd_workflow() != 1)
+		{
+			okdialog("Did not finish image. check log")
+		}
+	}
+}
+
+number IPrep_acquire_ebsd()
+{
+	alloc(IPrep_acquire_ebsd_thread).StartThread()
+	return 1
+}
+
+class IPrep_Pecs_Image_beforemilling_thread : thread
+{ 
+
+	void RunThread( object self )   
+	{     
+		if(IPrep_Pecs_Image_beforemilling_workflow() != 1)
+		{
+			okdialog("Did not finish image in PECS before milling. check log")
+		}
+	}
+}
+
+
+Number IPrep_Pecs_Image_beforemilling()
+{
+	alloc(IPrep_Pecs_Image_beforemilling_thread).StartThread()
+	return 1
+}
+
+class IPrep_Pecs_Image_aftermilling_thread : thread
+{ 
+
+	void RunThread( object self )   
+	{     
+		if(IPrep_Pecs_Image_aftermilling_workflow() != 1)
+		{
+			okdialog("Did not finish image in PECS after milling. check log")
+		}
+	}
+}
+
+
+Number IPrep_Pecs_Image_aftermilling()
+{
+	alloc(IPrep_Pecs_Image_aftermilling_thread).StartThread()
+	return 1
+}
+
+class IPrep_MoveToPECS_thread : thread
+{ 
+
+	void RunThread( object self )   
+	{     
+		if(IPrep_MoveToPECS_workflow() != 1)
+		{
+			okdialog("Did not finish transfer to PECS. check log")
+		}
+	}
+}
+
+
+Number IPrep_MoveToPECS()
+{
+	alloc(IPrep_MoveToPECS_thread).StartThread()
+	return 1
+}
+
+class IPrep_MoveToSEM_thread : thread
+{ 
+
+	void RunThread( object self )   
+	{     
+		if(IPrep_MoveToSEM_workflow() != 1)
+		{
+			okdialog("Did not finish transfer to SEM. check log")
+		}
+	}
+}
+
+
 Number IPrep_MoveToSEM()
 {
-	if(IPrep_MoveToSEM_workflow() != 1)
-	{
-		okdialog("Did not finish transfer to SEM. check log")
-	}
-
+	alloc(IPrep_MoveToSEM_thread).StartThread()
 	return 1
+}
+
+class IPrep_mill_thread : thread
+{ 
+
+	void RunThread( object self )   
+	{     
+		if(IPrep_mill_workflow() != 1)
+		{
+			okdialog("did not finish milling. check log")
+		}
+	}
 }
 
 Number IPrep_mill()
 {
-	if(IPrep_mill_workflow() != 1)
-	{
-		okdialog("did not finish milling. check log")
-	}
-
+	alloc(IPrep_mill_thread).StartThread()
 	return 1
+}
+
+class IPrep_coat_thread : thread
+{ 
+
+	void RunThread( object self )   
+	{     
+		if(IPrep_coat_workflow() != 1)
+		{
+			okdialog("did not finish coating. check log")
+		}
+	}
 }
 
 Number IPrep_coat()
 {
-	if(IPrep_coat_workflow() != 1)
-	{
-		okdialog("did not finish coating. check log")
-	}
-
+	alloc(IPrep_coat_thread).StartThread()
 	return 1
 }
+
+
+
+
+
+
 
 class IPrep_mainloop:thread
 {
@@ -1258,7 +1378,7 @@ class IPrep_mainloop:thread
 
 				if(GetTagValue("IPrep:WorkflowElements:imaging"))
 				{
-					returnval = IPrep_image()
+					returnval = IPrep_image_workflow()
 				}
 				else // if step not enabled, succeed and go to next step
 				{
@@ -1280,7 +1400,7 @@ class IPrep_mainloop:thread
 
 				if(GetTagValue("IPrep:WorkflowElements:ebsd"))
 				{
-					returnval = IPrep_acquire_ebsd()
+					returnval = IPrep_acquire_ebsd_workflow()
 				}
 				else // if step not enabled, succeed and go to next step
 				{
@@ -1333,7 +1453,7 @@ class IPrep_mainloop:thread
 
 				if(GetTagValue("IPrep:WorkflowElements:pecsImageBefore"))
 				{
-					returnval = IPrep_Pecs_Image_beforemilling()
+					returnval = IPrep_Pecs_Image_beforemilling_workflow()
 				}
 				else // if step not enabled, succeed and go to next step
 				{
@@ -1375,7 +1495,7 @@ class IPrep_mainloop:thread
 
 				if(GetTagValue("IPrep:WorkflowElements:pecsImageAfter"))
 				{
-					returnval = IPrep_Pecs_Image_aftermilling()
+					returnval = IPrep_Pecs_Image_aftermilling_workflow()
 				}
 				else // if step not enabled, succeed and go to next step
 				{

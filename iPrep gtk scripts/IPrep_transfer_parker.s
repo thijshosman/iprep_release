@@ -1,5 +1,8 @@
 // $BACKGROUND$
 
+// assumes parker IPA controller
+// for parker ARIES, we may need to create new class that takes specific flags/parameters into account
+
 class parkerTransfer:object
 {
 	// manages transfers of the parker system between discrete positions

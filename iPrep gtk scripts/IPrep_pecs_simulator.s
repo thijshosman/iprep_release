@@ -185,10 +185,10 @@ class pecs_simulator: object
 
 	}
 
-	string getStageAngle(object self)
+	number getStageAngle(object self)
 	{
 		// *** public ***
-		return ""
+		return 0
 	}
 
 	void stageHome(object self)

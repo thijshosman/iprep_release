@@ -2,6 +2,8 @@
 This file describes what all the todos are for the demounit master development branch. 
 
 ### for manchester ###
+* [] in UK: make classes for IPrep_SEM_NOVA, and IPrep_transfer_ParkerARES
+
 * [] finish alignment steps
 
 * [x] implement new EBSD methods
@@ -12,24 +14,31 @@ This file describes what all the todos are for the demounit master development b
 	* [x] big check checks consistencies when resuming/starting
 	* [x] little check checks common problems (tmp, argon etc) every iteration
 	* [] consistencychecks should not be done by calling workflow object, but instead should be done through mediator, perhaps.
+* [x] add a check to mediator that dock is clamped before moving to imaging
 
 * [] main: ensure that sem is in clear and move it there if not. may not be needed
-* [] main: start/resume should reinit sequences used to reflect changes (and possibly re-init the 3D volumes)
-* [] main: checks when resuming/starting need cleaning up 
+* [x] main: start/resume should reinit sequences used to reflect changes (and possibly re-init the 3D volumes)
+* [x] main: checks when resuming/starting need cleaning up 
 * [] main: home SEM stage to clear as part of workflow to prevent problems after pressing start button, but only if not imaging
-* [] main: if max slices is reached already and workflow has started, it still gets to running mode; needs a check
-* [] main: NB: all dead/unsafe setting happens in main, not state machine. the state machine just returns values (0,1,-1). the main functions need some proper sculpting to now put the system in a dead/unsafe state needlessly
-* [] main: when a 'soft' error happens (ie return 0) in workflow (ie milling precondition not met) system should pause workflow. may require change to how DM handles pause/start/stop events
+* [x] main: if max slices is reached already and workflow has started, it still gets to running mode; needs a check
+* [x] main: NB: all dead/unsafe setting happens in main, not state machine. the state machine just returns values (0,1,-1). the main functions need some proper sculpting to now put the system in a dead/unsafe state needlessly
+* [x] main: when a 'soft' error happens (ie return 0) in workflow (ie milling precondition not met) system should pause workflow. may require change to how DM handles pause/start/stop events
 * [] main: we want to make sure that an error during the workflow, ie something that puts system in dead state, generates a popup dialog that user sees
 * [] main: right now iprep_image puts the lastcompleted step at image, think about if you want to do this. it does allow manipulation of where workflow picks up
+* [] main: rethink the process_returnval in the mainloop. we may want this loop to use these returnvalues to determine errors and if dead/unsafe flags need to be set
+
+* [x] in sem class, when going to an imaging position if in clear, go to nominal imaging first automatically
+* [x] in PECS class, when homing stage, check that it actually rotates
 
 * [] 3D stack: it always opens one for after milling and before milling. this should only happen if they are actually enabled
-* [] 3D stack: when workflow starts (but not resumes), check that all 3D stacks are correctly based on the current acquisition data. right now, they 		are initialized (but not shown) when the workflow initializes because that is easy, but that is wrong. create a function init_3d_stacks() based on 		what is enabled, infer image sizes from digiscan tags/capture settings and init some 3d volumes. call this function when iprep_start() is executed
+* [x] 3D stack: when workflow starts (but not resumes), check that all 3D stacks are correctly based on the current acquisition data. right now, they 		are initialized (but not shown) when the workflow initializes because that is easy, but that is wrong. create a function init_3d_stacks() based on 		what is enabled, infer image sizes from digiscan tags/capture settings and init some 3d volumes. call this function when iprep_start() is executed
 	ROIManager will be able to return all enabled ROIs and signals. This is known when IPrep_startrun is called (this function inits the statemachine (again, already happened in iprepinit, but just in case something changed)), so we can at this moment create a list of all ROIs and signals (format TBD). iprepstart will (re-)init the 3d volumes and show them. iprepresume will only show them. 3d volume init happens in sequence config. so all we need is a way for the sequence to know, at config time, which 3d volumes to enable and how to find them. best is probably to use a list with objects that only contain a string. this means: 3dvolumemanager looks at roimanager and infers this object list. we use a hash to combine roiname and signalname
 * [] 3D stack: now init all rois clears list, pecs images/sequence init has to be executed AFTER sem images init. fix this
 
-* [] UI: list all current SEM positions
-* [] UI: in order to ensure everything does not run in the main DM thread, fire a thread for each UI menu call
+* [] UI: add some more menu items: list all current SEM positions
+* [x] UI: in order to ensure everything does not run in the main DM thread, fire a thread for each significant UI menu call
+* [] UI: have some kind of flag that gets set when process is started and reset when it is done
+* [x] UI: reorder UI elements
 
 * [] have an IPrep taggroup for default digiscan parameters. use this instead of the global one since that one does not exist on systems without digiscan isntalled (which needs to work as simulator, on ie my laptop)
 

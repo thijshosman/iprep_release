@@ -23,6 +23,8 @@ class digiscan_simulator : object
 	image img0
 	image img1
 
+	image testi
+
 	number configured0
 	number configured1
 
@@ -162,6 +164,8 @@ class digiscan_simulator : object
 
 			self.print("digiscan configured using signal 0 ("+name0+").")
 			img0 := IntegerImage( name0, dataType, signed, width, height ) 
+			img0 = icol
+			//showimage(img0)
 			number imageID0 = ImageGetID( img0 )
 			//DSSetParametersSignal( paramID2, 0, dataType, 1, imageID0 )
 
@@ -177,6 +181,7 @@ class digiscan_simulator : object
 		
 			self.print("digiscan configured using signal 1 ("+name1+").")
 			img1 := IntegerImage( name1, dataType, signed, width, height ) 
+			img1 = icol
 			number imageID1 = ImageGetID( img1 )
 			//DSSetParametersSignal( paramID2, 1, dataType, 1, imageID1 )
 
@@ -217,7 +222,6 @@ class digiscan_simulator : object
 			img0 := IntegerImage( name0, dataType, signed, width, height ) 
 			number imageID0 = ImageGetID( img0 )
 			//DSSetParametersSignal( paramID2, 0, dataType, 1, imageID0 )
-
 			self.print("signal 0 succesfully configured from tag. height = "+height+", width = "+width+", dwell time = "+pixelTime)
 
 		}
@@ -260,12 +264,13 @@ class digiscan_simulator : object
 
 		if (configured0 == 1 )
 		{
-			img0 = 501
+			//showimage(img0)
+			//img0 = 501
 		}
 
 		if (configured1 == 1)
 		{
-			img1 = 502
+			//img1 = 502
 		}
 
 		self.print("digiscan done acquiring")

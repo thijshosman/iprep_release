@@ -318,10 +318,15 @@ class pecs_iprep: object
 
 	}
 
-	string getStageAngle(object self)
+	number getStageAngle(object self)
 	{
 		// *** public ***
-		return ""
+		
+		// "subsystem_milling", "device_stage", "read_stage_pos_deg10" 
+		string ang
+		PIPS_GetPropertyDevice("subsystem_milling", "device_stage", "read_stage_pos_deg10", ang)
+		return val(ang)
+
 	}
 
 	void stageHome(object self)
@@ -335,12 +340,20 @@ class pecs_iprep: object
 		
 		// wait
 		sleep(1)
+		number alpha = self.getStageAngle()
+		number threshold = 10
 		
 		// now issue homing command
 		PIPS_SetPropertyDevice("subsystem_milling", "device_stage", "set_rotate_mode", "3")
 		
 		// wait 5 second in order for the stage to make sure it is at home
 		sleep(5)
+		if ((self.getStageAngle() - alpha) > threshold)
+		{
+			string err = "stage may not be rotating"
+			self.print(err)
+			throw(err)
+		}
 
 		self.print("stage homed")
 	}

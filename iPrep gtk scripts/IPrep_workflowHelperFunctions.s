@@ -16,10 +16,21 @@ void IPrep_autofocus_complete()
 	print("IMAGE: autofocusing")
 	number old_focus = myWorkflow.returnSEM().measureWD()	
 
-	IPrep_autofocus()
-	number afs_sleep = 1	// seconds of delay
-	sleep( afs_sleep )
-
+	// dirty hack: if simulating SEM, do not autofocus
+	number sim
+	getpersistentnumbernote("IPrep:simulation:sem",sim)
+	if (sim == 1)
+	{
+		result("simulating sem, skipping af\n")
+		
+	}
+	else
+	{
+		IPrep_autofocus()
+		number afs_sleep = 1	// seconds of delay
+		sleep( afs_sleep )
+	}
+	
 	number new_focus = myWorkflow.returnSEM().measureWD()	
 	myWorkflow.returnSEM().setDesiredWDToCurrent()
 

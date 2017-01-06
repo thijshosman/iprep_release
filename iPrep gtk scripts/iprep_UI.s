@@ -11,6 +11,19 @@ Version 20150729
 
 History:
 20150729 - Created.
+20170106 - made some menu items create thread to enable it running in the background: 
+
+class mythread : thread
+{ 
+
+	void RunThread( object self )   
+	{     
+		// code goes here
+	}
+
+}
+
+call with alloc(mythread).StartThread()
 
 */
 
@@ -39,7 +52,6 @@ void Save_imaging_XYZ_position( void )
 		result(s2)	
 	}
 	
-
 }
 
 void Goto_nominal_imaging(void)
@@ -58,22 +70,26 @@ void Goto_nominal_imaging(void)
 	}
 }
 
+class Recall_imaging_XYZ_position : thread
+{ 
 
-void Recall_imaging_XYZ_position( void )
-{
-	object mySI = myWorkflow.returnSEM().returnStoredImaging()
-	number xx,yy,zz
-	xx=mySI.getX()
-	yy=mySI.getY()
-	zz=mySI.getZ()
+	void RunThread( object self )   
+	{     
+		object mySI = myWorkflow.returnSEM().returnStoredImaging()
+		number xx,yy,zz
+		xx=mySI.getX()
+		yy=mySI.getY()
+		zz=mySI.getZ()
 
-	string s1 = "Currently saved iPrep SEM imaging position (storedImaging)\n("+xx+","+yy+","+zz+")\n\nGo there now?"
-	if (OKCancelDialog(s1))
-	{	
-		myWorkflow.returnSEM().goToStoredImaging()
-		//WorkaroundQuantaMagBug()
-		//result(s1)
+		string s1 = "Currently saved iPrep SEM imaging position (storedImaging)\n("+xx+","+yy+","+zz+")\n\nGo there now?"
+		if (OKCancelDialog(s1))
+		{	
+			myWorkflow.returnSEM().goToStoredImaging()
+			//WorkaroundQuantaMagBug()
+			//result(s1)
+		}
 	}
+
 }
 
 
@@ -145,7 +161,7 @@ void Goto_alignment_grid( void ) // not needed in Nova
 	if (OKCancelDialog(s1))
 	{
 		myWorkflow.returnSEM().goTofwdGrid()
-		//WorkaroundQuantaMagBug()
+
 	}
 }
 
@@ -155,8 +171,7 @@ void Goto_highgridback( void )
 	if (OKCancelDialog(s1))
 	{
 		myWorkflow.returnSEM().goToImagingPosition("highGridBack")
-		//myWorkflow.returnSEM().goToHighGridBack()
-		//WorkaroundQuantaMagBug()
+
 	}
 
 
@@ -271,11 +286,17 @@ void Set_autofocus_enable_dialog( void )
 
 // PECS functions
 
-void pecs_reseat(void)
-{
-	if (okcanceldialog("reseat the carrier in the PECS mount by moving it out and back in?"))
-		IPrep_reseat()
+class pecs_reseat : thread
+{ 
+
+	void RunThread( object self )   
+	{     
+		if (okcanceldialog("reseat the carrier in the PECS mount by moving it out and back in?"))
+			IPrep_reseat()
+	}
+
 }
+
 
 void pecs_raise(void)
 {
@@ -795,7 +816,6 @@ void iprep_InstallMenuItems( void )
 	string SS_SUB_MENU_1 = "SEM"
 	string SS_SUB_MENU_2 = "PECS"
 	string SS_SUB_MENU_3 = "Recovery and Setup"
-	string SS_SUB_MENU_5 = "Loop Control"
 	string SS_SUB_MENU_6 = "Multi ROI Setup"
 	string SS_SUB_MENU_7 = "Single ROI Setup"
 
@@ -803,49 +823,42 @@ void iprep_InstallMenuItems( void )
 	AddScriptToMenu( "Set_starting_slice_number()", "Set starting slice number...", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
 	AddScriptToMenu( "IPrep_acquire_ebsd()", "Run EBSD step", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
 	AddScriptToMenu( "IPrep_image()", "Run Image step", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
-	AddScriptToMenu( "IPrep_Pecs_Image_aftermilling()", "Run PECS Image After Milling step", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
+	AddScriptToMenu( "IPrep_Pecs_Image_aftermilling()", "Run PECS Image After Milling ", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
+	AddScriptToMenu( "IPrep_MoveToPECS()", "Move sample to PECS", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
+	AddScriptToMenu( "IPrep_Pecs_Image_beforemilling()", "Run PECS Image Before Milling", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
+	AddScriptToMenu( "IPrep_mill()", "Run Milling step...", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
+	AddScriptToMenu( "IPrep_coat()", "Run Coating step...", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
+	AddScriptToMenu( "IPrep_MoveToSEM()", "Move sample to SEM", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
 
 
 	// SEM
 	AddScriptToMenu( "homeSEMStageToClear()", "home SEM stage to clear", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
-
 	AddScriptToMenu( "beep()", "---", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
-
 	AddScriptToMenu( "Save_imaging_XYZ_position()", "Save imaging XYZ position (as stored imaging)...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
-	AddScriptToMenu( "Recall_imaging_XYZ_position()", "Recall current stored imaging position...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
-	
+	AddScriptToMenu( "alloc(Recall_imaging_XYZ_position).StartThread()", "Recall current stored imaging position...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "beep()", "---", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
-
 	AddScriptToMenu( "Recall_imaging_parameters_from_image()", "Recall imaging parameters from front image...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
-	
 	AddScriptToMenu( "beep()", "-----", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
-	
 	AddScriptToMenu( "Save_imaging_position_focus()", "Save imaging position focus...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "Recall_imaging_position_focus()", "Recall imaging position focus...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
-	
 	AddScriptToMenu( "beep()", "----", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
-
 	AddScriptToMenu( "Set_autofocus_enable_dialog()", "Set autofocus state...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
-	
 	AddScriptToMenu( "IPrep_autofocus_complete()", "Run IPrep Autofocus routine", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
-
 	AddScriptToMenu( "beep()", "------", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
-
 	AddScriptToMenu( "GoToSpecifiedCoord()", "Goto a user specified coordinate...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
-
 	AddScriptToMenu( "Goto_clear()", "Goto clear and move in z last...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "Goto_scribe_mark()", "Goto scribe mark...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "Goto_nominal_imaging()", "Goto nominal imaging position...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "Goto_highgridback()", "Goto grid on back post...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "Goto_highgridfront()", "Goto grid on front post...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "WorkaroundQuantaMagBug()", "WorkaroundQuantaMagBug", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
-
 	AddScriptToMenu( "beep()", "--", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
+	// #print all SEM coordinates
 
 	// PECS
 	AddScriptToMenu( "lockPecs()", "Lock PECS UI", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
 	AddScriptToMenu( "unlockPecs()", "Unlock PECS UI", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
-	AddScriptToMenu( "pecs_reseat()", "reseat sample carrier in PECS mount", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
+	AddScriptToMenu( "alloc(pecs_reseat).StartThread()", "reseat sample carrier in PECS mount", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
 	AddScriptToMenu( "pecs_lower()", "lower PECS stage", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
 	AddScriptToMenu( "pecs_raise()", "raise PECS stage", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
 	AddScriptToMenu( "pecs_home()", "rotate PECS stage to home", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
@@ -853,19 +866,20 @@ void iprep_InstallMenuItems( void )
 	// setup
 	AddScriptToMenu( "IPrep_init()", "Initialize Hardware", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 	AddScriptToMenu( "IPrep_init_sequence()", "Initialize Active Sequences", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
-	AddScriptToMenu( "IPrep_consistency_check()", "IPrep state consistency check", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
+	AddScriptToMenu( "IPrep_bigCheck()", "IPrep system check", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 	AddScriptToMenu( "IPrep_recover_deadflag()", "auto recover from dead state", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 	AddScriptToMenu( "IPrep_setEBSD()", "switch to EBSD dock and EBSD mode", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 	AddScriptToMenu( "IPrep_setPlanar()", "switch to Planar dock and Planar mode", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 	AddScriptToMenu( "IPrep_calibrate_transfer()", "reinitialize all SEM stage and Parker calibrations from mode selection", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 	AddScriptToMenu( "IPrep_setScribeROI()", "calibrate scribe mark position after setting ROI", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
+	// #print dock/system mode
+	// #print ebsd parameters
 
 	// ROI Setup
 	AddScriptToMenu( "IPrep_addSEMPosition()", "Add a new SEM coordinate", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
 	AddScriptToMenu( "IPrep_addROI()", "Add a ROI of current conditions", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
 	AddScriptToMenu( "IPrep_setSetCustomImageSequence()", "Setup system to use custom image sequence", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
 	AddScriptToMenu( "IPrep_printEnabledROIs()", "show all enabled ROIs in order", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
-	
 
 	// single ROI
 	AddScriptToMenu( "IPrep_setSingleImageSequence()", "load single default image ROI with name StoredImaging", SS_MENU_HEAD , SS_SUB_MENU_7 , 0)
@@ -874,40 +888,41 @@ void iprep_InstallMenuItems( void )
 
 
 
-
-
-	// iprep loop control
-	//AddScriptToMenu( "IPrep_startrun()", "Start run...", SS_MENU_HEAD , SS_SUB_MENU_5 , 0)
-	//AddScriptToMenu( "iprep_pauserun()", "Pause run...", SS_MENU_HEAD , SS_SUB_MENU_5 , 0)
-	//AddScriptToMenu( "iprep_stoprun()", "Stop run...", SS_MENU_HEAD , SS_SUB_MENU_5 , 0)
-	//AddScriptToMenu( "iprep_resumerun()", "Resume run...", SS_MENU_HEAD , SS_SUB_MENU_5 , 0)
-
 	// service menu #todo: make password protected
 	string SS_MENU_HEAD_SERVICE = "Service"
 	string SS_SUB_MENU_SERVICE_0 = "Safety Flags"
 	string SS_SUB_MENU_SERVICE_1 = "Manual State Setup"
-	string SS_SUB_MENU_SERVICE_2 = "save or load iprep tags"
+	string SS_SUB_MENU_SERVICE_2 = "save or load iprep tags from/to file"
 	string SS_SUB_MENU_SERVICE_3 = "Workflow Items"
+	string SS_SUB_MENU_SERVICE_4 = "Main Loop Control"
 
-	
-	AddScriptToMenu( "gotoPickupDropoff()", "Goto pickup_dropoff position", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
+	// iprep loop control
+	AddScriptToMenu( "IPrep_startrun()", "Start run...", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_4 , 0)
+	AddScriptToMenu( "iprep_pauserun()", "Pause run...", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_4 , 0)
+	AddScriptToMenu( "iprep_stoprun()", "Stop run...", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_4 , 0)
+	AddScriptToMenu( "iprep_resumerun()", "Resume run...", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_4 , 0)
+
+	AddScriptToMenu( "gotoPickupDropoff()", "Move SEM to pickup_dropoff position", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
+
+	AddScriptToMenu( "beep()", "---", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0 )
 	AddScriptToMenu( "openGV()", "open gate valve", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
 	AddScriptToMenu( "closeGV()", "close gate valve", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
+	AddScriptToMenu( "beep()", "---", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0 )
 	AddScriptToMenu( "clamp()", "clamp sem dock", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
 	AddScriptToMenu( "unclamp()", "unclamp sem dock", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
+	AddScriptToMenu( "beep()", "---", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0 )
 	AddScriptToMenu( "homeParker()", "home parker stage", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
-	AddScriptToMenu( "lowerPECSStage()", "lower pecs stage", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
-	AddScriptToMenu( "setSEMstate()", "set workflow state to SEM", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
-	AddScriptToMenu( "setPECSstate()", "set workflow state to PECS", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
+	AddScriptToMenu( "beep()", "---", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0 )
 	AddScriptToMenu( "gripperOpen()", "Open Gripper", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
 	AddScriptToMenu( "gripperClose()", "Close Gripper", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
-
-
+	AddScriptToMenu( "beep()", "---", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0 )
+	AddScriptToMenu( "setSEMstate()", "set workflow state to SEM", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
+	AddScriptToMenu( "setPECSstate()", "set workflow state to PECS", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
+	AddScriptToMenu( "beep()", "---", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0 )
 	AddScriptToMenu( "setAliveSafe()", "remove dead/unsafe flag", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_0 , 0)
-
+	AddScriptToMenu( "beep()", "---", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0 )
 	AddScriptToMenu( "saveTagsToFile()", "save tags", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_2 , 0)
 	AddScriptToMenu( "loadTagsFromFile()", "load tags", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_2 , 0)
-
 
 	// looped workflow elements
 	AddScriptToMenu( "IPrep_image()", "Run Image step...", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_3 , 0)

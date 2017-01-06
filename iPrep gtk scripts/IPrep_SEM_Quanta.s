@@ -3,7 +3,7 @@ number XYZZY = 0
 
 
 
-class SEM_simulator: object
+class SEM_IPrep: object
 {
 	object SEMStagePersistance // stores position where stage is in tag
 	
@@ -29,43 +29,35 @@ class SEM_simulator: object
 	// pickup_dropoff
 	// imaging
 
-	//object mySEMCoordManager
-
-	// simualtion coordinate object
-	object myLocation
-
-
-	// coordinate objects
-	// TODO: store these in tags
-	//object reference
-	//object scribe_pos
-	//object fwdGrid
-	//object pickup_dropoff
-	//object clear
-	//object nominal_imaging
-	//object StoredImaging
-	//object highGridFront
-	//object highGridBack
-	//object lowerGrid
-
 	string currentImagingPosition
 
 	number blankState
 	number HVState
 
-	// working distance used for imaging with digiscan
-	number imagingWD
-
 	// voltage to be use for imaging (in kv)
 	number kV
 
+	// *** quanta fix ***
 	void WorkaroundQuantaMagBug(object self)
-	{
-		result("skipping quanta mag bug workaround\n")
-	}
+		// When there is a Z move on the Quanta and the FWD is different from the calibrated stage Z,
+		// there is a bug where the Quanta miscalculates the actual magnification.  This work around
+		// seems to be generic in fixing the issue.  You can see this bug by having the stageZ=30, fwd=7
+		// (focused on the sample) and then changing Z to 60 and back.  The mag will be off by > 2x.
+		{
+			result( datestamp()+": WorkaroundQuantaMagBug" )
+			number oldmag=emgetmagnification()
+
+			emsetmagnification( 50 )
+			emwaituntilready()
+
+			emsetmagnification( 100000 )
+			emwaituntilready()
+
+			emsetmagnification( oldmag )
+			result( ",done.\n")
+		}
 
 	// *** basics ***
-
 	
 	number returnHVState(object self)
 	{
@@ -120,58 +112,46 @@ class SEM_simulator: object
 	void Update(object self)
 	{
 		// divide by 1000 to get milimeters
-		//X = EMGetStagex()/1000
-		//Y = EMGetStagey()/1000
-		//Z = EMGetStagez()/1000
-		//result("debug\n")
-		//self.print("updating xyz to mylocations position: ")
-		//myLocation.print()
-		//result("/debug\n")
-		//X=myLocation.getX()
-		//Y=myLocation.getY()
-		//Z=myLocation.getZ()
-
-	}
-
-	void UpdateSimulator(object self)
-	{
-		returnSEMCoordManager().addCoord(myLocation)
-
+		X = EMGetStagex()/1000
+		Y = EMGetStagey()/1000
+		Z = EMGetStagez()/1000
 	}
 
 	void printCoords(object self)
 	{
 		// print function, consistent with other iprep classes
-		self.print("X: "+self.getX()+", Y: "+self.getY()+", Z: "+self.getZ())
+		self.print("X: "+X+", Y: "+Y+", Z: "+Z)
 	}
 
 	number getX(object self)
 	{
-		return myLocation.getX()
+		self.Update()
+		return X
 	}
 
 	number getY(object self)
 	{
-		return myLocation.getY()
+		self.Update()
+		return Y
 	}
 
 	number getZ(object self)
 	{
-		return myLocation.getZ()
+		self.Update()
+		return Z
 	}
 
 	void setMag(object self, number mag)
 	{
-		//EMSetMagnification(mag)
-		//EMUpdateCalibrationState()
-		self.print("mag set to: "+mag)
+		EMSetMagnification(mag*1000)
+		EMUpdateCalibrationState()
+		self.print("mag set to: "+mag*1000)
 	}
 
 	number measureMag(object self)
 	{
-		return EMGetMagnification()
+		return EMGetMagnification()/1000
 	}
-
 
 	void setDesiredkV(object self, number kV1)
 	{
@@ -182,7 +162,6 @@ class SEM_simulator: object
 		kV = kV1
 		SEMkVPersistance.setNumber(kV1)
 		self.print("new desired beam energy: "+kV1)
-
 	}
 
 	number getHV(object self)
@@ -196,38 +175,25 @@ class SEM_simulator: object
 	{
 		// *** private ***
 		// set voltage (in kV)
-		//EMSetBeamEnergy(kV1*1000)
+		EMSetBeamEnergy(kV1*1000)
 		self.print("voltage set to: "+kV1)
-	}
-
-	void setkVForImaging(object self)
-	{
-		// *** public ***
-		// set the voltage of the microscope to previously determined version
-
-		if (kV == 0)
-			throw("voltage not setup")
-		else
-			self.setkV(kV)
-
 	}
 
 	void setWD(object self, number workingDistance)
 	{
 		// *** private ***
-		// set workingdistance (in mm)
+		// set workingdistance (in mm) to a value we can go back to
 
 		EMSetFocus(workingdistance*1000)
-		imagingWD = workingDistance
-		SEMWDPersistance.setNumber(imagingWD)
+		SEMWDPersistance.setNumber(workingDistance)
 		self.print("working distance set to: "+workingDistance)
-
 	}
 
 	void setWDForImaging(object self)
 	{
 		// set workingdistance to previously determined value
-		
+		number imagingWD = SEMWDPersistance.getNumber()
+
 		if (imagingWD == 0)
 			throw("imaging working distance not setup")
 		else
@@ -237,7 +203,7 @@ class SEM_simulator: object
 	void setWDFromDFandScribePos(object self, number dF)
 	{
 		// set workingdistance to previously determined value
-		number actual_scribe_pos_focus = imagingWD
+		number actual_scribe_pos_focus = SEMWDPersistance.getNumber()
 		number new_focus_in_mm = actual_scribe_pos_focus + dF
 
 		if (new_focus_in_mm < 1)
@@ -252,25 +218,24 @@ class SEM_simulator: object
 		// sets the working distance that is desired to do imaging and stores it in tag
 		// then sets it
 
-		imagingWD = WD1
 		SEMWDPersistance.setNumber(WD1)
 		self.setWDForImaging()
 		self.print("new desired working distance: "+WD1)
-
 	}
 
 	number measureWD(object self)
 	{
 		// *** public ***
 		// measures the working distance currently setup, run after manual setup of imaging
-		//return EMGetFocus()/1000
-		return imagingWD
+		return EMGetFocus()/1000
 	}
 
-	number getWD(object self)
+	void setDesiredWDToCurrent(object self)
 	{
-		// returns working distance in mm as stored in tag
-		return imagingWD
+		// *** public ***
+		// measures the working distance and sets the desired value to that
+		number cur = self.measureWD()
+		self.setDesiredWD(cur)
 	}
 
 
@@ -279,75 +244,57 @@ class SEM_simulator: object
 	void moveXRel(object self, number dist, number wait)
 	{
 		self.Update()
-		//EMSetStageX((X+dist)*1000)
-		myLocation.setX((self.getX()+dist))
-		//if(wait)
-			//EMWaitUntilReady()
-		//self.UpdateSimulator()
+		EMSetStageX((X+dist)*1000)
+		if(wait)
+			EMWaitUntilReady()
 	}
 	
 	void moveYRel(object self, number dist, number wait)
 	{
 		self.Update()
-		//EMSetStageY((Y+dist)*1000)
-		myLocation.setY((self.getY()+dist))
-		//if(wait)
-			//EMWaitUntilReady()
-		//self.UpdateSimulator()
+		EMSetStageY((Y+dist)*1000)
+		if(wait)
+			EMWaitUntilReady()
 	}
 	
 	void moveZRel(object self, number dist, number wait)
 	{
 		self.Update()
-		//EMSetStageZ((Z+dist)*1000)
-		myLocation.setZ((self.getZ()+dist))
-		//if(wait)
-			//EMWaitUntilReady()
-		//self.UpdateSimulator()
-
+		EMSetStageZ((Z+dist)*1000)
+		if(wait)
+			EMWaitUntilReady()
 	}
 
 	void moveXAbs(object self, number dist, number wait)
 	{
 		self.Update()
-		//EMSetStageX((dist)*1000)
-		myLocation.setX((dist))
-		//if(wait)
-			//EMWaitUntilReady()
-		//self.UpdateSimulator()
+		EMSetStageX((dist)*1000)
+		if(wait)
+			EMWaitUntilReady()
 	}
 	
 	void moveYAbs(object self, number dist, number wait)
 	{
 		self.Update()
-		//EMSetStageY((dist)*1000)
-		myLocation.setY((dist))
-		//if(wait)
-			//EMWaitUntilReady()
-		//self.UpdateSimulator()
+		EMSetStageY((dist)*1000)
+		if(wait)
+			EMWaitUntilReady()
 	}
 	
 	void moveZAbs(object self, number dist, number wait)
 	{
 		self.Update()
-		//EMSetStageZ((dist)*1000)
-		myLocation.setZ(dist)
-		//if(wait)
-			//EMWaitUntilReady()
-		//self.UpdateSimulator()
-
+		EMSetStageZ((dist)*1000)
+		if(wait)
+			EMWaitUntilReady()
 	}
 
 	void moveXYabs(object self, number xdist, number ydist, number wait)
 	{
 		self.Update()
-		//EMSetStageXY(xdist*1000,ydist*1000)
-		myLocation.setX(xdist)
-		myLocation.setY(ydist)
-		//if(wait)
-			//EMWaitUntilReady()
-		//self.UpdateSimulator()
-
+		EMSetStageXY(xdist*1000,ydist*1000)
+		if(wait)
+			EMWaitUntilReady()
 	}
 
 	// *** high level SEM move commands ***
@@ -356,31 +303,27 @@ class SEM_simulator: object
 	{
 		// first update Z, most critical coordinate
 
-
-
-		
 		self.moveZAbs(Znew,1)	
 
 		self.moveXYabs(Xnew,Ynew, 1)
-		
-		self.UpdateSimulator()
-		
 	}
 
 	void goToCoordsZLast(object self, number Xnew, number Ynew, number Znew)
 	{
 		// first update x,y, then update z, most critical coordinate
 
-
 		self.moveXYabs(Xnew,Ynew, 1)
 
 		self.moveZAbs(Znew,1)
 		
-		self.UpdateSimulator()
-
 	}
 
+	void goToCoordsXY(object self, number Xnew, number Ynew)
+	{
+		// only move in XY to prevent messing up focus. 
 
+		self.moveXYabs(Xnew,Ynew, 1)
+	}
 
 	// *** state transfers ***
 
@@ -393,7 +336,7 @@ class SEM_simulator: object
 
 		object aCoord = returnSEMCoordManager().getCoordAsCoord(coordName)
 
-		if( abs(aCoord.getX() - self.getX())<consistencyThreshold && abs(aCoord.getY() - self.getY())<consistencyThreshold && abs(aCoord.getZ() - self.getZ())<consistencyThreshold  )
+		if( abs(aCoord.getX() - X)<consistencyThreshold && abs(aCoord.getY() - Y)<consistencyThreshold && abs(aCoord.getZ() - Z)<consistencyThreshold  )
 		{
 			// success
 			return 1
@@ -405,8 +348,6 @@ class SEM_simulator: object
 			//print("Z = "+Z+", should be "+aCoord.getZ())
 			return 0
 		}
-
-
 	}
 
 	number checkStateConsistency(object self)
@@ -432,7 +373,6 @@ class SEM_simulator: object
 			// #easily. assuming it is right
 			return 1
 		}
-
 	}
 
 
@@ -470,10 +410,30 @@ class SEM_simulator: object
 		// intended to be used to go to the clear position as a 'homing' point manually
 		// disabling consistency checks. intended to be installed as menu command
 
+		// #TODO: should we move in Z first or last? in Quanta I would say last, since we are likely under the pole piece and don't want to bump into it, 
+		// #TODO: but in Nova we go in Z first, but is this right? I assume with EBSD detector in there we want z last as well so that we can move away from it first
+
 		object clear = returnSEMCoordManager().getCoordAsCoord("clear")
+		clear.print()
+
+		// check that dock is clamped
+		if (myMediator.getDockState() != "clamped")
+		{
+			self.print("safetycheck: dock not clamped")
+			if (!okcanceldialog("trying to move SEM with dock unclamped. clamp dock and continue? "))
+			{
+				throw("safetycheck: trying to move dock to clear position with dock unclamped. user canceled option to clamp")
+			}
+			else
+			{
+				// try again
+				self.homeToClear()
+			}
+		}
 
 		self.print("going to clear with checks disabled")
-		self.goToCoordsZFirst(clear.getX(),clear.getY(),clear.getZ())
+		//self.goToCoordsZFirst(clear.getX(),clear.getY(),clear.getZ()) // Nova
+		self.goToCoordsZLast(clear.getX(),clear.getY(),clear.getZ()) // Quanta
 		self.printCoords()
 		self.setManualState("clear")
 
@@ -488,7 +448,12 @@ class SEM_simulator: object
 		if (!self.checkStateConsistency())
 		{
 			self.print("state inconsistent, SEM stage is not where state machine thinks it is")
-			throw("state inconsistent, SEM stage is not where state machine thinks it is")
+			if (okcanceldialog("SEM is not where state machien thinks it is. home to clear anway?"))
+			{
+				self.homeToClear()
+			}
+			else
+				throw("state inconsistent, SEM stage is not where state machine thinks it is")
 		}
 
 		object clear = returnSEMCoordManager().getCoordAsCoord("clear")
@@ -504,6 +469,7 @@ class SEM_simulator: object
 		else if (state == "imaging")
 		{
 			self.goToCoordsZLast(clear.getX(),clear.getY(),clear.getZ())
+
 		}
 		else
 			throw("not allowed to go to clear. current state is: " +state)
@@ -532,6 +498,22 @@ class SEM_simulator: object
 			throw("safetycheck: trying to move SEM with parker position > 400")
 		}
 
+		// check that dock is clamped
+		if (myMediator.getDockState() != "clamped")
+		{
+			self.print("safetycheck: dock not clamped")
+			if (!okcanceldialog("trying to move SEM with dock unclamped. clamp dock and continue? "))
+			{
+				throw("safetycheck: trying to move dock to nominal imaging with dock unclamped. user canceled option to clamp")
+			}
+			else
+			{
+				// try again
+				self.goToNominalImaging()
+			}
+		}
+
+
 		if (state == "clear")
 		{
 			self.goToCoordsZFirst(nominal_imaging.getX(),nominal_imaging.getY(),nominal_imaging.getZ())
@@ -545,19 +527,22 @@ class SEM_simulator: object
 		else
 			throw("not allowed to go to imaging point. current state: " +state)
 	
-		// update settings since they get reset after move
-if (XYZZY)		self.setkVForImaging()
-if (XYZZY)		self.setWDForImaging()
-/*		
-		object local = nominal_imaging
-		if ( local.getdfvalid() )
-			self.setWDFromDFandScribePos( local.getdf() )	
-*/
+		// set the working distance to the previously saved value (quanta always changes wd to coupled value after z is moved)
+		self.setWDForImaging()
+
+		// fix quanta mag bug (since stage moved in z)
+		self.WorkaroundQuantaMagBug()
+
+		// old way of setting wd, deprecated
+		//if ( nominal_imaging.getdfvalid() )
+		//	self.setWDFromDFandScribePos( nominal_imaging.getdf() )	
+
 		self.printCoords()
 		self.setManualState("imaging")
 
 	}
 
+	// old methods, now just go there using the semcoord name paradime
 	void goToHighGridFront(object self)
 	{
 		self.print("going to highGridFront. current state: "+state)
@@ -573,16 +558,11 @@ if (XYZZY)		self.setWDForImaging()
 		
 		if (state == "imaging")
 		{
-			self.goToCoordsZFirst(highGridFront.getX(),highGridFront.getY(),highGridFront.getZ())
-
+			self.goToCoordsXY(highGridFront.getX(),highGridFront.getY())
 		}
 		else
 			throw("not allowed to go to imaging point. current state: " +state)
 		
-		// update settings since they get reset after move
-if (XYZZY)		self.setkVForImaging()
-if (XYZZY)		self.setWDForImaging()
-
 		//object local = highGridFront
 		//if ( local.getdfvalid() )
 		//	self.setWDFromDFandScribePos( local.getdf() )	
@@ -608,14 +588,11 @@ if (XYZZY)		self.setWDForImaging()
 		
 		if (state == "imaging")
 		{
-			self.goToCoordsZFirst(highGridBack.getX(),highGridBack.getY(),highGridBack.getZ())
+			self.goToCoordsXY(highGridBack.getX(),highGridBack.getY())
 		}
 		else
 			throw("not allowed to go to imaging point. current state: " +state)
 		
-		// update settings since they get reset after move
-		if (XYZZY)		self.setkVForImaging()
-		if (XYZZY)		self.setWDForImaging()
 		
 		//object local = highGridBack
 		//if ( local.getdfvalid() )
@@ -642,14 +619,10 @@ if (XYZZY)		self.setWDForImaging()
 		
 		if (state == "imaging")
 		{
-			self.goToCoordsZFirst(scribe_pos.getX(),scribe_pos.getY(),scribe_pos.getZ())
+			self.goToCoordsXY(scribe_pos.getX(),scribe_pos.getY())
 		}
 		else
 			throw("not allowed to go to imaging point. current state: " +state)
-		
-		// update settings since they get reset after move
-		if (XYZZY)		self.setkVForImaging()
-		if (XYZZY)		self.setWDForImaging()
 		
 		//object local = scribe_pos
 		//if ( local.getdfvalid() )
@@ -675,19 +648,14 @@ if (XYZZY)		self.setWDForImaging()
 
 		if (state == "imaging")
 		{
-			self.goToCoordsZFirst(lowerGrid.getX(),lowerGrid.getY(),lowerGrid.getZ())
+			self.goToCoordsXY(lowerGrid.getX(),lowerGrid.getY())
 		}
 		else
 			throw("not allowed to go to imaging point. current state: " +state)
-		
-		// update settings since they get reset after move
-		if (XYZZY)		self.setkVForImaging()
-		if (XYZZY)		self.setWDForImaging()
 
 		//object local = lowerGrid
 		//if ( local.getdfvalid() )
 		//	self.setWDFromDFandScribePos( local.getdf() )	
-
 	
 		self.printCoords()
 		self.setManualState("imaging")
@@ -709,20 +677,15 @@ if (XYZZY)		self.setWDForImaging()
 
 		if (state == "imaging")
 		{
-			self.goToCoordsZFirst(fwdGrid.getX(),fwdGrid.getY(),fwdGrid.getZ())
+			self.goToCoordsXY(fwdGrid.getX(),fwdGrid.getY())
 		}
 		else
 			throw("not allowed to go to imaging point. current state: " +state)
-		
-		// update settings since they get reset after move
-		if (XYZZY)		self.setkVForImaging()
-		if (XYZZY)		self.setWDForImaging()
 
 		//object local = fwdGrid
 		//if ( local.getdfvalid() )
 		//	self.setWDFromDFandScribePos( local.getdf() )	
 
-	
 		self.printCoords()
 		self.setManualState("imaging")
 
@@ -747,21 +710,16 @@ if (XYZZY)		self.setWDForImaging()
 
 		if (state == "imaging")
 		{
-			self.goToCoordsZFirst(StoredImaging.getX(),StoredImaging.getY(),StoredImaging.getZ()) // #TODO: change to real coordinates that can be set
-			self.setCurrentImagingPosition("StoredImaging")
+			self.goToCoordsXY(StoredImaging.getX(),StoredImaging.getY()) 
 			self.print("at stored imaging point")
+			self.setCurrentImagingPosition("StoredImaging")
 		}
 		else 
 			throw("not allowed to go to stored imaging state coming from state: " +state)
 
-		// update settings since they get reset after move
-		if (XYZZY)		self.setkVForImaging()
-		if (XYZZY)		self.setWDForImaging()
-
 		//object local = StoredImaging
 		//if ( local.getdfvalid() )
 		//	self.setWDFromDFandScribePos( local.getdf() )	
-
 
 		self.printCoords()
 	}
@@ -793,10 +751,17 @@ if (XYZZY)		self.setWDForImaging()
 		// make sure we are in the imaging state
 		if (state == "imaging")
 		{
-			self.goToCoordsZFirst(imagingCoord.getX(),imagingCoord.getY(),imagingCoord.getZ()) 
+			self.goToCoordsXY(imagingCoord.getX(),imagingCoord.getY()) 
 			self.print("at "+imagingCoord.getName())
 
+			// set name
 			self.setCurrentImagingPosition(imagingCoord.getName())
+		}
+		else if (state = "clear")
+		{
+			self.print("at clear, first going to nominal imaging")
+			self.goToNominalImaging()
+			self.goToImagingPosition(name1)
 		}
 		else 
 			throw("not allowed to go to stored imaging state coming from state: " +state)
@@ -809,8 +774,6 @@ if (XYZZY)		self.setWDForImaging()
 
 
 	// *** calibration ***
-
-	// DEPRECATED: now implemented in SEMCoordManager directly
 
 	void saveCurrentAsStoredImaging(object self)
 	{
@@ -826,7 +789,7 @@ if (XYZZY)		self.setWDForImaging()
 		StoredImaging.print()
 
 		returnSEMCoordManager().addCoord(StoredImaging)
-
+		self.setCurrentImagingPosition("StoredImaging") // to make sure system knows we are there
 		
 
 	}
@@ -856,44 +819,45 @@ if (XYZZY)		self.setWDForImaging()
 
 	}
 
+	// *** misc ***
 
 	number getShiftX(object self)
 	{
 		number a,b
-		//EMGetBeamShift(a,b)
+		EMGetBeamShift(a,b)
 		return a/1000
 	}
 
 	number getShiftY(object self)
 	{
 		number a,b
-		//EMGetBeamShift(a,b)
+		EMGetBeamShift(a,b)
 		return b/1000
 	}
 
 	void setShiftX(object self, number a1)
 	{
 		// relative shift
-		//EMChangeBeamShift(a1*1000,0)
+		EMChangeBeamShift(a1*1000,0)
 		self.print("shifted beam in x by: "+a1)
 	}
 
 	void setShiftY(object self, number b1)
 	{
 		// relative shift
-		//EMChangeBeamShift(0,b1*1000)
+		EMChangeBeamShift(0,b1*1000)
 		self.print("shifted beam in y by: "+b1)
 	}
 
 	void zeroShift(object self)
 	{
 		number a,b
-		//EMGetBeamShift(a,b)
-		//EMChangeBeamShift(-a,-b)
+		EMGetBeamShift(a,b)
+		EMChangeBeamShift(-a,-b)
 		self.print("zeroed shift, x: "+-a/1000+", y: "+-b/1000)
 	}
 
-	void SEM_simulator(object self)
+	void SEM_IPrep(object self)
 	{
 		// constructor
 
@@ -906,20 +870,6 @@ if (XYZZY)		self.setWDForImaging()
 		Z = 0
 		state = "unknown"
 		
-		// allocate SEM coordinates
-		// DEPRECATED: now coming from SEMCoordManager
-		//scribe_pos = alloc(SEMCoord)
-		//reference = alloc(SEMCoord)
-		//pickup_dropoff = alloc(SEMCoord)
-		//clear = alloc(SEMCoord)
-		//nominal_imaging = alloc(SEMCoord)
-		//StoredImaging = alloc(SEMCoord)
-		//highGridFront = alloc(SEMCoord)
-		//highGridBack = alloc(SEMCoord)
-		//lowerGrid = alloc(SEMCoord)
-		//fwdGrid = alloc(SEMCoord)
-		imagingWD = 0
-		kV = 0
 		self.print("constructor called")
 
 	}
@@ -928,11 +878,6 @@ if (XYZZY)		self.setWDForImaging()
 	{
 		// *** public ***
 		// sets state 
-
-		// simulator specific: add a coordinate that represents the active coordinate
-		// active coord
-		myLocation = alloc(SEMCoord)
-		myLocation.set(0,0,0)
 
 		coords_calibrated = 0
 
@@ -945,81 +890,67 @@ if (XYZZY)		self.setWDForImaging()
 		SEMStagePersistance.init("SEMstage")
 		SEMkVPersistance.init("SEM:kV") // deprecate
 		SEMWDPersistance.init("SEM:WD") // deprecate
-		imagingWD = SEMWDPersistance.getNumber() // deprecate
 
-		//self.zeroShift()
+		self.zeroShift()
 		self.Update()
 		//self.calibrateCoordsFromPickup() moved to dock object
 		self.print("initialized")
 		
+		// initialize the SEMCoordManager - is now done in iprep_general
+		//returnSEMCoordManager() = alloc(SEMCoordManager)
+		//mySEMCoordManager.init("IPrep:SEMPositions")
 
 		state = SEMStagePersistance.getState()
-		kV = SEMkVPersistance.getNumber()
-
-		// since this is a simulator, set the myLocation coordinates to saved position
-
-		myLocation = returnSEMCoordManager().getCoordAsCoord("simcoord")
-
-		//myLocation.setX(simcoord.getX())
-		//myLocation.setY(simcoord.getY())
-		//myLocation.setZ(simcoord.getZ())
-
-		
+		kV = SEMkVPersistance.getNumber()		
 		
 		// check that the state we think SEM is in is indeed correct
-		if (!self.checkStateConsistency())
+/*		if (!self.checkStateConsistency())
 		{
 			self.print("state inconsistent, SEM stage is not where state machine thinks it is")
-			throw("state inconsistent, SEM stage is not where state machine thinks it is")
+			if (!okcanceldialog("state inconsistent, SEM stage is not where state machine thinks it is. continue anyway?"))
+				throw("state inconsistent, SEM stage is not where state machine thinks it is")
 		}
+*/
 
 
 
-		self.print("init sem voltage: " +kV)
-		self.print("init sem working distance: " +imagingWD)
 		self.print("init sem stage. starting state: " +state)
-
-		
 
 	}
 
 
 	void blankOn(object self)
 	{
-		//FEIQuanta_SetBeamBlankState(1)
+		FEIQuanta_SetBeamBlankState(1)
 		blankState = 1
 		self.print("beam blanked")
 	}
 
 	void blankOff(object self)
 	{
-		//FEIQuanta_SetBeamBlankState(0)
+		FEIQuanta_SetBeamBlankState(0)
 		blankState = 0
 		self.print("beam unblanked")
 	}
 
 	void HVOn(object self)
 	{
-		//FEIQuanta_SetHighTensionOnOff(1)
+		FEIQuanta_SetHighTensionOnOff(1)
 		HVState = 1
 		self.print("HV on")
 	}
 
 	void HVOff(object self)
 	{
-		//FEIQuanta_SetHighTensionOnOff(0)
+		FEIQuanta_SetHighTensionOnOff(0)
 		HVState = 0
 		self.print("HV off")
 	}	
 
-	~SEM_simulator(object self)
+	~SEM_IPrep(object self)
 	{
 		// save last known stage position to tag
 		self.setManualState(state)
-
-		// make sure these values are saved as numeric
-		SEMkVPersistance.setNumber(kV)
-		SEMWDPersistance.setNumber(imagingWD)
 	}
 
 	string getSEMState(object self)
@@ -1029,21 +960,28 @@ if (XYZZY)		self.setWDForImaging()
 		return state
 	}
 
+	number getChamberPressure(object self)
+	{
+		// prints chamber pressure in mbar
+		return FEIQuanta_GetVacuumPressure()/1000
+	}
+
 	number uncoupleFWD(object self)
 	{
 		// set Z to use uncoupled coordinates
+		FEIQuanta_SetZFWDCoupling(0)
 	}
 
 	number coupleFWD(object self)
 	{
 		// set Z to use coupled coordinates
+		FEIQuanta_SetZFWDCoupling(1)
 	}
-
 
 	number checkFWDCoupling(object self, number active)
 	{
 		// check if FWD is coupled correctly
-		// -active check moves stage down to lowest point and verifies that 
+		// -active check moves stage down 5 micron to see if an exception is thrown
 		// that number is within a threshold
 		// -passive check just 
 
@@ -1051,9 +989,61 @@ if (XYZZY)		self.setWDForImaging()
 		z_limit = GetTagValue("IPrep:limits:sem_z_limit")
 		tol = GetTagValue("IPrep:limits:sem_z_tolerance")
 		pos = self.getZ()
-		
-		return 1
 
+		number returnval = 0
+
+		if (active == 1)
+		{
+			
+
+			// active check
+			number pos_down = self.getZ()
+
+			// move 10 micron
+			try
+			{
+				self.moveZAbs(pos_down+0.01,1)
+				returnval = 1
+			}
+			catch
+			{
+				self.print("error: FWD is not coupled. "+GetExceptionString())
+
+				break
+			}
+
+		/*	
+			if (pos_down > z_limit-tol && pos_down < z_limit+tol )
+			{	
+				self.print("Error: FWD is not coupled. (Z reading="+pos+")" )
+				return 0
+			}
+			else
+			{
+				// move back
+				self.moveZAbs(pos,1)
+				return 1
+			}
+		*/
+
+		}
+		else
+		{
+			// passive check
+
+			if (pos > z_limit-tol && pos < z_limit+tol )
+			{	
+				self.print("Error: FWD is not coupled. (Z reading="+pos+")" )
+				returnval = 0
+			}
+			else
+			{
+				returnval = 1
+			}
+
+		}	
+
+		return returnval
 
 
 	}
