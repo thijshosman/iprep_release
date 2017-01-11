@@ -7,8 +7,8 @@ class EBSD_OI_automatic: object
 	string data_prefix
 	number type // (1 is electron, 2 is eds, 4 is ebsd (which may also have eds enabled))
 
-	number err
-	number progress
+	number err // 0 = no error, 1 = error, 2 = unknown event, 3 = completed
+	number progress // goes from 50 to 97/98/99 (ebsd) or 50 to 97/98/99 (eds)
 
 	void log(object self, number level, string text)
 	{
@@ -74,7 +74,24 @@ class EBSD_OI_automatic: object
 
 	number isBusy(object self)
 	{
-		return OINA_AcquisitionIsActive(progress, err)
+		OINA_AcquisitionIsActive(progress, err)
+		if (err == 1)
+		{
+			self.print("error in acquisition")
+			return 0
+		}
+		else if (err == 2)
+		{
+			self.print("unkonwn event in acquisition")
+			return 0
+		}
+		else (err == 3)
+		{
+			self.print("completed")
+			return 0
+		}
+		else
+			return 1
 	}
 
 

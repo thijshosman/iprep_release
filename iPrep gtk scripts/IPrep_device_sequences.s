@@ -1507,11 +1507,28 @@ class EBSD_default: deviceSequence
 					break
 				}
 				self.print("EBSD running, progress = "+myWorkflow.returnEBSD().returnProgress()+", error code = "+myWorkflow.returnEBSD().returnError())
-				sleep(5)
+				sleep(4)
 				
 			}
 
 			myWorkflow.returnEBSD().EBSD_stop()
+
+			if (myWorkflow.returnEBSD().returnError() == 1 || myWorkflow.returnEBSD().returnError() == 2)
+			{
+				if (okdialog("Error duing EBSD acquisition. continue workflow? "))
+				{
+					// continue
+					returncode = 1
+				}
+				else
+				{
+					// abort
+					returncode = 0
+				}
+			}
+			else
+				returncode = 1
+
 
 		}
 		catch
@@ -1527,7 +1544,7 @@ class EBSD_default: deviceSequence
 		// decouple FWD (in case oxford instruments coupled it)
 		myWorkflow.returnSEM().uncoupleFWD()
 
-		return 1
+		return returncode
 	}
 
 	number undo(object self)

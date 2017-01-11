@@ -341,18 +341,31 @@ class pecs_iprep: object
 		// wait
 		sleep(1)
 		number alpha = self.getStageAngle()
-		number threshold = 10
+		//self.print("temp angle: "+alpha)
+
 		
 		// now issue homing command
 		PIPS_SetPropertyDevice("subsystem_milling", "device_stage", "set_rotate_mode", "3")
 		
 		// wait 5 second in order for the stage to make sure it is at home
-		sleep(5)
-		if ((self.getStageAngle() - alpha) > threshold)
+		sleep(3)
+
+		number fin = self.getStageAngle()
+		//self.print("final angle: "+fin)
+		number i = abs(fin-alpha)
+		//self.print("angle diff: "+i)
+		
+		// check if angle is changing; if not, we may have a stage that is stuck
+		number threshold = 50
+		if (i < threshold)
 		{
-			string err = "stage may not be rotating"
+			string err = "cannot detect stage rotation"
 			self.print(err)
 			throw(err)
+		}
+		else
+		{
+			self.print("stage confirmed to be rotating (angle difference: "+i+")")
 		}
 
 		self.print("stage homed")

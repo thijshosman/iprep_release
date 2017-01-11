@@ -514,7 +514,6 @@ class SEM_simulator: object
 			else
 				throw("state inconsistent, SEM stage is not where state machine thinks it is")
 		}
-		}
 
 		object clear = returnSEMCoordManager().getCoordAsCoord("clear")
 
