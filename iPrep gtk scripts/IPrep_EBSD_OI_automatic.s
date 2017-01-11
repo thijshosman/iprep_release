@@ -85,7 +85,7 @@ class EBSD_OI_automatic: object
 			self.print("unkonwn event in acquisition")
 			return 0
 		}
-		else (err == 3)
+		else if (err == 3)
 		{
 			self.print("completed")
 			return 0

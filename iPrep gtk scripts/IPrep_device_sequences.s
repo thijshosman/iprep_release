@@ -1515,7 +1515,7 @@ class EBSD_default: deviceSequence
 
 			if (myWorkflow.returnEBSD().returnError() == 1 || myWorkflow.returnEBSD().returnError() == 2)
 			{
-				if (okdialog("Error duing EBSD acquisition. continue workflow? "))
+				if (okcanceldialog("Error duing EBSD acquisition. continue workflow? "))
 				{
 					// continue
 					returncode = 1
