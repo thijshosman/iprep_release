@@ -53,7 +53,7 @@ class gripper_simulator:object
 		myMediator = returnMediator()
 		myMediator.registerGripper(self)
 
-		self.print("initialized")
+		self.print("simulator initialized")
 	}
 
 	void gripper_simulator(object self) 

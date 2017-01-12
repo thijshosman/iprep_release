@@ -345,6 +345,8 @@ class pecs_simulator: object
 	void init(object self)
 	{
 		// *** public ***
+		self.print("simulator initialized")
+		
 		// register with mediator
 		myMediator = returnMediator()
 		myMediator.registerPecs(self)

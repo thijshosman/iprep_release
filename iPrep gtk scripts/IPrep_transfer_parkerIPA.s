@@ -261,7 +261,7 @@ class parkerTransfer:object
 		PPU = val(self.sendCommand("?P12375"))	
 		//self.turnOff()
 		
-		self.print("parker initialized")
+		self.print("parker IPA initialized")
 
 	}
 

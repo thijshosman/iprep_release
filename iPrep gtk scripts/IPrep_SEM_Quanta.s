@@ -877,6 +877,8 @@ class SEM_IPrep: object
 	void init(object self)
 	{
 		// *** public ***
+	self.print("Quanta initialized")
+
 		// sets state 
 
 		coords_calibrated = 0

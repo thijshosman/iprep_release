@@ -1462,13 +1462,15 @@ class EBSD_default: deviceSequence
 		// start
 		myWorkflow.returnEBSD().EBSD_start()
 
+		sleep(2)
+
 		try
 		{
 
 			number tick = GetOSTickCount()
 			number tock = 0
 
-			while (myWorkflow.returnEBSD().isBusy()!=0)
+			while (myWorkflow.returnEBSD().isBusy()==1)
 			{
 				tock = GetOSTickCount()
 				if ((tock-tick)/1000 > timeout)
@@ -1507,7 +1509,7 @@ class EBSD_default: deviceSequence
 					break
 				}
 				self.print("EBSD running, progress = "+myWorkflow.returnEBSD().returnProgress()+", error code = "+myWorkflow.returnEBSD().returnError())
-				sleep(4)
+				sleep(1)
 				
 			}
 
@@ -1543,6 +1545,8 @@ class EBSD_default: deviceSequence
 
 		// decouple FWD (in case oxford instruments coupled it)
 		myWorkflow.returnSEM().uncoupleFWD()
+
+		self.print("debug: returncode: "+ returncode)
 
 		return returncode
 	}

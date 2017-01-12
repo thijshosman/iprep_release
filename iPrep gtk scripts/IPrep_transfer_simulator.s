@@ -202,7 +202,7 @@ class parkerTransfer_simulator:object
 		PPU = val(self.sendCommand("?P12375"))	
 		self.turnOff()
 		
-		self.print("parker initialized")
+		self.print("parker simulator initialized")
 
 	}
 

@@ -524,10 +524,12 @@ class pecs_iprep: object
 	void init(object self)
 	{
 		// *** public ***
+		self.print("pecs initialized")
+
 		// register with mediator
 		myMediator = returnMediator()
 		myMediator.registerPecs(self)
-		self.print("pecs initialized")
+		
 	}
 	
 	// 2016-06-06

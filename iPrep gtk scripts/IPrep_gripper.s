@@ -188,7 +188,7 @@ class gripper:object
 		//self.sendCommand("s2T")
 		//self.sendCommand("V300000L1400h0m35j64R")
 
-		self.print("initialized")
+		self.print("gripper initialized")
 	}
 
 	void gripper(object self) 

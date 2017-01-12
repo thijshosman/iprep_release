@@ -978,6 +978,8 @@ if (XYZZY)		self.setWDForImaging()
 	void init(object self)
 	{
 		// *** public ***
+		self.print("simulator initialized")
+
 		// sets state 
 
 		// simulator specific: add a coordinate that represents the active coordinate
@@ -1001,7 +1003,6 @@ if (XYZZY)		self.setWDForImaging()
 		//self.zeroShift()
 		self.Update()
 		//self.calibrateCoordsFromPickup() moved to dock object
-		self.print("initialized")
 		
 
 		state = SEMStagePersistance.getState()
@@ -1009,12 +1010,24 @@ if (XYZZY)		self.setWDForImaging()
 
 		// since this is a simulator, set the myLocation coordinates to saved position
 
-		myLocation = returnSEMCoordManager().getCoordAsCoord("simcoord")
+		if (!returnSEMCoordManager().checkCoordExistence("simcoord"))
+		{	
+			// simcoord does not exist yet. make a simcoord with location of current state
+			// #todo: go to actual state instaed of assuming clear
+			myLocation = returnSEMCoordManager().getCoordAsCoord("clear")
+			myLocation.setName("simcoord")
+
+		}
+		else
+		{
+
+			myLocation = returnSEMCoordManager().getCoordAsCoord("simcoord")
 
 		//myLocation.setX(simcoord.getX())
 		//myLocation.setY(simcoord.getY())
 		//myLocation.setZ(simcoord.getZ())
-
+	
+		}
 		
 		
 		// check that the state we think SEM is in is indeed correct
