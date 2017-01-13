@@ -599,7 +599,7 @@ Number IPrep_MoveToPECS_workflow()
 	{
 		returncode = 0 // irrecoverable error (for now)
 		returnDeadFlag().setDead(1, "movetopecs", " ")
-		print("iprep encountered an error. cannot recover")
+		print("iprep workflow encountered a problem. cannot recover. workflow paused")
 	}
 
 	return returncode
@@ -631,7 +631,7 @@ Number IPrep_MoveToSEM_workflow()
 	{
 		returncode = 0 // irrecoverable error (for now)
 		returnDeadFlag().setDead(1, "movetosem", " ")
-		print("iprep encountered an error. cannot recover")
+		print("iprep workflow encountered a problem. cannot recover. workflow paused")
 	}	
 
 	return returncode
@@ -668,7 +668,7 @@ Number IPrep_reseat()
 	{
 		returncode = 0 // irrecoverable error (for now)
 		returnDeadFlag().setDead(1, "reseating", " ")
-		print("iprep encountered an error. cannot recover")
+		print("iprep workflow encountered a problem. cannot recover. workflow paused")
 	}	
 
 	if (returncode == 0)
@@ -855,13 +855,13 @@ number IPrep_acquire_ebsd_workflow()
 	number returncode = 0
 
 	print("IPrep_acquire_ebsd")
-	myPW.updateA("imaging")
+	myPW.updateA("acquiring ebsd/eds")
 	number success = myStateMachine.ebsd()
 	
 	if (success == 1)	
 	{
-		myPW.updateA("sample: done imaging")
-		print("imaging done")
+		myPW.updateA("sample: ebsd/imaging done")
+		print("ebsd/imaging done")
 		returncode = 1 // to indicate success
 	}
 	else if (success == -1)
@@ -872,7 +872,7 @@ number IPrep_acquire_ebsd_workflow()
 	else if (success == 0)
 	{
 		returncode = 0 // irrecoverable error (for now)
-		print("iprep encountered an error. cannot recover")
+		print("iprep workflow encountered a problem. cannot recover. workflow paused")
 		// #TODO: should pause system for user to fix whatever is wrong and continue
 	}	
 
@@ -903,7 +903,7 @@ number IPrep_image_workflow()
 	{
 		returncode = 0 // irrecoverable error (for now)
 		//returnDeadFlag().setDead(1, "image", " ")
-		//print("iprep encountered an error. cannot recover")
+		print("iprep workflow encountered a problem. cannot recover. workflow paused")
 
 	}	
 
@@ -933,7 +933,7 @@ Number IPrep_Pecs_Image_beforemilling_workflow()
 	{
 		returncode = 0 // irrecoverable error (for now)
 		//returnDeadFlag().setDead(1, "pecs_image_before", " ")
-		print("iprep encountered an error. cannot recover")
+		print("iprep workflow encountered a problem. cannot recover. workflow stopped")
 		// #TODO: should pause system for user to fix whatever is wrong and continue
 	}	
 
@@ -963,7 +963,7 @@ Number IPrep_Pecs_Image_aftermilling_workflow()
 	{
 		returncode = 0 // irrecoverable error (for now)
 		//returnDeadFlag().setDead(1, "pecs_image_after", " ")
-		print("iprep encountered an error. cannot recover")
+		print("iprep workflow encountered a problem. cannot recover. workflow stopped")
 		// #TODO: should pause system for user to fix whatever is wrong and continue
 	}	
 
@@ -996,7 +996,7 @@ Number IPrep_mill_workflow()
 	{
 		returncode = 0 // irrecoverable error (for now)
 		//returnDeadFlag().setDead(1, "mill", " ")
-		print("iprep encountered an error. cannot recover")
+		print("iprep workflow encountered a problem. cannot recover. workflow paused")
 		// #TODO: should pause system for user to fix whatever is wrong and continue
 	}	
 
@@ -1029,7 +1029,7 @@ Number IPrep_Coat_workflow()
 	{
 		returncode = 0 // irrecoverable error (for now)
 		//returnDeadFlag().setDead(1, "coat", " ")
-		print("iprep encountered an error. cannot recover")
+		print("iprep workflow encountered a problem. cannot recover. workflow paused")
 		// #TODO: should pause system for user to fix whatever is wrong and continue
 	}	
 

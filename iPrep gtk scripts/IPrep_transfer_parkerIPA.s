@@ -1,7 +1,14 @@
 // $BACKGROUND$
 
 // assumes parker IPA controller
+// hardware/software used: ACR-View 6.4.0.1053
+// project ipa_attempt2, device ipa_2
+
 // for parker ARIES, we may need to create new class that takes specific flags/parameters into account
+
+
+
+
 
 class parkerTransfer:object
 {

@@ -59,17 +59,20 @@ class EBSD_OI_automatic: object
 	//OINA_AcquisitionStop()
 	//OINA_AcquisitionIsActive(progress, err)
 
-	void EBSD_start(object self)
-	{
-		// start EBSD acquisition
-		OINA_AcquisitionStart(sitename, data_prefix+"_"+IPrep_sliceNumber(), type)
-		self.print("Acquisition started")
-	}
-
 	void EBSD_stop(object self)
 	{
 		OINA_AcquisitionStop()
 		self.print("Acquisition stopped")
+	}
+
+	void EBSD_start(object self)
+	{
+		// start EBSD acquisition
+
+		// first stop acquisition to prevent bug on OI side that messes up our listener deamon
+		self.EBSD_stop()
+		OINA_AcquisitionStart(sitename, data_prefix+"_"+IPrep_sliceNumber(), type)
+		self.print("Acquisition started")
 	}
 
 	number isBusy(object self)
@@ -91,7 +94,10 @@ class EBSD_OI_automatic: object
 			return 0
 		}
 		else
+		{
+			self.print("acquisition busy")
 			return 1
+		}
 	}
 
 

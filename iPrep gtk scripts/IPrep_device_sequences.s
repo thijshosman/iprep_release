@@ -41,7 +41,10 @@ class deviceSequence: object
 	number final(object self)
 	{
 		// public, inheritable
-		// this method always gets executed afterwards if something fails
+		// this method always gets executed afterwards if:
+		// -precheck fails (ie returns 0)
+		// -postcheck fails (ie returns 0)
+		// -an exception is caught by do_actual
 		self.print("base method 'final' called")
 		return 1
 	}
@@ -49,8 +52,9 @@ class deviceSequence: object
 	number precheck(object self)
 	{
 		// public, inheritable
-		// checks that have to be  in order for this sequence to be allowed to run
-		// otherwise, goes directly to final. only check state of subsystems, not states controlled by higher level controls (ie mystatemachine)
+		// checks that have to be  in order for this sequence to be allowed to run, or things that have to be executed pre do()
+		// otherwise, goes directly to final. 
+		// NB: only check state of subsystems, not states controlled by higher level controls (ie mystatemachine)
 		self.print("base method 'precheck' called")
 		return 1
 	}
@@ -58,8 +62,8 @@ class deviceSequence: object
 	number postcheck(object self)
 	{
 		// public, inheritable
-		// checks that have to be performed after sequence has completed
-		// gets executed after sequence
+		// checks that have to be performed after sequence has completed, or code that will be executed after do()
+		// gets executed after sequence (but only if do_actual() succeeds (ie returns 1))
 		self.print("base method 'postcheck' called")
 		return 1
 	}
@@ -1364,7 +1368,14 @@ class EBSD_default: deviceSequence
 	{
 		// public
 		// checks that have to be performed after sequence has completed
-		// in this case there is no post-check needed
+		// for ebsd step, we do blanking/uncoupling in postcheck
+		
+		// blank
+		myWorkflow.returnSEM().blankOn()
+
+		// decouple FWD (in case oxford instruments coupled it)
+		myWorkflow.returnSEM().uncoupleFWD()
+
 		return 1
 	}
 
@@ -1462,7 +1473,11 @@ class EBSD_default: deviceSequence
 		// start
 		myWorkflow.returnEBSD().EBSD_start()
 
-		sleep(2)
+		sleep(4)
+
+		number busy = 1
+		number abort = 0
+		number err_flag = 0
 
 		try
 		{
@@ -1470,9 +1485,11 @@ class EBSD_default: deviceSequence
 			number tick = GetOSTickCount()
 			number tock = 0
 
-			while (myWorkflow.returnEBSD().isBusy()==1)
+			while (busy == 1 && abort == 0)
 			{
 				tock = GetOSTickCount()
+				self.print("EBSD running, progress = "+myWorkflow.returnEBSD().returnProgress()+", error code = "+myWorkflow.returnEBSD().returnError())
+				
 				if ((tock-tick)/1000 > timeout)
 				{
 					self.print("EBSD timeout passed")
@@ -1488,33 +1505,37 @@ class EBSD_default: deviceSequence
 						returncode = 0
 					}
 
-					break	
+					
 				}
 				
 				if ((optiondown() && shiftdown()))
 				{
-					self.print("EBSD aborted")
+					self.print("EBSD aborted by user")
 
-					if (okcanceldialog("EBSD acquisition aborted, continue workflow?"))
+					if (okcanceldialog("EBSD acquisition aborted by user, continue workflow?"))
 					{
-						// continue
+						// continue workflow
 						returncode = 1
+						//self.print("ok")
 					}
 					else
 					{
-						// abort
+						// abort workflow
 						returncode = 0
+						//self.print("canceled")
 					}
-
-					break
+					self.print("debug: returncode after abort: "+ returncode)
+					abort = 1
 				}
-				self.print("EBSD running, progress = "+myWorkflow.returnEBSD().returnProgress()+", error code = "+myWorkflow.returnEBSD().returnError())
+
 				sleep(1)
-				
+				busy = myWorkflow.returnEBSD().isBusy()
 			}
 
+			// finished acquisition loop, send an extra stop just in case
 			myWorkflow.returnEBSD().EBSD_stop()
 
+			// check for errors in communication or other unusual behavior
 			if (myWorkflow.returnEBSD().returnError() == 1 || myWorkflow.returnEBSD().returnError() == 2)
 			{
 				if (okcanceldialog("Error duing EBSD acquisition. continue workflow? "))
@@ -1527,27 +1548,26 @@ class EBSD_default: deviceSequence
 					// abort
 					returncode = 0
 				}
-			}
-			else
-				returncode = 1
+				self.print("debug: returncode after err: "+ returncode)
+				err_flag = 1
 
+			}
 
 		}
 		catch
 		{
 			print("exception in EBSD sequence: "+GetExceptionString()+", last error code is "+myWorkflow.returnEBSD().returnError())
 			myWorkflow.returnEBSD().EBSD_stop()
+			return 0
+		}
+		
+
+		if (abort != 1 && err_flag != 1) // success, no abort or errors
+		{
+			returncode = 1 // to indicate that even though we had an issue, we still want to continue
 		}
 
-
-		// blank
-		myWorkflow.returnSEM().blankOn()
-
-		// decouple FWD (in case oxford instruments coupled it)
-		myWorkflow.returnSEM().uncoupleFWD()
-
 		self.print("debug: returncode: "+ returncode)
-
 		return returncode
 	}
 

@@ -1,0 +1,26 @@
+IPA conversion log header (IPA_Convert_info.txt) not found
+Created Directory C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ipa_demo
+Copying C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ARxxCE\Controller.ini to C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ipa_demo\Controller.ini
+Copying C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ARxxCE\Defines.8k to C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ipa_demo\Defines.8k
+Copying C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ARxxCE\prog0.8k to C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ipa_demo\prog0.8k
+Copying C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ARxxCE\prog1.8k to C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ipa_demo\prog1.8k
+Copying C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ARxxCE\prog10.8k to C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ipa_demo\prog10.8k
+Copying C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ARxxCE\prog11.8k to C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ipa_demo\prog11.8k
+Copying C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ARxxCE\prog12.8k to C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ipa_demo\prog12.8k
+Copying C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ARxxCE\prog13.8k to C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ipa_demo\prog13.8k
+Copying C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ARxxCE\prog14.8k to C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ipa_demo\prog14.8k
+Copying C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ARxxCE\prog15.8k to C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ipa_demo\prog15.8k
+Copying C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ARxxCE\prog16.8k to C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ipa_demo\prog16.8k
+Copying C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ARxxCE\prog2.8k to C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ipa_demo\prog2.8k
+Copying C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ARxxCE\prog3.8k to C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ipa_demo\prog3.8k
+Copying C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ARxxCE\prog4.8k to C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ipa_demo\prog4.8k
+Copying C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ARxxCE\prog5.8k to C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ipa_demo\prog5.8k
+Copying C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ARxxCE\prog6.8k to C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ipa_demo\prog6.8k
+Copying C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ARxxCE\prog7.8k to C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ipa_demo\prog7.8k
+Copying C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ARxxCE\prog8.8k to C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ipa_demo\prog8.8k
+Copying C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ARxxCE\prog9.8k to C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ipa_demo\prog9.8k
+Copying C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ARxxCE\setup.8k to C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ipa_demo\setup.8k
+Copying C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ARxxCE\Terminal.ini to C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ipa_demo\Terminal.ini
+Copying C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ARxxCE\UISettings.XML to C:\Users\gatan\Documents\Parker Hannifin\ACR-View\Projects\aries_backup\ipa_demo\UISettings.XML
+Editing Controller.ini
+Patching prog15.8k (configuration information download to control)

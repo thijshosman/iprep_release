@@ -821,7 +821,7 @@ void iprep_InstallMenuItems( void )
 
 	// workflow	
 	AddScriptToMenu( "Set_starting_slice_number()", "Set starting slice number...", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
-	AddScriptToMenu( "IPrep_acquire_ebsd()", "Run EBSD step", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
+	AddScriptToMenu( "IPrep_acquire_ebsd()", "Run EBSD/EDS step", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
 	AddScriptToMenu( "IPrep_image()", "Run Image step", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
 	AddScriptToMenu( "IPrep_Pecs_Image_aftermilling()", "Run PECS Image After Milling ", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
 	AddScriptToMenu( "IPrep_MoveToPECS()", "Move sample to PECS", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
@@ -829,6 +829,7 @@ void iprep_InstallMenuItems( void )
 	AddScriptToMenu( "IPrep_mill()", "Run Milling step...", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
 	AddScriptToMenu( "IPrep_coat()", "Run Coating step...", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
 	AddScriptToMenu( "IPrep_MoveToSEM()", "Move sample to SEM", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
+	AddScriptToMenu( "IPrep_incrementSliceNumber()", "Increment slice number by 1", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
 
 
 	// SEM
