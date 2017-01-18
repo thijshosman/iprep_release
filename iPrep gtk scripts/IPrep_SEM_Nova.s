@@ -3,7 +3,7 @@ number XYZZY = 0
 
 
 
-class SEM_IPrep_Quanta: object
+class SEM_IPrep_Nova: object
 {
 	object SEMStagePersistance // stores position where stage is in tag
 	
@@ -39,23 +39,9 @@ class SEM_IPrep_Quanta: object
 
 	// *** quanta fix ***
 	void WorkaroundQuantaMagBug(object self)
-		// When there is a Z move on the Quanta and the FWD is different from the calibrated stage Z,
-		// there is a bug where the Quanta miscalculates the actual magnification.  This work around
-		// seems to be generic in fixing the issue.  You can see this bug by having the stageZ=30, fwd=7
-		// (focused on the sample) and then changing Z to 60 and back.  The mag will be off by > 2x.
-		{
-			result( datestamp()+": WorkaroundQuantaMagBug" )
-			number oldmag=emgetmagnification()
-
-			emsetmagnification( 50 )
-			emwaituntilready()
-
-			emsetmagnification( 100000 )
-			emwaituntilready()
-
-			emsetmagnification( oldmag )
-			result( ",done.\n")
-		}
+	{
+		self.print("skipping quantamagbug")
+	}
 
 	// *** basics ***
 	
@@ -857,7 +843,7 @@ class SEM_IPrep_Quanta: object
 		self.print("zeroed shift, x: "+-a/1000+", y: "+-b/1000)
 	}
 
-	void SEM_IPrep_Quanta(object self)
+	void SEM_IPrep_Nova(object self)
 	{
 		// constructor
 
@@ -949,7 +935,7 @@ class SEM_IPrep_Quanta: object
 		self.print("HV off")
 	}	
 
-	~SEM_IPrep_Quanta(object self)
+	~SEM_IPrep_Nova(object self)
 	{
 		// save last known stage position to tag
 		self.setManualState(state)

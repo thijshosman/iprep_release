@@ -280,11 +280,11 @@ try
 	//myWorkflow.returnGripper().setManualState("open")
 	//myWorkflow.returnGripper().setManualState("closed")
 	
-	myWorkflow.returnGripper().lookupState(1)
+	//myWorkflow.returnGripper().lookupState(1)
 	//myWorkflow.returnGripper().open()		
 	//myWorkflow.returnGripper().close()
 	//myWorkflow.returnGripper().lookupState(1)
-	myWorkflow.returnGripper().lookupStateNTimes(5)
+	//myWorkflow.returnGripper().lookupStateNTimes(5)
 	
 	//myWorkflow.returnGripper().sendCommand("P10000R") // close a bit (P)
 	//myWorkflow.returnGripper().sendCommand("D10000R")

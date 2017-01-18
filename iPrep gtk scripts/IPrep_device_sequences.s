@@ -114,8 +114,8 @@ class deviceSequence: object
 		{
 			self.print("exception caught in "+_name+". msg = "+GetExceptionString()+". executing final and aborting")
 			self.final()
-			break //so that flow continues
-		
+			// break //so that flow continues
+			return 0
 		}
 
 		return returncode
@@ -1473,7 +1473,7 @@ class EBSD_default: deviceSequence
 		// start
 		myWorkflow.returnEBSD().EBSD_start()
 
-		sleep(4)
+		sleep(1)
 
 		number busy = 1
 		number abort = 0

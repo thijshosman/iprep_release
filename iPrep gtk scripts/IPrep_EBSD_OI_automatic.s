@@ -70,7 +70,7 @@ class EBSD_OI_automatic: object
 		// start EBSD acquisition
 
 		// first stop acquisition to prevent bug on OI side that messes up our listener deamon
-		self.EBSD_stop()
+		//self.EBSD_stop()
 		OINA_AcquisitionStart(sitename, data_prefix+"_"+IPrep_sliceNumber(), type)
 		self.print("Acquisition started")
 	}

@@ -159,6 +159,20 @@ class EBSDSEMdock : object
 		self.print("dock initialized (EBSD)")
 	}
 	
+	void hold(object self)
+	{
+		// set holding torque to finite value to make sure motor does not move
+		self.sendcommand("h15R")
+		self.print("holding torque SET")
+	}
+
+	void unhold(object self)
+	{
+		// set holding torque to finite value to make sure motor does not move
+		self.sendcommand("h0R")
+		self.print("holding torque UNSET")
+	}
+
 	void EBSDSEMdock(object self) 
 	{
 		// contructor
@@ -284,6 +298,12 @@ class EBSDSEMdock : object
 		return state
 	}
 
+	string getDockState(object self)
+	{
+		// for Mediator
+		return self.getState()
+	}
+
 	number checkSamplePresent(object self)
 	{
 		// *** public ***
@@ -294,7 +314,20 @@ class EBSDSEMdock : object
 
 	}
 
-	
+	void camOn(object self)
+	{
+		// turn chamberscope camera and aillumination on
+		self.sendCommand("J3R")
+		self.print("chamberscope turned ON")
+	}
+
+
+	void camOff(object self)
+	{
+		// turn chamberscope camera and aillumination on
+		self.sendCommand("J0R")
+		self.print("chamberscope turned OFF")
+	}
 
 
 

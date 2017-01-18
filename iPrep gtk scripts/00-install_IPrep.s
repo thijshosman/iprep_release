@@ -42,12 +42,12 @@ InstallFile( PathConcatenate( gPath, "IPrep_progressWindow.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "IPrep_general.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "IPrep_multi_roi.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "IPrep_init_helpers.s" ), package, 3 )
-InstallFile( PathConcatenate( gPath, "IPrep_hardwareFactory.s" ), package, 3 )
 
 InstallFile( PathConcatenate( gPath, "IPrep_UPS_APC.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "IPrep_UPS_simulator.s" ), package, 3 )
 
 InstallFile( PathConcatenate( gPath, "IPrep_SEM_Quanta.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_SEM_Nova.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "IPrep_SEM_simulator.s" ), package, 3 )
 
 InstallFile( PathConcatenate( gPath, "IPrep_dock_planar.s" ), package, 3 )
@@ -55,12 +55,15 @@ InstallFile( PathConcatenate( gPath, "IPrep_dock_EBSD.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "IPrep_dock_simulator.s" ), package, 3 )
 
 InstallFile( PathConcatenate( gPath, "IPrep_transfer_parkerIPA.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_transfer_parkerARIES.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "IPrep_transfer_simulator.s" ), package, 3 )
 
-InstallFile( PathConcatenate( gPath, "IPrep_gripper.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_gripper_rev1.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_gripper_rev2.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "IPrep_gripper_simulator.s" ), package, 3 )
 
-InstallFile( PathConcatenate( gPath, "IPrep_pecs.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_pecs_rev1.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_pecs_rev2.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "IPrep_pecs_simulator.s" ), package, 3 )
 
 InstallFile( PathConcatenate( gPath, "IPrep_pecscamera.s" ), package, 3 )
@@ -72,6 +75,8 @@ InstallFile( PathConcatenate( gPath, "IPrep_digiscan_simulator.s" ), package, 3 
 InstallFile( PathConcatenate( gPath, "IPrep_ebsd_simulator.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "IPrep_ebsd_manual.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "IPrep_ebsd_oi_automatic.s" ), package, 3 )
+
+InstallFile( PathConcatenate( gPath, "IPrep_hardwareFactory.s" ), package, 3 )
 
 InstallFile( PathConcatenate( gPath, "IPrep_workflowElements.s" ), package, 3 )
 

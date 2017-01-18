@@ -6,8 +6,9 @@
 // --- * check status (up/down) of PECS stage
 // --- * home the rotation stage
 // --- * some secondary stuff, check pressures, etc. 
+// rev2: as installed as demounit (second iprep build). differences: gv control is different, coating is added
 
-class pecs_iprep: object
+class pecs_iprep_rev2: object
 {
 	// handles communication with PECS for iPrep
 
@@ -391,7 +392,7 @@ class pecs_iprep: object
 	}
 
 
-	void pecs_iprep(object self)
+	void pecs_iprep_rev2(object self)
 	{
 		//constructor
 		

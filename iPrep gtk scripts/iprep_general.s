@@ -110,18 +110,21 @@ class deadFlagObject:object
 
 	void setDeadSafe(object self)
 	{
+		self.print("system now dead/safe")
 		self.setDead(1)
 		self.setSafety(1)
 	}
 
 	void setDeadUnsafe(object self)
 	{
+		self.print("system now dead/unsafe")
 		self.setDead(1)
 		self.setSafety(0)
 	}
 
 	void setAliveSafe(object self)
 	{
+		self.print("system now alive/safe")
 		self.setDead(0)
 		self.setSafety(1)
 	}

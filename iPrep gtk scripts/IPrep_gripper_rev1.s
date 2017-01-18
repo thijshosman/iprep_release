@@ -1,5 +1,8 @@
 // $BACKGROUND$
-class gripper:object
+
+// rev1: as in manchester
+
+class gripper_rev1:object
 {
 
 	string state
@@ -191,7 +194,7 @@ class gripper:object
 		self.print("gripper initialized")
 	}
 
-	void gripper(object self) 
+	void gripper_rev1(object self) 
 	{
 		// constructor, looks up state for first time and sets some parameters
 		gripperPersistance = alloc(statePersistance)
@@ -292,8 +295,8 @@ class gripper:object
 			//self.sendCommand("gD10000R")
 
 			// 2016-08-12
-			self.sendCommand("gP75000R")
-			self.sendCommand("gD30000R")
+			//self.sendCommand("gP75000R")
+			//self.sendCommand("gD30000R")
 
 			self.setManualState("closed")
 			self.print("gripper closed succesfully")
@@ -378,7 +381,7 @@ class gripper:object
 	}
 
 
-	~gripper (object self)
+	~gripper_rev1 (object self)
 	{
 		// store last known state as tag
 		self.setManualState(state)
