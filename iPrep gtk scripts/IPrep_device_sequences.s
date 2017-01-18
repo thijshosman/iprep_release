@@ -1405,6 +1405,7 @@ class EBSD_default: deviceSequence
 		number type
 		number mag
 		string coordname
+		number n_ebsd
 
 		// sitename
 		tagname = "IPrep:EBSD:sitename"
@@ -1441,60 +1442,113 @@ class EBSD_default: deviceSequence
 			throw("EBSD SEM coord (IPrep:EBSD:semcoord not set")
 		}		
 
-		// set magnification
-		self.print("EBSD: magnification is: "+mag)
-		myWorkflow.returnSEM().setMag(mag)
-
-
-		// go to sem coord
-		self.print("coordname for EBSD: "+coordname)
-		// go to ROIs SEM coord, but only if we are not already there
-		if (myWorkflow.returnSEM().getCurrentImagingPosition() == coordname)
+		// acquire every n slices
+		tagname = "IPrep:acquire_n_slice"
+		if(!GetPersistentNumberNote( tagname, n_ebsd ))
 		{
-			// already there
-			self.print("EBSD: already at "+coordname+", leaving stage where it is")
-		}
-		else
+			throw("IPrep:acquire_n_slice not set!")
+		}		
+
+		if (IPrep_sliceNumber() % n_ebsd == 0 )
 		{
-			// go there
-			self.print("EBSD: going to location: "+coordname)
-			myWorkflow.returnSEM().goToImagingPosition(coordname)
-		}
+			// set magnification
+			self.print("EBSD: magnification is: "+mag)
+			myWorkflow.returnSEM().setMag(mag)
 
-		// setup EBSD interface
-		myWorkflow.returnEBSD().init(sitename, data_prefix, type)
 
-		// release digiscan control, just in case it is still set
-		myWorkflow.returnDigiscan().releaseControl()
-
-		// unblank
-		myWorkflow.returnSEM().blankOff()
-
-		// start
-		myWorkflow.returnEBSD().EBSD_start()
-
-		sleep(1)
-
-		number busy = 1
-		number abort = 0
-		number err_flag = 0
-
-		try
-		{
-
-			number tick = GetOSTickCount()
-			number tock = 0
-
-			while (busy == 1 && abort == 0)
+			// go to sem coord
+			self.print("coordname for EBSD: "+coordname)
+			// go to ROIs SEM coord, but only if we are not already there
+			if (myWorkflow.returnSEM().getCurrentImagingPosition() == coordname)
 			{
-				tock = GetOSTickCount()
-				self.print("EBSD running, progress = "+myWorkflow.returnEBSD().returnProgress()+", error code = "+myWorkflow.returnEBSD().returnError())
-				
-				if ((tock-tick)/1000 > timeout)
+				// already there
+				self.print("EBSD: already at "+coordname+", leaving stage where it is")
+			}
+			else
+			{
+				// go there
+				self.print("EBSD: going to location: "+coordname)
+				myWorkflow.returnSEM().goToImagingPosition(coordname)
+			}
+
+			// setup EBSD interface
+			myWorkflow.returnEBSD().init(sitename, data_prefix, type)
+
+			// release digiscan control, just in case it is still set
+			myWorkflow.returnDigiscan().releaseControl()
+
+			// unblank
+			myWorkflow.returnSEM().blankOff()
+
+			// start
+			myWorkflow.returnEBSD().EBSD_start()
+
+			sleep(1)
+
+			number busy = 1
+			number abort = 0
+			number err_flag = 0
+
+			try
+			{
+
+				number tick = GetOSTickCount()
+				number tock = 0
+
+				while (busy == 1 && abort == 0)
 				{
-					self.print("EBSD timeout passed")
+					tock = GetOSTickCount()
+					self.print("EBSD running, progress = "+myWorkflow.returnEBSD().returnProgress()+", error code = "+myWorkflow.returnEBSD().returnError())
 					
-					if (okcanceldialog("timeout for EBSD acquisition passed, continue workflow?"))
+					if ((tock-tick)/1000 > timeout)
+					{
+						self.print("EBSD timeout passed")
+						
+						if (okcanceldialog("timeout for EBSD acquisition passed, continue workflow?"))
+						{
+							// continue
+							returncode = 1
+						}
+						else
+						{
+							// abort
+							returncode = 0
+						}
+
+						
+					}
+					
+					if ((optiondown() && shiftdown()))
+					{
+						self.print("EBSD aborted by user")
+
+						if (okcanceldialog("EBSD acquisition aborted by user, continue workflow?"))
+						{
+							// continue workflow
+							returncode = 1
+							//self.print("ok")
+						}
+						else
+						{
+							// abort workflow
+							returncode = 0
+							//self.print("canceled")
+						}
+						self.print("debug: returncode after abort: "+ returncode)
+						abort = 1
+					}
+
+					sleep(1)
+					busy = myWorkflow.returnEBSD().isBusy()
+				}
+
+				// finished acquisition loop, send an extra stop just in case
+				myWorkflow.returnEBSD().EBSD_stop()
+
+				// check for errors in communication or other unusual behavior
+				if (myWorkflow.returnEBSD().returnError() == 1 || myWorkflow.returnEBSD().returnError() == 2)
+				{
+					if (okcanceldialog("Error duing EBSD acquisition. continue workflow? "))
 					{
 						// continue
 						returncode = 1
@@ -1504,67 +1558,29 @@ class EBSD_default: deviceSequence
 						// abort
 						returncode = 0
 					}
+					self.print("debug: returncode after err: "+ returncode)
+					err_flag = 1
 
-					
-				}
-				
-				if ((optiondown() && shiftdown()))
-				{
-					self.print("EBSD aborted by user")
-
-					if (okcanceldialog("EBSD acquisition aborted by user, continue workflow?"))
-					{
-						// continue workflow
-						returncode = 1
-						//self.print("ok")
-					}
-					else
-					{
-						// abort workflow
-						returncode = 0
-						//self.print("canceled")
-					}
-					self.print("debug: returncode after abort: "+ returncode)
-					abort = 1
 				}
 
-				sleep(1)
-				busy = myWorkflow.returnEBSD().isBusy()
 			}
-
-			// finished acquisition loop, send an extra stop just in case
-			myWorkflow.returnEBSD().EBSD_stop()
-
-			// check for errors in communication or other unusual behavior
-			if (myWorkflow.returnEBSD().returnError() == 1 || myWorkflow.returnEBSD().returnError() == 2)
+			catch
 			{
-				if (okcanceldialog("Error duing EBSD acquisition. continue workflow? "))
-				{
-					// continue
-					returncode = 1
-				}
-				else
-				{
-					// abort
-					returncode = 0
-				}
-				self.print("debug: returncode after err: "+ returncode)
-				err_flag = 1
-
+				print("exception in EBSD sequence: "+GetExceptionString()+", last error code is "+myWorkflow.returnEBSD().returnError())
+				myWorkflow.returnEBSD().EBSD_stop()
+				return 0
 			}
+			
 
+			if (abort != 1 && err_flag != 1) // success, no abort or errors
+			{
+				returncode = 1 // to indicate that even though we had an issue, we still want to continue
+			}
 		}
-		catch
+		else
 		{
-			print("exception in EBSD sequence: "+GetExceptionString()+", last error code is "+myWorkflow.returnEBSD().returnError())
-			myWorkflow.returnEBSD().EBSD_stop()
-			return 0
-		}
-		
-
-		if (abort != 1 && err_flag != 1) // success, no abort or errors
-		{
-			returncode = 1 // to indicate that even though we had an issue, we still want to continue
+			self.print("skipping EBSD for this slice ("+n_ebsd+")")
+			returncode = 1
 		}
 
 		self.print("debug: returncode: "+ returncode)
