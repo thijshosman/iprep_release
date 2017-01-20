@@ -35,7 +35,7 @@ name: name of the ROI
 
 coordName: name of the coord used by ROI. this is not the same as the ROI name, and the reason is that sometimes you want to reuse a coord for multiple ROIs (at different mags etc)
 
-
+digiscan_param: digiscan parameters used for this ROI. only exception is StoredImaging ROI; for this ROI it uses the global capture settings
 
 
 

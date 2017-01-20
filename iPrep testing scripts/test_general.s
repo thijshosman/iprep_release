@@ -152,12 +152,17 @@ try
 	{
 		myWorkflow.returnSEMDock().unclamp()	//disengaged
 		result("arrived at unclamped position, waiting..\n")
-		sleep(3)
+		sleep(1)
 		myWorkflow.returnSEMDock().clamp()   //engaged
+		if (!myWorkflow.returnSEMdock().checkSamplePresent())
+		{	
+			okdialog("sample not detected!")
+			break
+		}
 		result("i: "+i+"\n")
 	}
-*/
 
+*/
 	// test how well focus is kept when moving z
 	// setup
 /*
@@ -279,7 +284,7 @@ try
 	//myWorkflow.returnGripper().sendCommand("V300000L1400h0m25j64R")
 	//myWorkflow.returnGripper().setManualState("open")
 	//myWorkflow.returnGripper().setManualState("closed")
-	
+	//sleep(3)
 	//myWorkflow.returnGripper().lookupState(1)
 	//myWorkflow.returnGripper().open()		
 	//myWorkflow.returnGripper().close()
@@ -338,7 +343,7 @@ try
 	//myWorkflow.returnTransfer().init()
 	//myWorkflow.returnTransfer().home()
 	//myWorkflow.returnTransfer().move("outofway")   // home position, without going through homing sequence
-   // myWorkflow.returnTransfer().move("prehome")    // location where we can move to close to home from where we home
+   //myWorkflow.returnTransfer().move("prehome")    // location where we can move to close to home from where we home
     //myWorkflow.returnTransfer().move("open_pecs")  // location where arms can open in PECS	
    //myWorkflow.returnTransfer().move("pickup_pecs") // location where open arms can be used to pickup sample	
 	//myWorkflow.returnTransfer().move("beforeGV")    // location where open arms can be used to pickup sample

@@ -420,15 +420,9 @@ class SEM_IPrep_Quanta: object
 		if (myMediator.getDockState() != "clamped")
 		{
 			self.print("safetycheck: dock not clamped")
-			if (!okcanceldialog("trying to move SEM with dock unclamped. clamp dock and continue? "))
-			{
-				throw("safetycheck: trying to move dock to clear position with dock unclamped. user canceled option to clamp")
-			}
-			else
-			{
-				// try again
-				self.homeToClear()
-			}
+
+			throw("safetycheck: trying to move dock to clear position with dock unclamped. user canceled option to clamp")
+
 		}
 
 		self.print("going to clear with checks disabled")

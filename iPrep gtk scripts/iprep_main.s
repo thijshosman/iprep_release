@@ -60,7 +60,7 @@ Number IPrep_littleCheck()
 	if(!myWorkflow.returnPECS().TMPCheck())
 	{
 		print("PECS system not at vacuum or TMP problem")
-		return 0
+		return 0 
 	}
 
 	if(IPrep_sliceNumber() > IPrep_maxSliceNumber())
@@ -301,94 +301,7 @@ number IPrep_recover_deadflag()
 	}
 }
 
-number IPrep_align_planar_hack()
-{
-	// hardcoded values as planar coordinates
 
-	// calibrate SEM points:
-		// -set coords for "reference" and "scribe_pos" from "reference_ebsd" and "scripe_pos_ebsd"
-		// -infers all the coordinates for SEM use from "reference" and "scribe_pos" for this particular dock
-		//	and sets coord tags
-
-		// first, set "reference" and "scribe_pos" to planar coord values
-		object reference = returnSEMCoordManager().getCoordAsCoord("reference_planar")
-		reference.setName("reference")
-		returnSEMCoordManager().addCoord(reference)
-
-		object scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_planar")
-		scribe_pos.setName("scribe_pos")
-		returnSEMCoordManager().addCoord(scribe_pos)
-
-		// retrieve all coords we are going to set
-
-		object pickup_dropoff = returnSEMCoordManager().getCoordAsCoord("pickup_dropoff")
-		object clear = returnSEMCoordManager().getCoordAsCoord("clear")
-		object nominal_imaging = returnSEMCoordManager().getCoordAsCoord("nominal_imaging")
-		object StoredImaging = returnSEMCoordManager().getCoordAsCoord("StoredImaging")
-		object highGridFront = returnSEMCoordManager().getCoordAsCoord("highGridFront")
-		object highGridBack = returnSEMCoordManager().getCoordAsCoord("highGridBack")
-		object lowerGrid = returnSEMCoordManager().getCoordAsCoord("lowerGrid")
-
-
-		
-		print("calibration used is manual Quanta cal with planar dock 2016-06-27")
-
-		// reference point is the point from which other coordinates are inferred
-		// the reference point for all coordinates is the pickup/dropoff point now
-
-		print("scribe position set: ")
-		scribe_pos.print()
-
-		print("reference set: ")
-		reference.print()
-
-		// pickup_dropoff is reference point, so simply set them there
-		pickup_dropoff.set(reference.getX(), reference.getY(), reference.getZ())
-		print("pickup_dropoff set: ")
-		pickup_dropoff.print()
-
-		// for clear only move in Z from reference point
-		clear.set(reference.getX(), reference.getY(), reference.getZ()+3.5)
-		print("clear set: ")
-		clear.print()
-
-		// nominal imaging is approximate middle of sample
-		nominal_imaging.set( scribe_pos.getX()-22.8104, scribe_pos.getY()-38.6801, scribe_pos.getZ(), 0 )
-		print("nominal_imaging set: ")
-		nominal_imaging.print()
-
-		// stored imaging starts at the same point as the nominal imaging point
-		StoredImaging.set( nominal_imaging.getX(), nominal_imaging.getY(), nominal_imaging.getZ(), nominal_imaging.getdf() )
-		print("StoredImaging set: ")
-		StoredImaging.print()
-
-		// grid on post at back position (serves as sanity check)
-		highGridBack.set( 25.215, 14.161, 48, 0)
-		print("highGridBack set: ")
-		highGridBack.print()
-
-		// grid on post in front position (serves as sanity check)
-		highGridFront.set( -8.271, 14.533, 48, 0 )
-		print("highGridFront set: ")
-		highGridFront.print()
-
-
-
-		// grid on base plate, formerly used for FWD Z-height cal, now not used // Save to remove all references to lowerGrid
-		lowerGrid.set(31.887, 27.507, 48, 0)
-		print("lowerGrid set: ")
-		lowerGrid.print()
-
-	
-		// now update the coords in tags to their updated values
-		returnSEMCoordManager().addCoord(pickup_dropoff)
-		returnSEMCoordManager().addCoord(clear)
-		returnSEMCoordManager().addCoord(nominal_imaging)
-		returnSEMCoordManager().addCoord(StoredImaging)
-		returnSEMCoordManager().addCoord(highGridFront)
-		returnSEMCoordManager().addCoord(highGridBack)
-		returnSEMCoordManager().addCoord(lowerGrid)
-}
 
 number IPrep_init()
 {
@@ -442,11 +355,11 @@ number IPrep_toggle_planar_ebsd(string mode)
 			return returncode // to indicate error
 
 		// confirm sample in PECS
-		if (myStateMachine.getCurrentWorkflowState() != "PECS")
-		{
-			print("sample not in PECS!")	
-			return returncode
-		}
+		//if (myStateMachine.getCurrentWorkflowState() != "PECS")
+		//{
+		//	print("sample not in PECS!")	
+		//	return returncode
+		//}
 
 		// vent
 		if (!okcanceldialog("Has the dock been swapped, connected and has the dock motor axis been aligned along y axis?"))
@@ -464,8 +377,7 @@ number IPrep_toggle_planar_ebsd(string mode)
 
 		// calibrate
 		print("calibrating points for mode")
-		// #todo: no longer in workflow class
-		//myWorkflow.calibrateForMode()
+		calibrateForMode()
 
 
 		// check that new mode is consistent with readout of dock
@@ -493,7 +405,11 @@ number IPrep_toggle_planar_ebsd(string mode)
 		else
 			throw("user aborted check")
 
+		setDockCalibrationStatus(0)
+		print("dock not calibrated yet. first scribe mark needs to be calibrated")
 		okdialog("dock test has succeeded. please pump down the system and recalibrate scribe mark")
+
+
 		print("done")
 		returncode = 1
 
@@ -503,7 +419,7 @@ number IPrep_toggle_planar_ebsd(string mode)
 		print("mode change did not succeed: exception: "+GetExceptionString())
 		okdialog("mode change did not succeed: exception: "+ GetExceptionString())
 		// set dead
-		returnDeadFlag().setDead(1, "mode", "mode change error: "+GetExceptionString())
+		//returnDeadFlag().setDead(1, "mode", "mode change error: "+GetExceptionString())
 		// set unsafe
 		//returnDeadFlag().setSafety(0, "mode change error: "+GetExceptionString())
 		break

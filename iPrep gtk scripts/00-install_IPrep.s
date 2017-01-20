@@ -90,7 +90,7 @@ InstallFile( PathConcatenate( gPath, "IPrep_sequenceFactory.s" ), package, 3 )
 InstallFile( PathConcatenate( gPath, "IPrep_mainStateMachine.s" ), package, 3 )
 
 
-// InstallFile( PathConcatenate( gPath, "IPrep_alignment.s" ), package, 3 )
+InstallFile( PathConcatenate( gPath, "IPrep_alignment.s" ), package, 3 )
 
 InstallFile( PathConcatenate( gPath, "IPrep_main.s" ), package, 3 )
 

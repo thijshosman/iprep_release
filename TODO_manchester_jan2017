@@ -1,0 +1,26 @@
+
+* [x] make printing all ROIs more verbose by adding sem positions
+* [x] make sure init of single/multi ROI mode is clear in UI
+* [x] when using StoredImaging ROI as one of the multi ROI rois, make sure 3Dvol is initialized correctly
+
+* [] check naming of storedimaging ROI file names
+
+* [] check max slice number check
+
+* [] make option to make beam blank at end of image acquisition. this is because blanking beam from dm disables dynamic focus
+
+* [] add option to go to backoff_sem position in service menu
+
+* [] check moving from clear directly to storedimaging
+
+* [] ebsd will usually use same mag as storedImaging. add option for different mag, but use normal mag in default case
+
+* [] EBSD acquisition needs an FSD/SE image to accompany it for that particular slice. Plugin probably allows this since FEI uses it. when using type 1 imaging it generates a separate SE/FSD image that gets added as an additional part of the next EBSD acquisitions. 
+
+* [] find a way to inform user of imaging mode (multi/single)
+
+* [x] dynamic focus turnoff
+* [] electron images followed by ebsd/eds in aztec
+* [] b/c 
+
+

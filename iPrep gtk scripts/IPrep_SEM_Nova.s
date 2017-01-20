@@ -3,6 +3,9 @@ number XYZZY = 0
 
 
 
+// NB: nova does not need to set WD since the SEM does not ever change focus. furthermore, it may mess up dynamic focus
+// nova also does not need quantamagfixbug
+
 class SEM_IPrep_Nova: object
 {
 	object SEMStagePersistance // stores position where stage is in tag
@@ -179,11 +182,12 @@ class SEM_IPrep_Nova: object
 	{
 		// set workingdistance to previously determined value
 		number imagingWD = SEMWDPersistance.getNumber()
-
+		
 		if (imagingWD == 0)
 			throw("imaging working distance not setup")
 		else
 			self.setWD(imagingWD)
+		
 	}
 
 	void setWDFromDFandScribePos(object self, number dF)
@@ -406,15 +410,9 @@ class SEM_IPrep_Nova: object
 		if (myMediator.getDockState() != "clamped")
 		{
 			self.print("safetycheck: dock not clamped")
-			if (!okcanceldialog("trying to move SEM with dock unclamped. clamp dock and continue? "))
-			{
-				throw("safetycheck: trying to move dock to clear position with dock unclamped. user canceled option to clamp")
-			}
-			else
-			{
-				// try again
-				self.homeToClear()
-			}
+
+			throw("safetycheck: trying to move dock to clear position with dock unclamped. user canceled option to clamp")
+
 		}
 
 		self.print("going to clear with checks disabled")
@@ -514,7 +512,8 @@ class SEM_IPrep_Nova: object
 			throw("not allowed to go to imaging point. current state: " +state)
 	
 		// set the working distance to the previously saved value (quanta always changes wd to coupled value after z is moved)
-		self.setWDForImaging()
+		// not in nova
+		//self.setWDForImaging()
 
 		// fix quanta mag bug (since stage moved in z)
 		self.WorkaroundQuantaMagBug()

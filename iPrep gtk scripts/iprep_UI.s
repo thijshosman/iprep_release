@@ -1,4 +1,6 @@
+// no background
 // $BACKGROUND$
+
 /* INSTALL AS A LIBRARY for all users
 
 Requires:
@@ -356,30 +358,30 @@ void IPrep_setScribeROI(void)
 		//get roi
 		number t,l,b,r
 		GetSelection(im,t,l,b,r)
-		result("top: "+t+", left: "+l+", bottom: "+b+", right: "+r+"\n")
+		print("top: "+t+", left: "+l+", bottom: "+b+", right: "+r)
 
 		//get size
 		number x,y,z
 		getsize(im,x,y)
-		result("width: "+x+", height: "+y+"\n")
+		print("width: "+x+", height: "+y+"\n")
 
 		// center of image: 
 		number image_center_x, image_center_y
 		image_center_x = x/2
 		image_center_y = y/2
-		result("image center: ("+image_center_x+","+image_center_y+")\n")
+		print("image center: ("+image_center_x+","+image_center_y+")")
 
 		// center of roi: 
 		number roi_center_x, roi_center_y
 		roi_center_x = l+(r-l)/2
 		roi_center_y = t+(b-t)/2
-		result("roi center: ("+roi_center_x+","+roi_center_y+")\n")
+		print("roi center: ("+roi_center_x+","+roi_center_y+")")
 
 		// calculate vector from center: 
 		number misalignment_vector_x, misalignment_vector_y
 		misalignment_vector_x = image_center_x - roi_center_x
 		misalignment_vector_y = roi_center_y - image_center_y
-		result("vector: ("+misalignment_vector_x+","+misalignment_vector_y+")\n")
+		print("vector: ("+misalignment_vector_x+","+misalignment_vector_y+")")
 
 		// get calibration data from image
 		number scale_x, scale_y, x_cal, y_cal
@@ -387,7 +389,7 @@ void IPrep_setScribeROI(void)
 		string units = im.GetUnitString()
 		x_cal = misalignment_vector_x * scale_x
 		y_cal = misalignment_vector_y * scale_y
-		result( "misalignment of x="+x_cal+", y="+y_cal+" "+units+"\n")
+		print( "misalignment of x="+x_cal+", y="+y_cal+" "+units)
 
 
 
@@ -402,23 +404,24 @@ void IPrep_setScribeROI(void)
 
 		if (abs(x_cal/1000) > 2 || abs(y_cal/1000) > 2)
 		{
-			result("correction too big: x= "+x_cal+" um, y= "+y_cal+" um\n")
-			result("maximum correction is 2 mm in x and y")
+			print("correction too big: x= "+x_cal+" um, y= "+y_cal+" um")
+			print("maximum correction is 2 mm in x and y")
 			throw("correction too big, aborting")
 		}
 
 
-		if (okcanceldialog("Did the stage move the scribe mark to the center of the live view image?"))
-			//IPrep_scribemarkVectorCorrection(-x_cal/1000,-y_cal/1000)
+		if (okcanceldialog("Did the stage move the scribe mark to the center of the live view image?"))	
 		{
+			IPrep_scribemarkVectorCorrection(-x_cal/1000,-y_cal/1000)
 			sleep(0.1)
 		}
 		else
 		{
-			result("not succeeded, user did not accept change\n")	
+			print("not succeeded, user did not accept change\n")	
 			return
 		}
-		result("scribe mark correction done\n")
+		print("scribe mark correction done")
+		print("dock now calibrated")
 		setDockCalibrationStatus(1)
 	}
 	catch
@@ -472,6 +475,13 @@ void homeParker(void)
 	string s1 = "Home the parker stage now?"
 	if (OKCancelDialog(s1))
 		myWorkflow.returnTransfer().home()
+}
+
+void backoffParker(void)
+{
+	string s1 = "Move transfer stage to safe position in SEM chamber?"
+	if (OKCancelDialog(s1))
+		myWorkflow.returnTransfer().move("backoff_sem")
 }
 
 void lowerPECSStage(void)
@@ -589,8 +599,8 @@ void loadTagsFromFile(void)
 number IPrep_calibrate_transfer()
 {
 	result("iprep_calibrate_transfer"+"\n")
-	// #todo: no longe works until alignment is fixed
-	//myWorkflow.calibrateForMode()
+	calibrateForMode()
+	
 }
 
 // Multi ROI functions
@@ -650,7 +660,7 @@ void IPrep_addSEMPosition()
 	y=myWorkflow.returnSEM().getY()
 	z=myWorkflow.returnSEM().getZ()
 
-	string s0 = "Please enter a name. Current SEM location and focus will be saved as this position. existing names will be overwritten"
+	string s0 = "Please enter a name. Current SEM location will be saved as this position. existing names will be overwritten"
 	string s1 = "newposition"
 	string newROIname = "testpositionUI"
 	if (getstring(s0, s1, newROIname))
@@ -661,13 +671,11 @@ void IPrep_addSEMPosition()
 		object aCoord = alloc(SEMCoord)
 		aCoord.set(newROIname,x,y,z)
 		returnSEMCoordManager().addCoord(aCoord)
-		
+		myWorkflow.returnSEM().setCurrentImagingPosition(newROIname)
 		result("saved position "+newROIname+"\n\n")
 		aCoord.print()
 	}
 }
-
-
 
 void IPrep_printEnabledROIs()
 {
@@ -677,23 +685,42 @@ void IPrep_printEnabledROIs()
 	number count = tall_enabled.SizeOfList()
 	
 	result("found "+count+"positions:\n")
-	number i=0
-		foreach(object myROI; tall_enabled)
-		{
 
-			result(i+": "+myROI.getName()+", order="+myROI.getOrder()+", mag="+myROI.getMag()+", image size=("+myROI.getDigiscanX()+","+myROI.getDigiscanY()+")\n")
+	foreach(object myROI; tall_enabled)
+	{
 
-		}
+		result(myROI.getName()+", order="+myROI.getOrder()+", mag="+myROI.getMag()+", coordname = "+myROI.getCoordName()+"\n" )
+		//image size=("+myROI.getDigiscanX()+","+myROI.getDigiscanY()+")\n")"
+
+	}
 }
 
-void IPrep_setSetCustomImageSequence()
+void IPrep_setMultiROIImageSequence()
+{
+	// load default multi ROI image sequence (image_iter)
+
+	number s2 = myStateMachine.loadCustomImageSequence("image_iter")
+	if (s2)
+	{
+		print("imaging sequence image_iter loaded")
+		// now make it the active one in case we reinitialize
+		overwriteTag(getpersistenttaggroup(), "IPrep:workflowSequences:imaging", "image_iter")
+	}
+	else
+	{
+		throw ("problem loading image_iter")
+	}
+}
+
+
+void IPrep_SetCustomImageSequence()
 {
 	// load a custom image sequence into workflow
 
 
-	string q = "Which image sequence do you want to use? image_single is default single ROI with name StoredImaging"
+	string q = "Which image sequence do you want to use? image_single is default single ROI with name StoredImaging, image_iter is default multi ROI sequence"
 	string oldSequence= getTagString("IPrep:workflowSequences:imaging")
-	string newImagingSequenceName = "image_single"
+	string newImagingSequenceName = "image_iter"
 
 	// see if user cancels
 
@@ -716,9 +743,6 @@ void IPrep_setSetCustomImageSequence()
 
 		okdialog(newImagingSequenceName+"not loaded. leaving "+oldSequence+"in there")
 	}
-
-	
-	
 
 }
 
@@ -815,9 +839,11 @@ void iprep_InstallMenuItems( void )
 	string SS_SUB_MENU_0 = "Workflow"
 	string SS_SUB_MENU_1 = "SEM"
 	string SS_SUB_MENU_2 = "PECS"
+	string SS_SUB_MENU_5 = "EBSD"
 	string SS_SUB_MENU_3 = "Recovery and Setup"
 	string SS_SUB_MENU_6 = "Multi ROI Setup"
 	string SS_SUB_MENU_7 = "Single ROI Setup"
+	string SS_SUB_MENU_8 = "Custom ROI Options"
 
 	// workflow	
 	AddScriptToMenu( "Set_starting_slice_number()", "Set starting slice number...", SS_MENU_HEAD , SS_SUB_MENU_0 , 0)
@@ -837,7 +863,7 @@ void iprep_InstallMenuItems( void )
 	AddScriptToMenu( "beep()", "---", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
 	AddScriptToMenu( "Save_imaging_XYZ_position()", "Save imaging XYZ position (as stored imaging)...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "alloc(Recall_imaging_XYZ_position).StartThread()", "Recall current stored imaging position...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
-	AddScriptToMenu( "beep()", "---", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
+	AddScriptToMenu( "beep()", "-", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
 	AddScriptToMenu( "Recall_imaging_parameters_from_image()", "Recall imaging parameters from front image...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "beep()", "-----", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
 	AddScriptToMenu( "Save_imaging_position_focus()", "Save imaging position focus...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
@@ -853,7 +879,7 @@ void iprep_InstallMenuItems( void )
 	AddScriptToMenu( "Goto_highgridback()", "Goto grid on back post...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "Goto_highgridfront()", "Goto grid on front post...", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
 	AddScriptToMenu( "WorkaroundQuantaMagBug()", "WorkaroundQuantaMagBug", SS_MENU_HEAD , SS_SUB_MENU_1 , 0)
-	AddScriptToMenu( "beep()", "--", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
+	AddScriptToMenu( "beep()", "---------", SS_MENU_HEAD , SS_SUB_MENU_1 , 0 )
 	// #print all SEM coordinates
 
 	// PECS
@@ -864,30 +890,44 @@ void iprep_InstallMenuItems( void )
 	AddScriptToMenu( "pecs_raise()", "raise PECS stage", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
 	AddScriptToMenu( "pecs_home()", "rotate PECS stage to home", SS_MENU_HEAD , SS_SUB_MENU_2 , 0)
 
+	// EBSD
+	//AddScriptToMenu( "pecs_home()", "rotate PECS stage to home", SS_MENU_HEAD , SS_SUB_MENU_5 , 0)
+	// #print ebsd parameters
+	// #set new ebsd sem position
+	// #set type to eds
+	// #set type to ebsd
+	// #enable/disable EBSD/EDS as part of workflow
+
 	// setup
 	AddScriptToMenu( "IPrep_init()", "Initialize Hardware", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 	AddScriptToMenu( "IPrep_init_sequence()", "Initialize Active Sequences", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 	AddScriptToMenu( "IPrep_bigCheck()", "IPrep system check", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 	AddScriptToMenu( "IPrep_recover_deadflag()", "auto recover from dead state", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
+	AddScriptToMenu( "beep()", "--", SS_MENU_HEAD , SS_SUB_MENU_3 , 0 )
 	AddScriptToMenu( "IPrep_setEBSD()", "switch to EBSD dock and EBSD mode", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 	AddScriptToMenu( "IPrep_setPlanar()", "switch to Planar dock and Planar mode", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 	AddScriptToMenu( "IPrep_calibrate_transfer()", "reinitialize all SEM stage and Parker calibrations from mode selection", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 	AddScriptToMenu( "IPrep_setScribeROI()", "calibrate scribe mark position after setting ROI", SS_MENU_HEAD , SS_SUB_MENU_3 , 0)
 	// #print dock/system mode
-	// #print ebsd parameters
+	
 
-	// ROI Setup
+	// workflow
+	// #show workflow elements currently enabled
+
+	// multi ROI
+
+	AddScriptToMenu( "IPrep_setMultiROIImageSequence()", "use multi ROI mode (all enabled ROIs in order)", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
 	AddScriptToMenu( "IPrep_addSEMPosition()", "Add a new SEM coordinate", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
 	AddScriptToMenu( "IPrep_addROI()", "Add a ROI of current conditions", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
-	AddScriptToMenu( "IPrep_setSetCustomImageSequence()", "Setup system to use custom image sequence", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
 	AddScriptToMenu( "IPrep_printEnabledROIs()", "show all enabled ROIs in order", SS_MENU_HEAD , SS_SUB_MENU_6 , 0)
 
 	// single ROI
-	AddScriptToMenu( "IPrep_setSingleImageSequence()", "load single default image ROI with name StoredImaging", SS_MENU_HEAD , SS_SUB_MENU_7 , 0)
+	AddScriptToMenu( "IPrep_setSingleImageSequence()", "use single ROI mode (StoredImaging)", SS_MENU_HEAD , SS_SUB_MENU_7 , 0)
 	AddScriptToMenu( "IPrep_useCurrentFocusForROI()", "Use the current focus for StoredImaging ROI", SS_MENU_HEAD , SS_SUB_MENU_7 , 0)
 	AddScriptToMenu( "IPrep_useCurrentMagForROI()", "Use the current mag for StoredImaging ROI", SS_MENU_HEAD , SS_SUB_MENU_7 , 0)
 
-
+	// custom ROI settings
+	AddScriptToMenu( "IPrep_setCustomImageSequence()", "Setup system to use custom image sequence", SS_MENU_HEAD , SS_SUB_MENU_8 , 0)
 
 	// service menu #todo: make password protected
 	string SS_MENU_HEAD_SERVICE = "Service"
@@ -905,23 +945,24 @@ void iprep_InstallMenuItems( void )
 
 	AddScriptToMenu( "gotoPickupDropoff()", "Move SEM to pickup_dropoff position", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
 
-	AddScriptToMenu( "beep()", "---", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0 )
+	AddScriptToMenu( "beep()", "-", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0 )
 	AddScriptToMenu( "openGV()", "open gate valve", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
 	AddScriptToMenu( "closeGV()", "close gate valve", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
-	AddScriptToMenu( "beep()", "---", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0 )
+	AddScriptToMenu( "beep()", "--", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0 )
 	AddScriptToMenu( "clamp()", "clamp sem dock", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
 	AddScriptToMenu( "unclamp()", "unclamp sem dock", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
 	AddScriptToMenu( "beep()", "---", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0 )
-	AddScriptToMenu( "homeParker()", "home parker stage", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
-	AddScriptToMenu( "beep()", "---", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0 )
+	AddScriptToMenu( "homeParker()", "home Transfer stage", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
+	AddScriptToMenu( "backoffParker()", "Move Transfer stage to safe position in SEM", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
+	AddScriptToMenu( "beep()", "----", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0 )
 	AddScriptToMenu( "gripperOpen()", "Open Gripper", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
 	AddScriptToMenu( "gripperClose()", "Close Gripper", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
-	AddScriptToMenu( "beep()", "---", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0 )
+	AddScriptToMenu( "beep()", "-----", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0 )
 	AddScriptToMenu( "setSEMstate()", "set workflow state to SEM", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
 	AddScriptToMenu( "setPECSstate()", "set workflow state to PECS", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0)
-	AddScriptToMenu( "beep()", "---", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0 )
+	AddScriptToMenu( "beep()", "------", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0 )
 	AddScriptToMenu( "setAliveSafe()", "remove dead/unsafe flag", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_0 , 0)
-	AddScriptToMenu( "beep()", "---", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0 )
+	AddScriptToMenu( "beep()", "-------", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_1 , 0 )
 	AddScriptToMenu( "saveTagsToFile()", "save tags", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_2 , 0)
 	AddScriptToMenu( "loadTagsFromFile()", "load tags", SS_MENU_HEAD_SERVICE , SS_SUB_MENU_SERVICE_2 , 0)
 

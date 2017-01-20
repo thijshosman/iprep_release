@@ -1443,7 +1443,7 @@ class EBSD_default: deviceSequence
 		}		
 
 		// acquire every n slices
-		tagname = "IPrep:acquire_n_slice"
+		tagname = "IPrep:EBSD:acquire_n_slice"
 		if(!GetPersistentNumberNote( tagname, n_ebsd ))
 		{
 			throw("IPrep:acquire_n_slice not set!")

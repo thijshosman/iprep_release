@@ -15,6 +15,8 @@
 // restoreDefaultVectors(Planar/EBSD): sets (2) to default (hardcoded) values based on dock
 // restoreDefaultAlignment(Planar/EBSD): sets (1) to default (hardcoded) values based on dock
 
+/*
+
 class alignment: object
 {
 	// initial alignment
@@ -459,28 +461,33 @@ class alignment: object
 
 }
 
-
+*/
 
 
 
 void restoreDefaultAlignmentPlanar()
 {
-// restore reference and scribe pos 
+// restore reference and scribe_pos for planar dock
 
 }
 
 void restoreDefaultAlignmentEBSD()
 {
+// restore reference and scribe_pos for ebsd dock
 
 }
 
 void restoreDefaultVectorsPlanar()
 {
 
+
+
 }
 
 void restoreDefaultVectorsEBSD()
 {
+
+
 
 }
 
@@ -488,287 +495,305 @@ void restoreDefaultVectorsEBSD()
 void setTransferPositionsPlanar()
 {
 	// save default positions in global tags
-	self.print("setDefaultPositions: setting default positions for use with Planar dock ")
+	print("setDefaultPositions: setting default positions for use with Planar dock ")
 	// #todo: get this from global tag instead of hardcoded value
+	// #TODO: intended to be replaced by the alignment class framework
+	object tr = returnWorkflow().returnTransfer().returnParkerPositions()
 
-	tr.savePosition("backoff_sem",420) // location where gripper arms can safely open/close in SEM chamber
-	tr.savePosition("dropoff_sem",470.25) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
-	tr.savePosition("pickup_sem",470.25) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
-	
+	tr.savePosition("backoff_sem",430) // location where gripper arms can safely open/close in SEM chamber
+	tr.savePosition("dropoff_sem",543) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
+	tr.savePosition("pickup_sem",543) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
+	tr.savePosition("dropoff_pecs",44.5) // location where sample gets dropped off in PECS
 }
 
 void setTransferPositionsEBSD()
 {
 	// save default positions in global tags
-	self.print("setDefaultPositions: setting positions for use with EBSD dock ")
+	print("setDefaultPositions: setting positions for use with EBSD dock ")
 	// #todo: get this from global tag instead of hardcoded value
+	// #TODO: intended to be replaced by the alignment class framework
+	object tr = returnWorkflow().returnTransfer().returnParkerPositions()
 
-	tr.savePosition("backoff_sem",420) // location where gripper arms can safely open/close in SEM chamber
-	tr.savePosition("dropoff_sem",513) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
-	tr.savePosition("pickup_sem",513) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
+	tr.savePosition("backoff_sem",430) // location where gripper arms can safely open/close in SEM chamber
+	tr.savePosition("dropoff_sem",508) // location where sample gets dropped off (arms will open)  // #20150819: was 485.75  // #20150827: was 486.75, #20150903: was 487.75
+	tr.savePosition("pickup_sem",509) // location in where sample gets picked up  // #20150819: was 485.75  // #20150827: was 486.75
+	tr.savePosition("dropoff_pecs",45.5) // location where sample gets dropped off in PECS
 }
 
 void setDefaultPositionsDovetail()
 {
 	// saves calibrated positions, both generic ones (ie dovetail and home) for both docks and dock specific ones
 	// #TODO: these should come from tags themselves, not these harcoded values
-	self.print("setting generic positions (dovetail, home etc.)")
+	// #TODO: intended to be replaced by the alignment class framework
+	print("setting generic positions (dovetail, home etc.)")
+
+	object tr = returnWorkflow().returnTransfer().returnParkerPositions()
 
 	// generic positions
 	tr.savePosition("outofway",0) // home position, without going through homing sequence
-	tr.savePosition("prehome",5) // location where we can move to close to home from where we home
-	tr.savePosition("open_pecs",23.5) // location where arms can open in PECS  // #20150819: was 29, #20150903: was 28
-	tr.savePosition("pickup_pecs",42) // location where open arms can be used to pickup sample // #20150827: was 48.5, #20150903: was 49.5
+	tr.savePosition("prehome",15) // location where we can move to close to home from where we home
+	tr.savePosition("open_pecs",27) // location where arms can open in PECS  // #20150819: was 29, #20150903: was 28
+	tr.savePosition("pickup_pecs",48) // location where open arms can be used to pickup sample // #20150827: was 48.5, #20150903: was 49.5
 	tr.savePosition("beforeGV",100) // location where open arms can be used to pickup sample
-	tr.savePosition("dropoff_pecs",40) // location where sample gets dropped off in PECS // #20150827: was 45.5
-	tr.savePosition("dropoff_pecs_backoff",41) // location where sample gets dropped off in PECS // #20150827: was 46.5
+	tr.savePosition("dropoff_pecs",45.5) // location where sample gets dropped off in PECS // #20150827: was 45.5
+	tr.savePosition("dropoff_pecs_backoff",46.5) // location where sample gets dropped off in PECS // #20150827: was 46.5
 
 
 
 }	
 
+number calibrateCoordsEBSD()
+{
+	// #TODO: intended to be replaced by the alignment class framework
+	// calibrate SEM points:
+	// -set coords for "reference" and "scribe_pos" from "reference_ebsd" and "scripe_pos_ebsd"
+	// -infers all the coordinates for SEM use from "reference" and "scribe_pos" for this particular dock
+	//	and sets coord tags
+
+	// first, set "reference" and "scribe_pos" to planar coord values
+	object reference = returnSEMCoordManager().getCoordAsCoord("reference_ebsd")
+	reference.setName("reference")
+	returnSEMCoordManager().addCoord(reference)
+
+	object scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_ebsd")
+	scribe_pos.setName("scribe_pos")
+	returnSEMCoordManager().addCoord(scribe_pos)
+
+	// retrieve all coords we are going to set
+
+	object pickup_dropoff = returnSEMCoordManager().getCoordAsCoord("pickup_dropoff")
+	object clear = returnSEMCoordManager().getCoordAsCoord("clear")
+	object nominal_imaging = returnSEMCoordManager().getCoordAsCoord("nominal_imaging")
+	object StoredImaging = returnSEMCoordManager().getCoordAsCoord("StoredImaging")
+	object highGridFront = returnSEMCoordManager().getCoordAsCoord("highGridFront")
+	object highGridBack = returnSEMCoordManager().getCoordAsCoord("highGridBack")
+	//object fwdGrid = returnSEMCoordManager().getCoordAsCoord("fwdGrid")
+	//object lowerGrid = returnSEMCoordManager().getCoordAsCoord("lowerGrid")
+
+
+
+
+
+	//when the stage is at the calibrated pickup/dropoff position and calibrated there for transfer, 
+	//calculate the other 3 positions (clear, nominal_imaging and StoredImaging 
+	//and save them as absolute coordinates in private data)
+	
+	print("calibrateCoords: using calibrations from 20151201 (manchester nova ebsd dock) ")
+
+	// reference point is the point from which other coordinates are inferred
+	// the reference pointf or all coordinates is the pickup/dropoff point now
+	// TODO: change from hardcoded value to setting in global tags
+	
+	print("scribe position set: ")
+	scribe_pos.print()
+
+	print("reference set: ")
+	reference.print()
+
+	// pickup_dropoff is reference point, so simply set them there
+	pickup_dropoff.set(reference.getX(), reference.getY(), reference.getZ())
+	print("pickup_dropoff set: ")
+	pickup_dropoff.print()
+
+	// for clear only move in Z from reference point
+	clear.set(reference.getX(), reference.getY(), reference.getZ()-6.25)
+	print("clear set: ")
+	clear.print()
+
+	// nominal imaging is approximate middle of sample #todo
+	//nominal_imaging.set( scribe_pos.getX()-17.5526, scribe_pos.getY()-2.6368, scribe_pos.getZ(), 0 )
+	// set by thijs after alignment, absolute for now 20151201
+	nominal_imaging.set( -38.3352, -0.2050, 5.5, 0 )
+	print("nominal_imaging set: ")
+	nominal_imaging.print()
+
+	// stored imaging starts at the same point as the nominal imaging point
+	StoredImaging.set( nominal_imaging.getX(), nominal_imaging.getY(), nominal_imaging.getZ(), nominal_imaging.getdf() )
+	print("StoredImaging set: ")
+	StoredImaging.print()
+
+	// grid on post at back position (serves as sanity check) #todo
+	//highGridBack.set( scribe_pos.getX()-2.409, scribe_pos.getY()-0.2779, scribe_pos.getZ(), 0 )
+	// set by thijs after alignment, absolute for now 20151201
+	highGridBack.set( -23.5316, 1.1661, 5.5, 0 )
+	print("highGridBack set: ")
+	highGridBack.print()
+
+	// grid on post in front position (serves as sanity check) #todo
+	//highGridFront.set( scribe_pos.getX()-32.4044, scribe_pos.getY()+0.042, scribe_pos.getZ(), 0 )
+	// set by thijs after alignment, absolute for now 20151201
+	highGridFront.set( -53.5331, 1.1319, 5.5, 0 )
+	print("highGridFront set: ")
+	highGridFront.print()
+
+	// grid on post for FWD Z-height calibration
+	//fwdGrid.set( scribe_pos.getX()+22.761, scribe_pos.getY()+(-3.593), scribe_pos.getZ(), 22.19 )
+	//print("fwdGrid set: ")
+	//fwdGrid.print()
+
+	// grid on base plate, formerly used for FWD Z-height cal, now not used // Save to remove all references to lowerGrid
+	//lowerGrid.set(scribe_pos.getX()+4.747, scribe_pos.getY()+17.652, scribe_pos.getZ()-0.5+16.987, 44.29)
+	//print("lowerGrid set: ")
+	//lowerGrid.print()
+
+
+	// now update the coords in tags to their updated values
+	returnSEMCoordManager().addCoord(pickup_dropoff)
+	returnSEMCoordManager().addCoord(clear)
+	returnSEMCoordManager().addCoord(nominal_imaging)
+	returnSEMCoordManager().addCoord(StoredImaging)
+	returnSEMCoordManager().addCoord(highGridFront)
+	returnSEMCoordManager().addCoord(highGridBack)
+	//returnSEMCoordManager().addCoord(fwdGrid)
+	//returnSEMCoordManager().addCoord(lowerGrid)
+
+	print("all coordinates calculated from (nominal) scribe position")
+
+
+}
+
+
+void calibrateCoordsPlanar()
+{
+	// #TODO: intended to be replaced by the alignment class framework
+	// calibrate SEM points:
+	// -set coords for "reference" and "scribe_pos" from "reference_ebsd" and "scripe_pos_ebsd"
+	// -infers all the coordinates for SEM use from "reference" and "scribe_pos" for this particular dock
+	//	and sets coord tags
+
+	// first, set "reference" and "scribe_pos" to planar coord values
+	object reference = returnSEMCoordManager().getCoordAsCoord("reference_planar")
+	reference.setName("reference")
+	returnSEMCoordManager().addCoord(reference)
+
+	object scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_planar")
+	scribe_pos.setName("scribe_pos")
+	returnSEMCoordManager().addCoord(scribe_pos)
+
+	// retrieve all coords we are going to set
+
+	object pickup_dropoff = returnSEMCoordManager().getCoordAsCoord("pickup_dropoff")
+	object clear = returnSEMCoordManager().getCoordAsCoord("clear")
+	object nominal_imaging = returnSEMCoordManager().getCoordAsCoord("nominal_imaging")
+	object StoredImaging = returnSEMCoordManager().getCoordAsCoord("StoredImaging")
+	object highGridFront = returnSEMCoordManager().getCoordAsCoord("highGridFront")
+	object highGridBack = returnSEMCoordManager().getCoordAsCoord("highGridBack")
+	//object fwdGrid = returnSEMCoordManager().getCoordAsCoord("fwdGrid")
+	//object lowerGrid = returnSEMCoordManager().getCoordAsCoord("lowerGrid")
+
+
+	
+	print("calibrateCoords: using calibrations from 20151024 (manchester nova planar dock) ")
+
+	// reference point is the point from which other coordinates are inferred
+	// the reference point for all coordinates is the pickup/dropoff point now
+
+	print("scribe position set: ")
+	scribe_pos.print()
+
+	print("reference set: ")
+	reference.print()
+
+	// pickup_dropoff is reference point, so simply set them there
+	pickup_dropoff.set(reference.getX(), reference.getY(), reference.getZ())
+	print("pickup_dropoff set: ")
+	pickup_dropoff.print()
+
+	// for clear only move in Z from reference point
+	clear.set(reference.getX(), reference.getY(), reference.getZ()-3)
+	print("clear set: ")
+	clear.print()
+
+	// nominal imaging is approximate middle of sample
+	nominal_imaging.set( scribe_pos.getX()-22.8104, scribe_pos.getY()-38.6801, scribe_pos.getZ(), 0 )
+	print("nominal_imaging set: ")
+	nominal_imaging.print()
+
+	// stored imaging starts at the same point as the nominal imaging point
+	StoredImaging.set( nominal_imaging.getX(), nominal_imaging.getY(), nominal_imaging.getZ(), nominal_imaging.getdf() )
+	print("StoredImaging set: ")
+	StoredImaging.print()
+
+	// grid on post at back position (serves as sanity check)
+	highGridBack.set( scribe_pos.getX()-5.0715, scribe_pos.getY()+3.6686, scribe_pos.getZ(),0)
+	print("highGridBack set: ")
+	highGridBack.print()
+
+	// grid on post in front position (serves as sanity check)
+	highGridFront.set( scribe_pos.getX()-40.1685, scribe_pos.getY()+3.3073, scribe_pos.getZ(), 0 )
+	print("highGridFront set: ")
+	highGridFront.print()
+
+	// grid on post for FWD Z-height calibration, not used
+	//fwdGrid.set( scribe_pos.getX()+22.761, scribe_pos.getY()+(-3.593), scribe_pos.getZ()-30+30, 22.19 )
+	//print("fwdGrid set: ")
+	//fwdGrid.print()
+
+	// grid on base plate, formerly used for FWD Z-height cal, now not used // Save to remove all references to lowerGrid
+	//lowerGrid.set(scribe_pos.getX()+4.747, scribe_pos.getY()+17.652, scribe_pos.getZ()-0.5+16.987, 44.29)
+	//print("lowerGrid set: ")
+	//lowerGrid.print()
+
+
+	// now update the coords in tags to their updated values
+	returnSEMCoordManager().addCoord(pickup_dropoff)
+	returnSEMCoordManager().addCoord(clear)
+	returnSEMCoordManager().addCoord(nominal_imaging)
+	returnSEMCoordManager().addCoord(StoredImaging)
+	returnSEMCoordManager().addCoord(highGridFront)
+	returnSEMCoordManager().addCoord(highGridBack)
+	//returnSEMCoordManager().addCoord(fwdGrid)
+	//returnSEMCoordManager().addCoord(lowerGrid)
+
+	print("all coordinates calculated from (nominal) scribe position")
+
+
+}
+
 void calibrateForMode()
 {
+	// #TODO: intended to be replaced by the alignment class framework
 	// calibrate SEMdock and parker for this particular mode (as defined by mode tag)
 
-	self.print("calibrating sem postions and parker positions for mode")
+	print("calibrating sem postions and parker positions for mode")
 
-	number mode = getSystemMode()
-	self.print("mode = "+mode)
+	string mode = getSystemMode()
+	print("mode = "+mode)
 	
 	if (mode == "ebsd")
 	{
-		mySEMdock.calibrateCoordsEBSD()
+		calibrateCoordsEBSD() // SEM coords
+		setTransferPositionsEBSD() // transfer coords
 	}
 	else if (mode == "planar")
 	{
-		mySEMdock.calibrateCoordsPlanar()
+		calibrateCoordsPlanar() // SEM coords
+		setTransferPositionsPlanar() // transfer coords
 	}
 	else
 	{
 		print("mode not set")
 	}
 
-	number sim_dock_simulate =  GetTagValue("IPrep:simulation:dock")
+
+
+	//number sim_dock_simulate =  GetTagValue("IPrep:simulation:dock")
 	
-	// init SEM Dock and transfer system
-	mySEMdock.init()
-	myTransfer.init()
+	// init SEM Dock hardware (since planar and ebsd have different drive parameters)
+	returnWorkflow().returnSEMdock().init()
+
 
 
 }
 
 
-number calibrateCoordsEBSD()
-	{
-		// calibrate SEM points:
-		// -set coords for "reference" and "scribe_pos" from "reference_ebsd" and "scripe_pos_ebsd"
-		// -infers all the coordinates for SEM use from "reference" and "scribe_pos" for this particular dock
-		//	and sets coord tags
 
-		// first, set "reference" and "scribe_pos" to planar coord values
-		object reference = returnSEMCoordManager().getCoordAsCoord("reference_ebsd")
-		reference.setName("reference")
-		returnSEMCoordManager().addCoord(reference)
-
-		object scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_ebsd")
-		scribe_pos.setName("scribe_pos")
-		returnSEMCoordManager().addCoord(scribe_pos)
-
-		// retrieve all coords we are going to set
-
-		object pickup_dropoff = returnSEMCoordManager().getCoordAsCoord("pickup_dropoff")
-		object clear = returnSEMCoordManager().getCoordAsCoord("clear")
-		object nominal_imaging = returnSEMCoordManager().getCoordAsCoord("nominal_imaging")
-		object StoredImaging = returnSEMCoordManager().getCoordAsCoord("StoredImaging")
-		object highGridFront = returnSEMCoordManager().getCoordAsCoord("highGridFront")
-		object highGridBack = returnSEMCoordManager().getCoordAsCoord("highGridBack")
-		//object fwdGrid = returnSEMCoordManager().getCoordAsCoord("fwdGrid")
-		//object lowerGrid = returnSEMCoordManager().getCoordAsCoord("lowerGrid")
-
-
-
-
-
-		//when the stage is at the calibrated pickup/dropoff position and calibrated there for transfer, 
-		//calculate the other 3 positions (clear, nominal_imaging and StoredImaging 
-		//and save them as absolute coordinates in private data)
-		
-		print("calibrateCoords: using calibrations from 20151201 (manchester nova ebsd dock) ")
-
-		// reference point is the point from which other coordinates are inferred
-		// the reference pointf or all coordinates is the pickup/dropoff point now
-		// TODO: change from hardcoded value to setting in global tags
-		
-		print("scribe position set: ")
-		scribe_pos.print()
-
-		print("reference set: ")
-		reference.print()
-
-		// pickup_dropoff is reference point, so simply set them there
-		pickup_dropoff.set(reference.getX(), reference.getY(), reference.getZ())
-		print("pickup_dropoff set: ")
-		pickup_dropoff.print()
-
-		// for clear only move in Z from reference point
-		clear.set(reference.getX(), reference.getY(), reference.getZ()-5)
-		print("clear set: ")
-		clear.print()
-
-		// nominal imaging is approximate middle of sample #todo
-		//nominal_imaging.set( scribe_pos.getX()-17.5526, scribe_pos.getY()-2.6368, scribe_pos.getZ(), 0 )
-		// set by thijs after alignment, absolute for now 20151201
-		nominal_imaging.set( -38.3352, -0.2050, 5.5, 0 )
-		print("nominal_imaging set: ")
-		nominal_imaging.print()
-
-		// stored imaging starts at the same point as the nominal imaging point
-		StoredImaging.set( nominal_imaging.getX(), nominal_imaging.getY(), nominal_imaging.getZ(), nominal_imaging.getdf() )
-		print("StoredImaging set: ")
-		StoredImaging.print()
-
-		// grid on post at back position (serves as sanity check) #todo
-		//highGridBack.set( scribe_pos.getX()-2.409, scribe_pos.getY()-0.2779, scribe_pos.getZ(), 0 )
-		// set by thijs after alignment, absolute for now 20151201
-		highGridBack.set( -23.5316, 1.1661, 5.5, 0 )
-		print("highGridBack set: ")
-		highGridBack.print()
-
-		// grid on post in front position (serves as sanity check) #todo
-		//highGridFront.set( scribe_pos.getX()-32.4044, scribe_pos.getY()+0.042, scribe_pos.getZ(), 0 )
-		// set by thijs after alignment, absolute for now 20151201
-		highGridFront.set( -53.5331, 1.1319, 5.5, 0 )
-		print("highGridFront set: ")
-		highGridFront.print()
-
-		// grid on post for FWD Z-height calibration
-		//fwdGrid.set( scribe_pos.getX()+22.761, scribe_pos.getY()+(-3.593), scribe_pos.getZ(), 22.19 )
-		//print("fwdGrid set: ")
-		//fwdGrid.print()
-
-		// grid on base plate, formerly used for FWD Z-height cal, now not used // Save to remove all references to lowerGrid
-		//lowerGrid.set(scribe_pos.getX()+4.747, scribe_pos.getY()+17.652, scribe_pos.getZ()-0.5+16.987, 44.29)
-		//print("lowerGrid set: ")
-		//lowerGrid.print()
-
-	
-		// now update the coords in tags to their updated values
-		returnSEMCoordManager().addCoord(pickup_dropoff)
-		returnSEMCoordManager().addCoord(clear)
-		returnSEMCoordManager().addCoord(nominal_imaging)
-		returnSEMCoordManager().addCoord(StoredImaging)
-		returnSEMCoordManager().addCoord(highGridFront)
-		returnSEMCoordManager().addCoord(highGridBack)
-		//returnSEMCoordManager().addCoord(fwdGrid)
-		//returnSEMCoordManager().addCoord(lowerGrid)
-
-		print("all coordinates calculated from (nominal) scribe position")
-
-
-	}
-
-
-void calibrateCoordsPlanar()
-	{
-		// calibrate SEM points:
-		// -set coords for "reference" and "scribe_pos" from "reference_ebsd" and "scripe_pos_ebsd"
-		// -infers all the coordinates for SEM use from "reference" and "scribe_pos" for this particular dock
-		//	and sets coord tags
-
-		// first, set "reference" and "scribe_pos" to planar coord values
-		object reference = returnSEMCoordManager().getCoordAsCoord("reference_planar")
-		reference.setName("reference")
-		returnSEMCoordManager().addCoord(reference)
-
-		object scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_planar")
-		scribe_pos.setName("scribe_pos")
-		returnSEMCoordManager().addCoord(scribe_pos)
-
-		// retrieve all coords we are going to set
-
-		object pickup_dropoff = returnSEMCoordManager().getCoordAsCoord("pickup_dropoff")
-		object clear = returnSEMCoordManager().getCoordAsCoord("clear")
-		object nominal_imaging = returnSEMCoordManager().getCoordAsCoord("nominal_imaging")
-		object StoredImaging = returnSEMCoordManager().getCoordAsCoord("StoredImaging")
-		object highGridFront = returnSEMCoordManager().getCoordAsCoord("highGridFront")
-		object highGridBack = returnSEMCoordManager().getCoordAsCoord("highGridBack")
-		//object fwdGrid = returnSEMCoordManager().getCoordAsCoord("fwdGrid")
-		//object lowerGrid = returnSEMCoordManager().getCoordAsCoord("lowerGrid")
-
-
-		
-		print("calibrateCoords: using calibrations from 20151024 (manchester nova planar dock) ")
-
-		// reference point is the point from which other coordinates are inferred
-		// the reference point for all coordinates is the pickup/dropoff point now
-
-		print("scribe position set: ")
-		scribe_pos.print()
-
-		print("reference set: ")
-		reference.print()
-
-		// pickup_dropoff is reference point, so simply set them there
-		pickup_dropoff.set(reference.getX(), reference.getY(), reference.getZ())
-		print("pickup_dropoff set: ")
-		pickup_dropoff.print()
-
-		// for clear only move in Z from reference point
-		clear.set(reference.getX(), reference.getY(), reference.getZ()-3)
-		print("clear set: ")
-		clear.print()
-
-		// nominal imaging is approximate middle of sample
-		nominal_imaging.set( scribe_pos.getX()-22.8104, scribe_pos.getY()-38.6801, scribe_pos.getZ(), 0 )
-		print("nominal_imaging set: ")
-		nominal_imaging.print()
-
-		// stored imaging starts at the same point as the nominal imaging point
-		StoredImaging.set( nominal_imaging.getX(), nominal_imaging.getY(), nominal_imaging.getZ(), nominal_imaging.getdf() )
-		print("StoredImaging set: ")
-		StoredImaging.print()
-
-		// grid on post at back position (serves as sanity check)
-		highGridBack.set( scribe_pos.getX()-5.0715, scribe_pos.getY()+3.6686, scribe_pos.getZ(),0)
-		print("highGridBack set: ")
-		highGridBack.print()
-
-		// grid on post in front position (serves as sanity check)
-		highGridFront.set( scribe_pos.getX()-40.1685, scribe_pos.getY()+3.3073, scribe_pos.getZ(), 0 )
-		print("highGridFront set: ")
-		highGridFront.print()
-
-		// grid on post for FWD Z-height calibration, not used
-		//fwdGrid.set( scribe_pos.getX()+22.761, scribe_pos.getY()+(-3.593), scribe_pos.getZ()-30+30, 22.19 )
-		//print("fwdGrid set: ")
-		//fwdGrid.print()
-
-		// grid on base plate, formerly used for FWD Z-height cal, now not used // Save to remove all references to lowerGrid
-		//lowerGrid.set(scribe_pos.getX()+4.747, scribe_pos.getY()+17.652, scribe_pos.getZ()-0.5+16.987, 44.29)
-		//print("lowerGrid set: ")
-		//lowerGrid.print()
-
-	
-		// now update the coords in tags to their updated values
-		returnSEMCoordManager().addCoord(pickup_dropoff)
-		returnSEMCoordManager().addCoord(clear)
-		returnSEMCoordManager().addCoord(nominal_imaging)
-		returnSEMCoordManager().addCoord(StoredImaging)
-		returnSEMCoordManager().addCoord(highGridFront)
-		returnSEMCoordManager().addCoord(highGridBack)
-		//returnSEMCoordManager().addCoord(fwdGrid)
-		//returnSEMCoordManager().addCoord(lowerGrid)
-
-		print("all coordinates calculated from (nominal) scribe position")
-
-
-	}
 
 number IPrep_scribemarkVectorCorrection(number x_corr, number y_corr)
 {
+
 	// adjust nominal_imaging, stored_imaging, highGridFront, highGridBack, pickup_dropoff and clear by vector
-	// called by UI
+	// called by UI on reinsertion of dock
 
 
 	object scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos")
@@ -831,7 +856,95 @@ number IPrep_scribemarkVectorCorrection(number x_corr, number y_corr)
 
 
 
+number IPrep_align_planar_hack()
+{
+	// #TODO: intended to be replaced by the alignment class framework
+	// hardcoded values as planar coordinates for Quanta demounit
 
+	// calibrate SEM points:
+		// -set coords for "reference" and "scribe_pos" from "reference_ebsd" and "scripe_pos_ebsd"
+		// -infers all the coordinates for SEM use from "reference" and "scribe_pos" for this particular dock
+		//	and sets coord tags
+
+		// first, set "reference" and "scribe_pos" to planar coord values
+		object reference = returnSEMCoordManager().getCoordAsCoord("reference_planar")
+		reference.setName("reference")
+		returnSEMCoordManager().addCoord(reference)
+
+		object scribe_pos = returnSEMCoordManager().getCoordAsCoord("scribe_pos_planar")
+		scribe_pos.setName("scribe_pos")
+		returnSEMCoordManager().addCoord(scribe_pos)
+
+		// retrieve all coords we are going to set
+
+		object pickup_dropoff = returnSEMCoordManager().getCoordAsCoord("pickup_dropoff")
+		object clear = returnSEMCoordManager().getCoordAsCoord("clear")
+		object nominal_imaging = returnSEMCoordManager().getCoordAsCoord("nominal_imaging")
+		object StoredImaging = returnSEMCoordManager().getCoordAsCoord("StoredImaging")
+		object highGridFront = returnSEMCoordManager().getCoordAsCoord("highGridFront")
+		object highGridBack = returnSEMCoordManager().getCoordAsCoord("highGridBack")
+		object lowerGrid = returnSEMCoordManager().getCoordAsCoord("lowerGrid")
+
+
+		
+		print("calibration used is manual Quanta cal with planar dock 2016-06-27")
+
+		// reference point is the point from which other coordinates are inferred
+		// the reference point for all coordinates is the pickup/dropoff point now
+
+		print("scribe position set: ")
+		scribe_pos.print()
+
+		print("reference set: ")
+		reference.print()
+
+		// pickup_dropoff is reference point, so simply set them there
+		pickup_dropoff.set(reference.getX(), reference.getY(), reference.getZ())
+		print("pickup_dropoff set: ")
+		pickup_dropoff.print()
+
+		// for clear only move in Z from reference point
+		clear.set(reference.getX(), reference.getY(), reference.getZ()+3.5)
+		print("clear set: ")
+		clear.print()
+
+		// nominal imaging is approximate middle of sample
+		nominal_imaging.set( scribe_pos.getX()-22.8104, scribe_pos.getY()-38.6801, scribe_pos.getZ(), 0 )
+		print("nominal_imaging set: ")
+		nominal_imaging.print()
+
+		// stored imaging starts at the same point as the nominal imaging point
+		StoredImaging.set( nominal_imaging.getX(), nominal_imaging.getY(), nominal_imaging.getZ(), nominal_imaging.getdf() )
+		print("StoredImaging set: ")
+		StoredImaging.print()
+
+		// grid on post at back position (serves as sanity check)
+		highGridBack.set( 25.215, 14.161, 48, 0)
+		print("highGridBack set: ")
+		highGridBack.print()
+
+		// grid on post in front position (serves as sanity check)
+		highGridFront.set( -8.271, 14.533, 48, 0 )
+		print("highGridFront set: ")
+		highGridFront.print()
+
+
+
+		// grid on base plate, formerly used for FWD Z-height cal, now not used // Save to remove all references to lowerGrid
+		lowerGrid.set(31.887, 27.507, 48, 0)
+		print("lowerGrid set: ")
+		lowerGrid.print()
+
+	
+		// now update the coords in tags to their updated values
+		returnSEMCoordManager().addCoord(pickup_dropoff)
+		returnSEMCoordManager().addCoord(clear)
+		returnSEMCoordManager().addCoord(nominal_imaging)
+		returnSEMCoordManager().addCoord(StoredImaging)
+		returnSEMCoordManager().addCoord(highGridFront)
+		returnSEMCoordManager().addCoord(highGridBack)
+		returnSEMCoordManager().addCoord(lowerGrid)
+}
 
 
 
