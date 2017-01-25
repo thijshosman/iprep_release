@@ -1,5 +1,18 @@
+// no background
 // $BACKGROUND$
 // general IPrep (helper) functions used in various scripts
+
+void logE(number level, string str1)
+{
+	// log events in log files
+	LogEvent("main", level, str1)
+}
+
+void print(string str1)
+{
+	result("main: "+datestamp()+": "+str1+"\n")
+	logE(2, str1)
+}
 
 class deadFlagObject:object
 {
@@ -97,18 +110,21 @@ class deadFlagObject:object
 
 	void setDeadSafe(object self)
 	{
+		self.print("system now dead/safe")
 		self.setDead(1)
 		self.setSafety(1)
 	}
 
 	void setDeadUnsafe(object self)
 	{
+		self.print("system now dead/unsafe")
 		self.setDead(1)
 		self.setSafety(0)
 	}
 
 	void setAliveSafe(object self)
 	{
+		self.print("system now alive/safe")
 		self.setDead(0)
 		self.setSafety(1)
 	}
@@ -283,6 +299,16 @@ class safetyMediator:object
 
 	}
 
+	string getShutterState(object self)
+	{
+		// returns the current state of the coating shutter
+		string status
+
+		status = pecs.getShutterState()
+
+		return status // "in", "out", "unknown"
+	}
+
 	number checkFWDCoupling(object self, number active)
 	{
 		// check if FWD is coupled correctly
@@ -310,6 +336,19 @@ class safetyMediator:object
 		return status // "ebsd", "planar", "disconnected" or "undefined"
 	}
 
+	string getDockState(object self)
+	{
+		// check if dock is clamped
+		string status
+		status = dock.getDockState()
+
+		return status // "clamped", "unclamped", or "inbetween"
+	}
+
+	object returnPW(object self)
+	{
+		return progresswindow
+	}
 
 	number checkSamplePresent(object self)
 	{
@@ -359,7 +398,7 @@ class safetyMediator:object
 
 
 	// *** actions ***
-	// experimental, not used yet
+	// experimental, not used in workflow yet
 
 	void HVOff(object self)
 	{
@@ -368,20 +407,76 @@ class safetyMediator:object
 		result("mediator: turning high tension off\n")
 	}
 
-	void updatePW(object self, string sliceN)
-	{
-		// update progress window
+	// *** status ***
+	// for later use by UI elements to show status of everything
 
-		progresswindow.updatePW(sliceN)
+	void printStatus(object self)
+	{
+		// list of outputs:
+		// -HV status (on or off)
+		// -dock status (clamped or unclamped)
+		// -system mode (planar or ebsd)
+		// -gripper pecs statestage state
+		// -sem stage state
+		// -parker position
+		// -gv state
+
+		// #todo
+
+	}
+/*
+	number bigCheck(object self)
+	{
+		// check intended to be run after start/resume is pressed
+		
+		// unsafe flag set
+		// consistency of sem stage, parker stage, gv
+		// dock mode vs sensor
+		// calibration flag set
+		// if succesful, reset dead flag
+		// 
+		// #todo
+		return 1
 	}
 
+	number littleCheck(object self)
+	{
+		// check intended to be run every workflow step
+		// argon pressure
+		// tmp speed
+		// max slice number exceeded
+		// sem pressure? 
+		// sem working distance coupled? 
+		// UPS
+		// #todo
 
+		if(!pecs.argonCheck())
+		{
+			self.print("PECS system argon pressure below threshold")
+			return 0
+		}
+
+		if(!pecs.TMPCheck())
+		{
+			print("PECS system not at vacuum or TMP problem")
+			return 0
+		}
+
+		if(IPrep_sliceNumber() > IPrep_maxSliceNumber())
+		{
+			print("Maximum number of slices ("+IPrep_maxSliceNumber()+") reached")
+			return 0
+	}
+
+	print("IPrep check finished!")
+
+		return 1
+
+	}
+*/
 
 
 }
-
-
-
 
 class haltCheckObject:object
 {
@@ -420,24 +515,6 @@ class haltCheckObject:object
 	}
 
 }
-
-class safetyFlags: object
-{
-	// #TODO
-	// class has access to persistent tag group values
-	// protected flag
-	// scribemark_aligned flag
-	// more to come
-
-	object protected
-
-//	void safetyFlags(object self)
-//	{
-//		persistentTag
-//	}
-
-}
-
 
 number getProtectedModeFlag()
 {
@@ -493,7 +570,7 @@ void manualHaltOptionShift()
 
 string getSystemMode()
 {
-	// return the current mode of the system
+	// return the current mode of the system, "ebsd" or "planar"
 	string mode
 	taggroup tg = GetPersistentTagGroup()
 	TagGroupGetTagAsString(tg,"IPrep:simulation:mode", mode )
@@ -502,11 +579,25 @@ string getSystemMode()
 
 void setSystemMode(string mode)
 {
-	// return the current mode of the system
+	// set the current mode of the system, "ebsd" or "planar"
 	taggroup tg = GetPersistentTagGroup()
 	TagGroupSetTagAsString(tg,"IPrep:simulation:mode", mode )
 
 }
+
+number getDockCalibrationStatus()
+{
+	// return state of dock calibration
+	return GetTagValue("IPrep:flags:dockCalibrationStatus")
+}
+
+void setDockCalibrationStatus(number st)
+{
+	// set the state of dock calibration
+	taggroup tg = GetPersistentTagGroup()
+	TagGroupSetTagAsNumber(tg,"IPrep:flags:dockCalibrationStatus", st )
+}
+
 
 object deadFlag = alloc(deadFlagObject)
 
@@ -524,8 +615,6 @@ object returnHaltFlag()
 	return haltFlag
 }
 
-
-
 class stopVar:object
 {
 	// used to catch/set stop event
@@ -536,19 +625,17 @@ class stopVar:object
 		i = 0
 	}
 
-	void set(object self, number ii)
+	void set1(object self, number ii)
 	{
 		i = ii
 	}
 
-	number get(object self)
+	number get1(object self)
 	{	
 		return i
 	}
 
 }
-
-
 
 class pauseVar:object
 {
@@ -560,12 +647,12 @@ class pauseVar:object
 		i = 0
 	}
 
-	void set(object self, number ii)
+	void set1(object self, number ii)
 	{
 		i = ii
 	}
 
-	number get(object self)
+	number get1(object self)
 	{	
 		return i
 	}
@@ -615,6 +702,245 @@ class timer: object
 	}
 
 }
+
+
+
+string IPrep_rootSaveDir()
+{
+	// get the root save path from the tag that the UI dialog saves it in
+
+	string pointer
+	GetPersistentTagGroup().TagGroupGetTagAsString("IPrep:Record Settings:Base Filename", pointer)
+
+	//print("root dir is: "+pointer+"\n")
+	return pointer
+}
+
+number IPrep_sliceNumber()
+{
+	Number nSlices
+	GetPersistentTagGroup().TagGroupGetTagAsLong("IPrep:Record Settings:Slice Number", nSlices)
+	print("N Slices = "+nSlices)
+	return nSlices
+}
+
+number IPrep_maxSliceNumber()
+{
+	string tagname = "IPrep:Record Settings:Number of Cycles"
+	number slices = 0
+	GetPersistentNumberNote( tagname, slices )
+	return slices
+}
+
+
+void IPrep_saveSEMImage(image &im, string subdir)
+{
+	// saves front image, used for digiscan
+	
+	string DirPath = ""
+	DirPath = PathExtractDirectory(IPrep_rootSaveDir(), 0)
+
+	string FileNamePrefix = "IPREP_SEM"
+	string FileNamePostfix = "_slice_"+right("000"+IPrep_sliceNumber(),4)
+	
+	// check if dir exsits, create if not
+	if (!DoesDirectoryExist( dirPath + subdir))
+		CreateDirectory(dirPath + subdir)
+	
+	DirPath = DirPath + subdir + "\\"
+	string filename = DirPath+FileNamePrefix+FileNamePostfix
+	
+	SaveAsGatan(im,filename)
+
+	print("saved "+filename)
+}
+
+void IPrep_saveSEMImage(image &im, string subdir, string name)
+{
+	// saves front image and saves as custom name, used for digiscan
+	
+	string DirPath = ""
+	DirPath = PathExtractDirectory(IPrep_rootSaveDir(), 0)
+
+	string FileNamePrefix = "IPREP_SEM"
+	string FileNamePostfix = "_"+name+"_slice_"+right("000"+IPrep_sliceNumber(),4)
+	
+	// check if dir exsits, create if not
+	if (!DoesDirectoryExist( dirPath + subdir))
+		CreateDirectory(dirPath + subdir)
+	
+	DirPath = DirPath + subdir + "\\"
+	string filename = DirPath+FileNamePrefix+FileNamePostfix
+	
+	SaveAsGatan(im,filename)
+
+	print("saved "+filename)
+}
+
+void IPrep_savePECSImage(image &im, string subdir)
+{
+	// saves front image, used both for pecs camera
+	
+	string DirPath = ""
+	DirPath = PathExtractDirectory(IPrep_rootSaveDir(), 0)
+
+	string FileNamePrefix = "IPREP_PECS"
+	string FileNamePostfix = "_slice_"+right("000"+IPrep_sliceNumber(),4)
+
+	// check if dir exsits, create if not
+	if (!DoesDirectoryExist( dirPath + subdir))
+		CreateDirectory(dirPath + subdir)
+	
+	DirPath = DirPath + subdir + "\\"
+	string filename = DirPath+FileNamePrefix+FileNamePostfix
+
+	SaveAsGatan(im,filename)
+	
+	print("saved "+filename)
+}
+
+
+
+
+void IPrep_autofocus()
+{
+	// wrapper for autofocus function in DM
+	// #todo: test, just copied from JH example; modified 20160701
+	
+
+
+	// NB: numbers are in Microns
+
+	// Dear Thijs...you are going to hate this default focus mod. 
+
+	string s1="Private:AFS Parameters"
+	string s2="Focus accuracy"
+	string s3="Focus limit (lower)"
+	string s4="Focus limit (upper)"
+	string s5="Focus search range"
+	string s6="Stigmation enabled"
+	
+	string s7="Default focus"
+	number n2,n3,n4,n5,n6,n7
+
+	string str2 
+	number focus_range_fraction = .1
+	number focus = EMGetFocus()
+	result(datestamp()+": current focus value before autofocus: "+focus+"\n")
+	
+
+	// Default focus
+	str2 = s1+":"+s7
+	n7=9001
+	if (!GetPersistentNumberNote( str2, n7 ))
+		{
+			if ( !GetNumber( str2, n7, n7 ) ) 
+			{
+				n7 = 9000
+				result("  USING DEFAULT FOCUS OF 9000 microns\n")
+			}
+			
+			SetPersistentNumberNote( str2, n7 )
+		}
+		
+	number default_focus=n7
+
+
+	// number start_focus = EMGetFocus()
+	number start_focus = default_focus
+	EMSetFocus( start_focus )
+	focus=start_focus
+	result(datestamp()+": setting focus to (before AFS): "+start_focus+"\n")
+	result("\n"+datestamp()+": start WD = "+(start_focus/1000)+"\n")
+
+	number useDialog = 0 
+	
+	// old number JH
+	//number focus_range = focus_range_fraction*focus
+	//number focus_res = .0025*focus
+	
+	
+	// new numbers thijs troubleshooting 20161128
+	//number focus_range = 500
+	//number focus_res = 20
+
+
+	number AF_do_stig = 1
+/*	
+	// Focus accuracy
+	str2 = s1+":"+s2
+	GetPersistentNumberNote( str2, n2 )
+	n2 = focus_res
+	if ( useDialog) 
+		if (!GetNumber( str2, n2, n2 ) ) exit(0)
+		
+	SetPersistentNumberNote( str2, n2 )
+
+	// Focus limit (lower)
+	str2 = s1+":"+s3
+	GetPersistentNumberNote( str2, n3 )
+	n3 = focus - focus * focus_range_fraction
+		if ( useDialog) 
+			if ( !GetNumber( str2, n3, n3 ) ) exit(0)
+	SetPersistentNumberNote( str2, n3 )
+
+	// Focus limit (upper)
+	str2 = s1+":"+s4
+	GetPersistentNumberNote( str2, n4 )
+	n4 = focus + focus * focus_range_fraction
+	if ( useDialog) 
+		if ( !GetNumber( str2, n4, n4 ) ) exit(0)
+	SetPersistentNumberNote( str2, n4 )
+
+	// Focus search range
+	str2 = s1+":"+s5
+	GetPersistentNumberNote( str2, n5 )
+	n5=focus_range
+	if ( useDialog) 
+		if ( !GetNumber( str2, n5, n5 ) ) exit(0)
+	SetPersistentNumberNote( str2, n5 )
+*/
+	// Stigmation enabled
+	str2 = s1+":"+s6
+	n6=AF_do_stig
+	GetPersistentNumberNote( str2, n6 )
+	if ( useDialog) 
+		if ( !GetNumber( str2, n6, n6 ) ) exit(0)
+	SetPersistentNumberNote( str2, n6 )
+	AF_do_stig=n6
+	
+	if ( AF_do_stig )
+	{
+		result("  Autofocus enabled with stigmation\n")
+		AFS_Run()
+	}
+	 else
+	{
+		result("  Autofocus enabled without stigmation\n")
+		AF_Run()
+	}
+
+	while( AFS_IsBusy() )
+	{
+		sleep( 1 )
+		result(".")
+	}
+
+	number end_focus = EMGetFocus()
+	if ( abs(end_focus-default_focus) > 5000 )
+	{
+		okdialog( "WARNING: focus is not within 5mm of the default focus" )
+	}	
+	
+	result(datestamp()+": final WD = "+(end_focus/1000)+"\n")
+		result("  Change in focus = "+((start_focus-end_focus)/1000)+"\n")
+
+	// now set new AF default focus value to new value
+	str2 = s1+":"+s7
+	SetPersistentNumberNote( str2, end_focus )
+
+}
+
 
 
 // testing

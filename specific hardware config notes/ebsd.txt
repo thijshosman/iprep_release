@@ -1,0 +1,27 @@
+troubleshooting the plugin from DM to OI
+IP: 10.13.7.184
+port: 5500
+strings: 
+
+CM_StartAcquire,Site 1,EBSD1,1
+EBSD1 is acquisition name in this case
+1 is electron
+2 is eds
+4 is ebsd
+progress goes from 50 to 100 in all cases
+OI data tree: 
+specimen > site > acquisition_name
+
+EBSD and EBSD+EDS
+so, in order to do EBSD we do: 
+CM_StartAcquire,site1,EBSD1,4
+it acquires an EBSD pattern as selected on the 'Acquire Map Data' screen in Aztec. it calls it "EBSD1" becaue that is what the command said. if one already exists, it still acquires it and adds it to the tree and numbers the data underneath it (ie EBSD layered image 7, then EBSD layered image 7). if EBSD and EDS need to be done, it needs to be setup like that in the EBSD menu in EBSD mode. 
+if the following command is sent: 
+CM_StartAcquire,site1,EBSD2,4
+it starts an acquisition of currently selected region with name "EBSD2" and incremented number (EBSD layered image 8). 
+if using multiple sites, the region of the last configured map is used for all acquisitions. if a site that does not exist is used, the system will acquire data using unknown parameters in full FOV, so it will take a long time
+EBSD linescans do not work in the plugin this way
+EDS
+Setup by selecting EDS-SEM modality. use Map, select region, and acquire using:
+CM_StartAcquire,site4,EDS2,2
+works same way, except that acquisition_name must change with each acquisition. if it doesn't, the system will start but never finish. 

@@ -1,0 +1,25 @@
+EBSD/EDS acquisition in DM is defined in the IPrep:EBSD tags. The EBSD/EDS step follows the imaging step. At this moment, there is only 1 ROI (as limitation by OI plugin). 
+
+Parameters: 
+
+acquire_n_slice: acquire data every n slices
+
+data_prefix: the prefix of the acquisition name in Aztec
+
+mag: set the magnification of the SEM to this value prior to acquisition
+
+semcoord: the semcoord used for acquisition
+
+sitename: the sitename defined in Aztec for acquisition
+
+type: 
+	2: EDS 
+	1: SEM (don't know why you would acquire SEM images in Aztec, but you can)
+	4: EBSD (can also have EDS enabled, but that is part of EBSD workflow in Aztec)
+
+
+
+NB: for unknown reasons, when using EBSD, you need to let DM generate sitename for EBSD. if you don't, Aztec will use default parameters for acquisition and generate a new sitename even if the same name already exists
+
+
+

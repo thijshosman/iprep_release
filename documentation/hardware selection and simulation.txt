@@ -1,0 +1,5 @@
+
+different hardware instances/implementations can be selected for each device, based on tags in IPrep:simulation
+
+in general, 1 means simulation (ie hardware not present so just have a simulation class that acts like hardware), 2 means implemented as in demo unit 1, 3 means as in Manchester
+

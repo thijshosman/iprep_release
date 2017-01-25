@@ -1,0 +1,1 @@
+microstepping at 128 microsteps/step and 20% of current makes it faster and quieter to operate

@@ -1,0 +1,41 @@
+
+what follows are common parameters defined for a ROI. some of these are self evident, but a basic understanding is needed to know how the workflow traverses the ROI object and sets things. 
+ROIs are all in IPrep:ROIs
+
+
+af_before: 
+	1: run af routine before imaging
+	0: run af routine after imaging
+	NB: ignored if af is not enabled
+
+af_mode: 
+	0: leave focus alone
+	1: autofocus every nth slice (see af_n_slice for n value)
+	2: use the focus defined in this ROI
+
+af_n_slice: when autofocus is enabled (af_mode == 1), this value determines how many slices af is used
+
+focus: focus value, only used if af_mode == 2
+
+enabled: 
+	0: the workflow will skip this ROI
+	1: the workflow will visit this ROI, order set by order tag
+
+imageOn: 
+	1: imaging for this ROI enabled (default)
+	0: no imaging. can be used for ROI that just needs focusing
+
+order: workflow will visit ROIs in ascending order (so 1, 2, 3, .., 100)
+
+image_n_slice: image every n slices
+
+mag: magnification value for this ROI
+
+name: name of the ROI
+
+coordName: name of the coord used by ROI. this is not the same as the ROI name, and the reason is that sometimes you want to reuse a coord for multiple ROIs (at different mags etc)
+
+digiscan_param: digiscan parameters used for this ROI. only exception is StoredImaging ROI; for this ROI it uses the global capture settings
+
+
+

@@ -1,0 +1,5 @@
+
+
+{GETP_DEV0000,subsystem_milling,device_mfcLeft,set_gas_flow,-999}
+
+{SETP_DEV0000,subsystem_milling,device_mfcLeft,set_gas_flow,0.01}
