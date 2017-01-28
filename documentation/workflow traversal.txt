@@ -1,0 +1,14 @@
+
+This is the order of the steps in each workflow cycle. 
+
+1. image
+2. ebsd/eds
+3. increment slice number
+4. move to PECS
+5. pecs image before milling
+6. mill
+7. coat
+8. pecs image after milling
+9. move to SEM
+
+

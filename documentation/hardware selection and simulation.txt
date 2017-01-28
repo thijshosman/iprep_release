@@ -1,5 +1,43 @@
 
-different hardware instances/implementations can be selected for each device, based on tags in IPrep:simulation
+different hardware instances/implementations can be selected for each device, based on tags in IPrep:simulation. the workflow is sending commands without knowing what the SEM is, but the SEM implementation takes care of these details. This means it is easy to simulate things. 
 
-in general, 1 means simulation (ie hardware not present so just have a simulation class that acts like hardware), 2 means implemented as in demo unit 1, 3 means as in Manchester
+in general, 1 means simulation (ie hardware not present so just have a simulation class that acts like hardware), 2 means implemented as in demo unit 1, 3 means as in Manchester. all this is defined in IPrep_hardwareFactory.s
+
+summary of differences: 
+
+PECS
+rev1 (manchester): 
+-gate valve uses av2/av3 without specific board
+-no coating
+rev2 (alpha 2/demo 1):
+-coating
+-uses gv board
+
+SEM
+Nova (manchester):
+-blanking disabled since it causes dynamic focus to turn off
+-focus not explicitly reset in nominal_imaging
+-no magbugfix
+Quanta (alpha 2/demo 1):
+-focus updated and stored and reset back when going to nominal_imaging
+-a workaround for mag problems is added
+
+Gripper
+rev1 (manchester):
+-no additional closing steps after gripper has closed/sensor has triggered
+rev2 (alpha 2/demo 1):
+-close a few more steps after sensor has triggered
+
+Transfer/Parker
+These are 2 different controllers. IPA is an upgraded version of ARIES with the same interface but a lot of changes. the interface to the workflow is the same. major ones are: 
+ARIES (manchester):
+-original implementation Oct 2015, few changes since. includes torque limits
+IPA (alpha 2/demo 1):
+-direction of motion added
+-method of circumventing communication issues in which IPA does not always send back prompt
+-torque limit in different way: this one is set in volts and experimentally verified. 
+
+
+
+
 

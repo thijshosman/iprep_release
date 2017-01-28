@@ -1,6 +1,10 @@
+Setting up an ROI
 
-what follows are common parameters defined for a ROI. some of these are self evident, but a basic understanding is needed to know how the workflow traverses the ROI object and sets things. 
-ROIs are all in IPrep:ROIs
+
+What follows are common parameters defined for a ROI. some of these are self evident, but a basic understanding is needed to know how the workflow traverses the ROI object and sets things. 
+
+
+ROIs are all in 'IPrep:ROIs' as a numbered taglist. an ROI can be generated and will be populated with default values
 
 
 af_before: 
@@ -35,7 +39,9 @@ name: name of the ROI
 
 coordName: name of the coord used by ROI. this is not the same as the ROI name, and the reason is that sometimes you want to reuse a coord for multiple ROIs (at different mags etc)
 
-digiscan_param: digiscan parameters used for this ROI. only exception is StoredImaging ROI; for this ROI it uses the global capture settings
+digiscan_param: digiscan parameters used for this ROI. only exception is StoredImaging ROI; for this ROI it uses the global capture settings. these digiscan tags can be changed for this ROI. 
+
+NB: the digiscan will acquire signals (number of signals and name for each signal) as defined by global tags. you cannot selectively enable/disable detector signals per ROI
 
 
 

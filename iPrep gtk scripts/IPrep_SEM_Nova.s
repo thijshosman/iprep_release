@@ -908,7 +908,7 @@ class SEM_IPrep_Nova: object
 
 	void blankOn(object self)
 	{
-		FEIQuanta_SetBeamBlankState(1)
+		//FEIQuanta_SetBeamBlankState(1)
 		blankState = 1
 		self.print("beam blanked")
 	}

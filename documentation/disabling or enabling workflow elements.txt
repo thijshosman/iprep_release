@@ -1,0 +1,7 @@
+These are enabled in "IPrep:workflowElements". please be careful editing these. if for example one of the two transfer steps is disabled it will skip it but expect the sample to be in the right place for imaging/milling, which it would not be. This is intended to run tests in either milling/imaging/EBSD mode by running the workflow and should generally not be messed with. 
+
+
+
+
+
+

@@ -1429,11 +1429,12 @@ class EBSD_default: deviceSequence
 		}
 
 		// mag
-		tagname = "IPrep:EBSD:mag"
-		if(!GetPersistentNumberNote( tagname, mag ))
-		{
-			throw("EBSD mag (IPrep:EBSD:mag) not set")
-		}
+		// no mag, just use whatever is already setup after visiting last ROI in imaging
+		//tagname = "IPrep:EBSD:mag"
+		//if(!GetPersistentNumberNote( tagname, mag ))
+		//{
+		//	throw("EBSD mag (IPrep:EBSD:mag) not set")
+		//}
 
 		// SEM coordname
 		tagname = "IPrep:EBSD:semcoord"
@@ -1452,13 +1453,13 @@ class EBSD_default: deviceSequence
 		if (IPrep_sliceNumber() % n_ebsd == 0 )
 		{
 			// set magnification
-			self.print("EBSD: magnification is: "+mag)
-			myWorkflow.returnSEM().setMag(mag)
+			//self.print("EBSD: magnification is: "+mag)
+			//myWorkflow.returnSEM().setMag(mag)
 
 
 			// go to sem coord
 			self.print("coordname for EBSD: "+coordname)
-			// go to ROIs SEM coord, but only if we are not already there
+			// go to ROIs SEM coord, but only if we are not already there (handled by SEM class)
 			if (myWorkflow.returnSEM().getCurrentImagingPosition() == coordname)
 			{
 				// already there

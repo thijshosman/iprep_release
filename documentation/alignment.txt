@@ -1,0 +1,23 @@
+IPrep currently handles alignment in the following way. most of these functions are in IPrep_alignment.s, but some UI functions are in IPrep_UI.s/IPrep_main.s since they involve querying the user. 
+
+
+*** references ***
+
+IPrep uses a reference point (called 'reference') as the 'pickup_dropoff' point. the 'reference' point is determined upon installation. from this point, a known vector goes to each the other point relevant for transfering ('clear'). There is also the scribe mark ('scribe_pos'), from which other points relevant to imaging are referenced ('highgridback', 'highgridfront', 'nominal_imaging', 'StoredImaging'). All these vectors are defined by design, since they are all on the dock so they only depend on the dock model. 
+
+*** reinsertion ***
+
+Every time the dock is reinserted, there will be a small change in x and y in alignment. the user draws a rectangular ROI on the scribe mark and calls IPrep_setScribeROI(). this function will move all active points used ('highgridback', 'highgridfront', 'nominal_imaging', 'StoredImaging', 'pickup_dropoff', 'clear' and of course 'scribe_pos' itself) by the vector between the grid point and where the grid point ought to be (in the center of the image).
+
+*** changing mode/swapping docks ***
+
+each mode/dock has a different 'reference' sem coordinate and 'scribe_pos' coordinate. as described before the other coordinates (grids etc) are referenced from these 2 points for each of the docs. in addition to the sem coordinates, the transfer system coordinates will also be different for different docks. when the dock mode changes, these transfer points (sem_pickup, sem_dropoff, sem_backoff) get set. 
+
+since the mode is detected by the dock pins itself, caling calibrateForMode() will do set the coordinates. this will both set the SEM coordinates and the transfer system coordinates. you would not call this directly, since the user must be asked various questions to verify states and some flags need to be set to make sure the system gets the scribe mark calibrated after a dock swap/mode switch. details can be found in IPrep_alignment.s
+
+the long term plan for this is to have proper alignment points and vectors that change them as described in IPrep_alignment, but as of now (2017-01-27) that is not yet working. 
+
+
+
+
+

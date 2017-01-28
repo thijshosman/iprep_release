@@ -1,0 +1,15 @@
+
+multi ROI mode: 
+visit all enabled ROIs in ascending order. StoredImaging can also be used as one of the ROIs in multi ROI mode but now the workflow will use the corresponding digiscan parameters in the ROI instead of global ones. 
+
+NB: the digiscan will acquire signals (number of signals and name for each signal) as defined by global tags. you cannot selectively enable/disable detector signals per ROI
+
+
+Single ROI mode: 
+the semcoord and the ROI are called "StoredImaging". the UI allows you to save a different coordinate as StoredImaging. the digiscan parameters used are the global 'capture' settings, not the ones stored in this ROI. the most common settings that would have to change for this ROI are magnification and focus (if focus mode is set to use it). 
+
+
+
+
+
+
